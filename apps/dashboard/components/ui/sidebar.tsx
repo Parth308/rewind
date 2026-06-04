@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Activity, LayoutDashboard, Settings, LayoutTemplate, User, Shield, ChevronRight } from 'lucide-react';
+import { Activity, LayoutDashboard, Settings, LayoutTemplate, User, Shield, ChevronRight, Server } from 'lucide-react';
 import { clsx } from 'clsx';
 
 const navGroups = [
@@ -17,12 +17,13 @@ const navGroups = [
     label: 'Manage',
     items: [
       { name: 'Projects', href: '/dashboard/projects', icon: LayoutTemplate, exact: false },
+      { name: 'System', href: '/dashboard/system', icon: Server, exact: false },
       { name: 'Settings', href: '/dashboard/settings', icon: Settings, exact: false },
     ],
   },
 ];
 
-export function Sidebar() {
+export function Sidebar({ isLive = true }: { isLive?: boolean }) {
   const pathname = usePathname();
 
   const isActive = (href: string, exact: boolean) =>
@@ -83,13 +84,24 @@ export function Sidebar() {
       </nav>
 
       {/* Live indicator */}
-      <div className="px-5 py-3 border-t border-[var(--color-border-dark)] border-b bg-[var(--color-accent-green)]/[0.02]">
+      <div className={clsx(
+        "px-5 py-3 border-t border-[var(--color-border-dark)] border-b transition-colors",
+        isLive ? "bg-[var(--color-accent-green)]/[0.02]" : "bg-red-500/[0.02]"
+      )}>
         <div className="flex items-center gap-2">
           <div className="relative flex h-2 w-2">
-            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[var(--color-accent-green)] opacity-60" />
-            <span className="relative inline-flex rounded-full h-2 w-2 bg-[var(--color-accent-green)]" />
+            {isLive ? (
+              <>
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[var(--color-accent-green)] opacity-60" />
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-[var(--color-accent-green)]" />
+              </>
+            ) : (
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-red-500" />
+            )}
           </div>
-          <span className="text-xs text-neutral-500">Ingestor live · port 3001</span>
+          <span className="text-xs text-neutral-500">
+            {isLive ? 'Ingestor live · port 3001' : 'Ingestor offline'}
+          </span>
         </div>
       </div>
 
