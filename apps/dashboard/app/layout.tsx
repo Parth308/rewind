@@ -28,10 +28,11 @@ export default function RootLayout({
 }>) {
   return (
     <html
+      suppressHydrationWarning
       lang="en"
       className="h-full antialiased dark scroll-smooth"
     >
-      <body className="font-sans min-h-full flex flex-col">{children}</body>
+      <body suppressHydrationWarning className="font-sans min-h-full flex flex-col">{children}</body>
     </html>
   );
 }

@@ -80,10 +80,10 @@ export default async function SessionReplay(props: { params: Promise<{ id: strin
       </FadeUp>
 
       {/* Main Content */}
-      <FadeUp delay={0.1} className="flex gap-6 flex-1 min-h-0">
+      <FadeUp delay={0.1} className="flex flex-col xl:flex-row gap-6 flex-1 min-h-0 overflow-y-auto xl:overflow-hidden">
 
         {/* Player Area */}
-        <div className="flex-1 min-h-0 flex flex-col rounded-2xl border border-[var(--color-border-dark)] bg-[#050505] overflow-hidden relative shadow-2xl">
+        <div className="flex-1 min-h-[400px] xl:min-h-0 flex flex-col rounded-2xl border border-[var(--color-border-dark)] bg-[#050505] overflow-hidden relative shadow-2xl">
           {/* Header */}
           <div className="flex items-center gap-3 px-5 py-3 bg-[#111] border-b border-[var(--color-border-dark)] relative z-10 shrink-0">
             <Monitor className="w-4 h-4 text-neutral-500" />
@@ -105,7 +105,7 @@ export default async function SessionReplay(props: { params: Promise<{ id: strin
         </div>
 
         {/* Right panel (Logs & Network) */}
-        <div className="w-[400px] shrink-0 flex flex-col gap-6 min-h-0">
+        <div className="w-full xl:w-[400px] shrink-0 flex flex-col gap-6 min-h-[600px] xl:min-h-0">
 
           {/* Console */}
           <div className="flex-1 min-h-0 flex flex-col rounded-2xl border border-[var(--color-border-dark)] bg-[#0A0A0A] overflow-hidden shadow-2xl relative">

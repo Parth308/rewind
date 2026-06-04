@@ -31,9 +31,9 @@ export default function SettingsPage() {
         
         {/* Settings Navigation */}
         <FadeUp delay={0.1} className="w-full lg:w-64 shrink-0">
-          <div className="space-y-2 relative">
+          <div className="flex flex-row lg:flex-col gap-2 overflow-x-auto pb-2 lg:pb-0 relative scrollbar-hide w-full">
             {/* Nav Background Glow */}
-            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-full bg-[var(--color-accent-green)] opacity-5 blur-[60px] pointer-events-none" />
+            <div className="hidden lg:block absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-full bg-[var(--color-accent-green)] opacity-5 blur-[60px] pointer-events-none" />
 
             {tabs.map((tab) => {
               const isActive = activeTab === tab.id;
@@ -41,7 +41,7 @@ export default function SettingsPage() {
                 <button
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id)}
-                  className={`w-full flex items-center gap-4 px-5 py-4 rounded-xl text-sm font-medium transition-all relative z-10 ${
+                  className={`shrink-0 lg:w-full flex items-center gap-3 lg:gap-4 px-4 lg:px-5 py-3 lg:py-4 rounded-xl text-sm font-medium transition-all relative z-10 ${
                     isActive 
                       ? 'text-white' 
                       : 'text-neutral-500 hover:text-white hover:bg-white/5'
@@ -59,8 +59,8 @@ export default function SettingsPage() {
                       className="absolute left-0 top-3 bottom-3 w-1 bg-[var(--color-accent-green)] rounded-r"
                     />
                   )}
-                  <tab.icon className={`h-5 w-5 transition-colors ${isActive ? 'text-[var(--color-accent-green)]' : 'text-neutral-600'}`} />
-                  <span className="font-serif text-lg">{tab.name}</span>
+                  <tab.icon className={`h-4 w-4 lg:h-5 lg:w-5 transition-colors ${isActive ? 'text-[var(--color-accent-green)]' : 'text-neutral-600'}`} />
+                  <span className="font-serif text-base lg:text-lg">{tab.name}</span>
                 </button>
               );
             })}

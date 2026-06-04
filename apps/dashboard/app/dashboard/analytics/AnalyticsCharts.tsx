@@ -1,8 +1,8 @@
 'use client';
 
 import {
-  AreaChart, Area, BarChart, Bar, XAxis, YAxis, CartesianGrid,
-  Tooltip, ResponsiveContainer, Legend
+  AreaChart, Area, XAxis, YAxis, CartesianGrid,
+  Tooltip, ResponsiveContainer
 } from 'recharts';
 
 const CustomTooltip = ({ active, payload, label }: any) => {
@@ -49,19 +49,21 @@ export default function AnalyticsCharts({ data }: { data: any[] }) {
         <XAxis
           dataKey="date"
           stroke="transparent"
-          tick={{ fill: 'rgba(255,255,255,0.3)', fontSize: 11, fontFamily: 'monospace' }}
+          tick={{ fill: 'rgba(255,255,255,0.3)', fontSize: 10, fontFamily: 'monospace' }}
           tickLine={false}
           axisLine={false}
           dy={8}
+          interval="preserveStartEnd"  // ← prevents label crowding on mobile
         />
         <YAxis
           stroke="transparent"
-          tick={{ fill: 'rgba(255,255,255,0.3)', fontSize: 11, fontFamily: 'monospace' }}
+          tick={{ fill: 'rgba(255,255,255,0.3)', fontSize: 10, fontFamily: 'monospace' }}
           tickLine={false}
           axisLine={false}
           allowDecimals={false}
+          width={30}  // ← fixed width prevents layout shift
         />
-        <Tooltip content={<CustomTooltip />} />
+        <Tooltip content={<CustomTooltip />} cursor={{ stroke: 'rgba(255,255,255,0.08)', strokeWidth: 1 }} />
         <Area
           type="monotone"
           dataKey="sessions"
