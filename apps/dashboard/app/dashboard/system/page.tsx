@@ -1,5 +1,6 @@
-import { Server, Database, Cpu, Activity, Zap, Info } from 'lucide-react';
 import { getSystemMetrics } from '@/lib/system';
+import { FadeUp } from '@/components/ui/fade-up';
+import { Activity, Database, Cpu, Server, Zap, ArrowRight, Layers } from 'lucide-react';
 
 export const dynamic = 'force-dynamic';
 
@@ -23,128 +24,144 @@ export default async function SystemPage() {
   const { dbSize, os, redis } = metrics;
 
   return (
-    <div className="flex flex-col gap-8">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <h1 className="font-serif text-3xl font-bold tracking-tight text-white mb-1">System Overview</h1>
-          <p className="text-sm text-neutral-400">Real-time metrics for database, queue, and server resources.</p>
+    <div className="flex flex-col gap-10 pb-10">
+      <FadeUp>
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6">
+          <div>
+            <h1 className="font-serif text-4xl sm:text-5xl font-bold tracking-tight text-white mb-3">System topology.</h1>
+            <p className="text-lg text-neutral-400 max-w-2xl">Real-time resource allocation and queue processing metrics.</p>
+          </div>
         </div>
-      </div>
+      </FadeUp>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
         
-        {/* PostgreSQL Card */}
-        <div className="glass relative overflow-hidden rounded-2xl p-6 flex flex-col gap-4 border border-[var(--color-border-dark)]">
-          <div className="flex justify-between items-start">
-            <div className="h-10 w-10 rounded-xl bg-blue-500/10 text-blue-400 flex items-center justify-center border border-blue-500/20 shadow-[inset_0_1px_0_rgba(59,130,246,0.2)]">
-              <Database className="h-5 w-5" />
-            </div>
-            <span className="text-[10px] font-bold uppercase tracking-wider text-neutral-500">PostgreSQL</span>
-          </div>
-          <div>
-            <h3 className="text-sm text-neutral-400 mb-1">Database Size</h3>
-            <p className="text-2xl font-serif font-bold text-white">{dbSize}</p>
-          </div>
-        </div>
-
-        {/* Redis Card */}
-        <div className="glass relative overflow-hidden rounded-2xl p-6 flex flex-col gap-4 border border-[var(--color-border-dark)]">
-          <div className="flex justify-between items-start">
-            <div className="h-10 w-10 rounded-xl bg-red-500/10 text-red-400 flex items-center justify-center border border-red-500/20 shadow-[inset_0_1px_0_rgba(239,68,68,0.2)]">
-              <Activity className="h-5 w-5" />
-            </div>
-            <span className="text-[10px] font-bold uppercase tracking-wider text-neutral-500">Redis Cache</span>
-          </div>
-          <div>
-            <h3 className="text-sm text-neutral-400 mb-1">Memory Used</h3>
-            <p className="text-2xl font-serif font-bold text-white">{redis.memory}</p>
-          </div>
-        </div>
-
-        {/* Server RAM */}
-        <div className="glass relative overflow-hidden rounded-2xl p-6 flex flex-col gap-4 border border-[var(--color-border-dark)]">
-          <div className="flex justify-between items-start">
-            <div className="h-10 w-10 rounded-xl bg-[var(--color-accent-green)]/10 text-[var(--color-accent-green)] flex items-center justify-center border border-[var(--color-accent-green)]/20 shadow-[inset_0_1px_0_rgba(163,230,53,0.2)]">
-              <Server className="h-5 w-5" />
-            </div>
-            <span className="text-[10px] font-bold uppercase tracking-wider text-neutral-500">Node Server</span>
-          </div>
-          <div>
-            <h3 className="text-sm text-neutral-400 mb-1">RAM Usage</h3>
-            <div className="flex items-end gap-2">
-              <p className="text-2xl font-serif font-bold text-white">{formatBytes(os.usedMem)}</p>
-              <p className="text-sm text-neutral-500 mb-1">/ {formatBytes(os.totalMem)} ({os.memUsagePercent}%)</p>
-            </div>
-          </div>
-        </div>
-
-        {/* Server Uptime */}
-        <div className="glass relative overflow-hidden rounded-2xl p-6 flex flex-col gap-4 border border-[var(--color-border-dark)]">
-          <div className="flex justify-between items-start">
-            <div className="h-10 w-10 rounded-xl bg-purple-500/10 text-purple-400 flex items-center justify-center border border-purple-500/20 shadow-[inset_0_1px_0_rgba(168,85,247,0.2)]">
-              <Cpu className="h-5 w-5" />
-            </div>
-            <span className="text-[10px] font-bold uppercase tracking-wider text-neutral-500">Host OS</span>
-          </div>
-          <div>
-            <h3 className="text-sm text-neutral-400 mb-1">Uptime</h3>
-            <p className="text-2xl font-serif font-bold text-white">{formatUptime(os.uptime)}</p>
-          </div>
-        </div>
-
-      </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        
-        {/* Queue Metrics */}
-        <div className="glass rounded-2xl p-6 border border-[var(--color-border-dark)]">
-          <div className="flex items-center gap-3 mb-6">
-            <Zap className="h-5 w-5 text-yellow-400" />
-            <h3 className="font-serif text-xl font-bold text-white">BullMQ Job Queue</h3>
-          </div>
+        {/* Left Column: Core Infrastructure */}
+        <div className="xl:col-span-2 flex flex-col gap-6">
           
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-            <div className="bg-[#050505] rounded-xl p-4 border border-white/5 shadow-inner">
-              <p className="text-xs text-neutral-500 mb-1 font-medium">Waiting</p>
-              <p className="text-xl font-serif font-bold text-white">{redis.queueCounts.waiting || 0}</p>
+          <FadeUp delay={0.1}>
+            <div className="bg-[#0A0A0A] border border-[var(--color-border-dark)] rounded-2xl p-8 relative overflow-hidden group">
+              <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.03)_1px,transparent_1px)] bg-[size:16px_16px] opacity-30" />
+              <div className="absolute top-0 right-0 -mt-32 -mr-32 w-64 h-64 bg-[var(--color-accent-green)] opacity-[0.03] blur-[80px] rounded-full transition-opacity duration-1000 group-hover:opacity-10" />
+
+              <h3 className="font-serif text-2xl font-bold text-white mb-10 relative z-10 flex items-center gap-3">
+                Infrastructure Allocation
+              </h3>
+
+              <div className="space-y-10 relative z-10">
+                {/* Node Server RAM */}
+                <div>
+                  <div className="flex justify-between items-end mb-3">
+                    <div className="flex items-center gap-2">
+                      <Server className="w-4 h-4 text-[var(--color-accent-green)]" />
+                      <span className="text-sm font-mono text-neutral-400">Node Cluster RAM</span>
+                    </div>
+                    <div className="font-mono text-xl text-white">
+                      {formatBytes(os.usedMem)} <span className="text-sm text-neutral-600">/ {formatBytes(os.totalMem)}</span>
+                    </div>
+                  </div>
+                  <div className="h-2 rounded-full bg-white/5 overflow-hidden flex">
+                    <div 
+                      className="h-full bg-[var(--color-accent-green)] shadow-[0_0_10px_var(--color-accent-green)]" 
+                      style={{ width: `${os.memUsagePercent}%`, opacity: 0.8 }} 
+                    />
+                  </div>
+                </div>
+
+                {/* PostgreSQL Size */}
+                <div>
+                  <div className="flex justify-between items-end mb-3">
+                    <div className="flex items-center gap-2">
+                      <Database className="w-4 h-4 text-blue-400" />
+                      <span className="text-sm font-mono text-neutral-400">PostgreSQL Volume</span>
+                    </div>
+                    <div className="font-mono text-xl text-white">{dbSize}</div>
+                  </div>
+                  <div className="h-2 rounded-full bg-white/5 overflow-hidden flex">
+                    <div className="h-full bg-blue-500 shadow-[0_0_10px_rgba(59,130,246,0.8)] w-[15%]" />
+                  </div>
+                </div>
+
+                {/* Redis Cache */}
+                <div>
+                  <div className="flex justify-between items-end mb-3">
+                    <div className="flex items-center gap-2">
+                      <Layers className="w-4 h-4 text-red-400" />
+                      <span className="text-sm font-mono text-neutral-400">Redis Memory Store</span>
+                    </div>
+                    <div className="font-mono text-xl text-white">{redis.memory}</div>
+                  </div>
+                  <div className="h-2 rounded-full bg-white/5 overflow-hidden flex">
+                    <div className="h-full bg-red-500 shadow-[0_0_10px_rgba(239,68,68,0.8)] w-[8%]" />
+                  </div>
+                </div>
+              </div>
             </div>
-            <div className="bg-[#050505] rounded-xl p-4 border border-white/5 shadow-inner">
-              <p className="text-xs text-blue-400/70 mb-1 font-medium">Active</p>
-              <p className="text-xl font-serif font-bold text-blue-400">{redis.queueCounts.active || 0}</p>
+          </FadeUp>
+
+          {/* Bottom Row: BullMQ Queue */}
+          <FadeUp delay={0.2}>
+            <div className="bg-[#0A0A0A] border border-[var(--color-border-dark)] rounded-2xl p-8 relative overflow-hidden group">
+              <h3 className="font-serif text-2xl font-bold text-white mb-8 relative z-10 flex items-center gap-3">
+                <Zap className="w-5 h-5 text-amber-400" /> BullMQ Ingestion Queue
+              </h3>
+              
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 relative z-10">
+                {[
+                  { label: "WAITING", value: redis.queueCounts.waiting || 0, color: "text-neutral-300", border: "border-neutral-700" },
+                  { label: "ACTIVE", value: redis.queueCounts.active || 0, color: "text-blue-400", border: "border-blue-500/30", glow: "shadow-[0_0_15px_rgba(59,130,246,0.15)]" },
+                  { label: "COMPLETED", value: redis.queueCounts.completed || 0, color: "text-[var(--color-accent-green)]", border: "border-[var(--color-accent-green)]/30", glow: "shadow-[0_0_15px_rgba(163,230,53,0.15)]" },
+                  { label: "FAILED", value: redis.queueCounts.failed || 0, color: "text-red-400", border: "border-red-500/30", glow: "shadow-[0_0_15px_rgba(239,68,68,0.15)]" }
+                ].map((stat, i) => (
+                  <div key={i} className={`bg-[#111] rounded-xl p-5 border ${stat.border} ${stat.glow || ''} relative overflow-hidden`}>
+                    <div className={`text-[10px] font-mono tracking-[0.2em] mb-3 ${stat.color} opacity-70`}>{stat.label}</div>
+                    <div className={`text-3xl font-mono font-bold ${stat.color}`}>{stat.value}</div>
+                  </div>
+                ))}
+              </div>
             </div>
-            <div className="bg-[#050505] rounded-xl p-4 border border-white/5 shadow-inner">
-              <p className="text-xs text-[var(--color-accent-green)]/70 mb-1 font-medium">Completed</p>
-              <p className="text-xl font-serif font-bold text-[var(--color-accent-green)]">{redis.queueCounts.completed || 0}</p>
-            </div>
-            <div className="bg-[#050505] rounded-xl p-4 border border-white/5 shadow-inner">
-              <p className="text-xs text-red-400/70 mb-1 font-medium">Failed</p>
-              <p className="text-xl font-serif font-bold text-red-400">{redis.queueCounts.failed || 0}</p>
-            </div>
-          </div>
+          </FadeUp>
         </div>
 
-        {/* Server Info */}
-        <div className="glass rounded-2xl p-6 border border-[var(--color-border-dark)]">
-          <div className="flex items-center gap-3 mb-6">
-            <Info className="h-5 w-5 text-indigo-400" />
-            <h3 className="font-serif text-xl font-bold text-white">Host Information</h3>
+        {/* Right Column: Host Info */}
+        <FadeUp delay={0.3} className="h-full">
+          <div className="bg-[#0A0A0A] border border-[var(--color-border-dark)] rounded-2xl p-8 h-full relative overflow-hidden flex flex-col">
+            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-indigo-500/50 to-transparent opacity-50" />
+            
+            <h3 className="font-serif text-2xl font-bold text-white mb-8 relative z-10 flex items-center gap-3">
+              <Cpu className="w-5 h-5 text-indigo-400" /> Host Machine
+            </h3>
+
+            {/* Simulated Server Rack Graphic */}
+            <div className="w-full bg-[#111] border border-white/5 rounded-lg p-4 space-y-3 mb-10 shadow-inner">
+              {[1,2,3].map((i) => (
+                <div key={i} className="flex gap-2 items-center">
+                  <div className={`w-2 h-2 rounded-full ${i === 2 ? 'bg-indigo-400 shadow-[0_0_8px_rgba(129,140,248,0.8)]' : 'bg-neutral-600'}`} />
+                  <div className="flex-1 h-3 bg-white/5 rounded" />
+                </div>
+              ))}
+            </div>
+            
+            <div className="space-y-6 relative z-10 flex-1">
+              <div className="flex flex-col gap-1 border-b border-[var(--color-border-dark)] pb-4">
+                <span className="text-[10px] font-mono text-neutral-500 tracking-[0.2em]">UPTIME</span>
+                <span className="text-xl font-mono text-white">{formatUptime(os.uptime)}</span>
+              </div>
+              <div className="flex flex-col gap-1 border-b border-[var(--color-border-dark)] pb-4">
+                <span className="text-[10px] font-mono text-neutral-500 tracking-[0.2em]">ARCHITECTURE</span>
+                <span className="text-xl font-mono text-white">{os.arch}</span>
+              </div>
+              <div className="flex flex-col gap-1 border-b border-[var(--color-border-dark)] pb-4">
+                <span className="text-[10px] font-mono text-neutral-500 tracking-[0.2em]">PLATFORM</span>
+                <span className="text-xl font-mono text-white">{os.platform} {os.release}</span>
+              </div>
+              <div className="flex flex-col gap-1 pb-4">
+                <span className="text-[10px] font-mono text-neutral-500 tracking-[0.2em]">COMPUTE</span>
+                <span className="text-xl font-mono text-white">{os.cpus} vCores</span>
+              </div>
+            </div>
           </div>
-          
-          <div className="space-y-4">
-            <div className="flex justify-between items-center border-b border-white/5 pb-3">
-              <span className="text-sm text-neutral-400">Architecture</span>
-              <span className="text-sm font-mono text-neutral-200">{os.arch}</span>
-            </div>
-            <div className="flex justify-between items-center border-b border-white/5 pb-3">
-              <span className="text-sm text-neutral-400">Platform</span>
-              <span className="text-sm font-mono text-neutral-200">{os.platform} {os.release}</span>
-            </div>
-            <div className="flex justify-between items-center">
-              <span className="text-sm text-neutral-400">CPU Cores</span>
-              <span className="text-sm font-mono text-neutral-200">{os.cpus} vCores</span>
-            </div>
-          </div>
-        </div>
+        </FadeUp>
 
       </div>
     </div>

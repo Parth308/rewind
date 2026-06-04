@@ -1,33 +1,27 @@
 import { db } from '@/lib/db';
 import { sessions, events, networkRequests, errors } from '@rewind/shared';
-import { count, sql, avg } from 'drizzle-orm';
+import { count, sql } from 'drizzle-orm';
 import AnalyticsCharts from './AnalyticsCharts';
-import { Activity, LayoutDashboard, ShieldAlert, Network, TrendingUp, Clock } from 'lucide-react';
+import { FadeUp } from '@/components/ui/fade-up';
+import { Activity, Network, ShieldAlert, TrendingUp } from 'lucide-react';
 
 export const dynamic = 'force-dynamic';
 
-interface StatCardProps {
-  label: string;
-  value: string | number;
-  icon: React.ElementType;
-  color: string;
-  bg: string;
-  glow: string;
-  sub?: string;
-}
-
-function StatCard({ label, value, icon: Icon, color, bg, glow, sub }: StatCardProps) {
+function StatCard({ label, value, color, glowClass }: { label: string; value: string | number; color: string; glowClass: string }) {
   return (
-    <div className="glass relative overflow-hidden rounded-2xl p-6 group transition-all hover:bg-white/[0.04]">
-      <div className={`absolute top-0 right-0 -mt-6 -mr-6 w-28 h-28 ${glow} opacity-[0.06] rounded-full blur-2xl group-hover:opacity-10 transition-opacity`} />
-      <div className="flex items-start justify-between mb-5">
-        <div className={`p-2.5 rounded-xl ${bg} ${color}`}>
-          <Icon className="h-5 w-5" />
-        </div>
+    <div className="relative overflow-hidden rounded-2xl border border-[var(--color-border-dark)] bg-[#0A0A0A] p-6 group transition-all duration-500 hover:border-white/20">
+      <div className={`absolute top-0 right-0 -mt-12 -mr-12 w-40 h-40 opacity-10 blur-[50px] transition-opacity duration-500 group-hover:opacity-20 rounded-full ${glowClass}`} />
+      
+      {/* Background Grid */}
+      <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.03)_1px,transparent_1px)] bg-[size:12px_12px] opacity-20" />
+
+      <div className="relative z-10 flex flex-col h-full justify-between">
+        <div className="font-mono text-[10px] uppercase tracking-[0.2em] text-neutral-500 mb-8">{label}</div>
+        <div className={`font-mono text-3xl sm:text-4xl font-bold tabular-nums tracking-tight ${color}`}>{value}</div>
       </div>
-      <div className="font-mono text-3xl font-bold text-white mb-1 tabular-nums">{value}</div>
-      <div className="text-xs font-semibold uppercase tracking-widest text-neutral-500">{label}</div>
-      {sub && <div className="text-xs text-neutral-600 mt-1">{sub}</div>}
+      
+      {/* Animated underline effect */}
+      <div className="absolute bottom-0 left-0 h-[2px] w-full bg-gradient-to-r from-transparent via-white/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700 ease-out" />
     </div>
   );
 }
@@ -69,111 +63,87 @@ export default async function DashboardAnalytics() {
   const totalBrowserCount = browserStats.reduce((sum, b) => sum + parseInt(b.count), 0);
 
   return (
-    <div className="flex flex-col gap-8">
+    <div className="flex flex-col gap-10">
       {/* Header */}
-      <div>
-        <h1 className="font-serif text-3xl font-bold tracking-tight text-white mb-1">Analytics</h1>
-        <p className="text-sm text-neutral-500">Platform-wide metrics and session trends.</p>
-      </div>
+      <FadeUp>
+        <div>
+          <h1 className="font-serif text-4xl sm:text-5xl font-bold tracking-tight text-white mb-3">Analytics matrix.</h1>
+          <p className="text-lg text-neutral-400 max-w-2xl">High-level telemetry across your entire infrastructure. Monitor events, performance, and exceptions in real-time.</p>
+        </div>
+      </FadeUp>
 
       {/* Stat Cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <StatCard
-          label="Total Sessions"
-          value={totalSessions.value.toLocaleString()}
-          icon={LayoutDashboard}
-          color="text-[var(--color-accent-green)]"
-          bg="bg-[var(--color-accent-green)]/10"
-          glow="bg-[var(--color-accent-green)]"
-        />
-        <StatCard
-          label="DOM Events"
-          value={totalEvents.value.toLocaleString()}
-          icon={Activity}
-          color="text-blue-400"
-          bg="bg-blue-500/10"
-          glow="bg-blue-500"
-          sub={totalSessions.value > 0 ? `~${Math.round(totalEvents.value / totalSessions.value)} per session` : undefined}
-        />
-        <StatCard
-          label="Network Reqs"
-          value={totalNetwork.value.toLocaleString()}
-          icon={Network}
-          color="text-purple-400"
-          bg="bg-purple-500/10"
-          glow="bg-purple-500"
-        />
-        <StatCard
-          label="Exceptions"
-          value={totalErrors.value.toLocaleString()}
-          icon={ShieldAlert}
-          color="text-red-400"
-          bg="bg-red-500/10"
-          glow="bg-red-500"
-          sub={totalSessions.value > 0 ? `${((totalErrors.value / totalSessions.value) * 100).toFixed(1)}% session rate` : undefined}
-        />
+        <FadeUp delay={0.1}><StatCard label="Total Sessions" value={totalSessions.value.toLocaleString()} color="text-white" glowClass="bg-white" /></FadeUp>
+        <FadeUp delay={0.2}><StatCard label="DOM Events" value={totalEvents.value.toLocaleString()} color="text-[var(--color-accent-green)]" glowClass="bg-[var(--color-accent-green)]" /></FadeUp>
+        <FadeUp delay={0.3}><StatCard label="Network Reqs" value={totalNetwork.value.toLocaleString()} color="text-indigo-400" glowClass="bg-indigo-500" /></FadeUp>
+        <FadeUp delay={0.4}><StatCard label="Exceptions" value={totalErrors.value.toLocaleString()} color="text-red-400" glowClass="bg-red-500" /></FadeUp>
       </div>
 
       {/* Charts + Browser breakdown row */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        
         {/* Sessions over time */}
-        <div className="lg:col-span-2 glass rounded-2xl p-6 relative overflow-hidden">
-          <div className="absolute inset-0 bg-gradient-to-b from-white/[0.015] to-transparent pointer-events-none" />
-          <div className="flex items-center justify-between mb-6">
-            <div>
-              <h3 className="font-serif text-lg font-bold text-white flex items-center gap-2">
-                <TrendingUp className="h-4 w-4 text-[var(--color-accent-green)]" />
-                Session Trend
-              </h3>
-              <p className="text-xs text-neutral-500 mt-0.5">Last 14 days</p>
-            </div>
-          </div>
-          <div className="h-64 w-full relative z-10">
-            <AnalyticsCharts data={formattedChartData} />
-          </div>
-        </div>
-
-        {/* Browser breakdown */}
-        <div className="glass rounded-2xl p-6">
-          <h3 className="font-serif text-lg font-bold text-white mb-1">Browsers</h3>
-          <p className="text-xs text-neutral-500 mb-6">Top clients by session count</p>
-          <div className="space-y-4">
-            {browserStats.length === 0 ? (
-              <div className="text-sm text-neutral-600 text-center py-8">No browser data yet</div>
-            ) : browserStats.map((b, i) => {
-              const pct = Math.round((parseInt(b.count) / totalBrowserCount) * 100);
-              const colors = ['bg-[var(--color-accent-green)]', 'bg-blue-400', 'bg-purple-400', 'bg-amber-400', 'bg-red-400'];
-              return (
-                <div key={b.browser}>
-                  <div className="flex items-center justify-between mb-1.5">
-                    <span className="text-sm text-neutral-300 font-medium">{b.browser}</span>
-                    <span className="text-xs font-mono text-neutral-500">{pct}%</span>
-                  </div>
-                  <div className="h-1.5 rounded-full bg-white/5 overflow-hidden">
-                    <div
-                      className={`h-full rounded-full ${colors[i % colors.length]} opacity-70`}
-                      style={{ width: `${pct}%` }}
-                    />
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-
-          {avgMs !== null && (
-            <div className="mt-8 pt-6 border-t border-white/5">
-              <div className="flex items-center gap-3">
-                <div className="p-2 rounded-lg bg-amber-500/10 text-amber-400">
-                  <Clock className="h-4 w-4" />
-                </div>
-                <div>
-                  <div className="text-xs text-neutral-500 uppercase tracking-widest">Avg Duration</div>
-                  <div className="text-xl font-mono font-bold text-white">{avgMs}s</div>
-                </div>
+        <FadeUp delay={0.5} className="lg:col-span-2">
+          <div className="bg-[#0A0A0A] border border-[var(--color-border-dark)] rounded-2xl p-8 relative overflow-hidden h-full flex flex-col">
+            <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.03)_1px,transparent_1px)] bg-[size:24px_24px] [mask-image:radial-gradient(ellipse_80%_80%_at_50%_50%,#000_20%,transparent_100%)] opacity-50" />
+            
+            <div className="flex items-center justify-between mb-8 relative z-10">
+              <div>
+                <h3 className="font-serif text-2xl font-bold text-white flex items-center gap-3">
+                  Session Velocity
+                </h3>
+                <p className="text-sm font-mono text-neutral-500 mt-2">14-DAY TRAILING COUNT</p>
               </div>
             </div>
-          )}
-        </div>
+            
+            <div className="flex-1 w-full relative z-10 min-h-[250px]">
+              <AnalyticsCharts data={formattedChartData} />
+            </div>
+          </div>
+        </FadeUp>
+
+        {/* Browser breakdown & Avg Duration */}
+        <FadeUp delay={0.6} className="h-full">
+          <div className="bg-[#0A0A0A] border border-[var(--color-border-dark)] rounded-2xl p-8 h-full flex flex-col relative overflow-hidden">
+             <div className="absolute top-0 right-0 -mt-16 -mr-16 w-64 h-64 bg-indigo-500 opacity-5 blur-[100px] rounded-full pointer-events-none" />
+
+            <h3 className="font-serif text-2xl font-bold text-white mb-2 relative z-10">Client Targets</h3>
+            <p className="text-sm font-mono text-neutral-500 mb-8 relative z-10">TOP BROWSERS</p>
+            
+            <div className="space-y-6 relative z-10 flex-1">
+              {browserStats.length === 0 ? (
+                <div className="text-sm font-mono text-neutral-600">No browser data yet...</div>
+              ) : browserStats.map((b, i) => {
+                const pct = Math.round((parseInt(b.count) / totalBrowserCount) * 100);
+                const colors = ['bg-[var(--color-accent-green)]', 'bg-indigo-400', 'bg-purple-400', 'bg-rose-400', 'bg-amber-400'];
+                return (
+                  <div key={b.browser} className="group">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-sm text-neutral-300 font-medium group-hover:text-white transition-colors">{b.browser}</span>
+                      <span className="text-xs font-mono text-neutral-500">{pct}%</span>
+                    </div>
+                    <div className="h-1 rounded-full bg-white/5 overflow-hidden">
+                      <div
+                        className={`h-full rounded-full ${colors[i % colors.length]}`}
+                        style={{ width: `${pct}%`, opacity: 0.8 }}
+                      />
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+
+            {avgMs !== null && (
+              <div className="mt-8 pt-8 border-t border-[var(--color-border-dark)] relative z-10">
+                <div className="text-[10px] font-mono text-neutral-500 uppercase tracking-[0.2em] mb-2">Avg Session Duration</div>
+                <div className="text-3xl font-mono font-bold text-white flex items-baseline gap-1">
+                  {avgMs}<span className="text-sm text-neutral-600 font-normal">s</span>
+                </div>
+              </div>
+            )}
+          </div>
+        </FadeUp>
       </div>
     </div>
   );

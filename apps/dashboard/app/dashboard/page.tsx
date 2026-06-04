@@ -2,25 +2,12 @@ import Link from 'next/link';
 import { db } from '@/lib/db';
 import { sessions, projects } from '@rewind/shared';
 import { desc, count } from 'drizzle-orm';
-import { Clock, ChevronRight, Video, Globe, AlertTriangle } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { OnboardingGuide } from '@/components/ui/onboarding-guide';
+import { FadeUp } from '@/components/ui/fade-up';
+import { MonitorPlay, Terminal, Globe, Clock, ChevronRight } from 'lucide-react';
 
 export const dynamic = 'force-dynamic';
-
-function StatusBadge({ status }: { status: string | null }) {
-  const s = status || 'active';
-  return (
-    <span className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide ${
-      s === 'active'
-        ? 'bg-emerald-500/15 text-emerald-400'
-        : 'bg-neutral-500/15 text-neutral-400'
-    }`}>
-      <span className={`h-1.5 w-1.5 rounded-full ${s === 'active' ? 'bg-emerald-400' : 'bg-neutral-500'}`} />
-      {s}
-    </span>
-  );
-}
 
 export default async function DashboardSessions() {
   const [{ value: sessionCount }] = await db.select({ value: count() }).from(sessions);
@@ -45,117 +32,144 @@ export default async function DashboardSessions() {
   }
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-10 pb-10">
       {/* Page Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <h1 className="font-serif text-3xl font-bold tracking-tight text-white mb-1">Sessions</h1>
-          <p className="text-sm text-neutral-500">
-            <span className="text-white font-medium">{sessionCount}</span> recorded sessions across{' '}
-            <span className="text-white font-medium">{projectCount}</span>{' '}
-            {projectCount === 1 ? 'project' : 'projects'}
-          </p>
+      <FadeUp>
+        <div className="flex items-end justify-between gap-4">
+          <div>
+            <h1 className="font-serif text-4xl sm:text-5xl font-bold tracking-tight text-white mb-3">Sessions.</h1>
+            <p className="text-lg text-neutral-400 font-mono">
+              <span className="text-[var(--color-accent-green)]">{sessionCount}</span> recorded streams · <span className="text-indigo-400">{projectCount}</span> active nodes
+            </p>
+          </div>
         </div>
-        <div className="flex items-center gap-3">
-          <select className="glass rounded-lg px-3 py-2 text-sm text-neutral-300 focus:border-[var(--color-accent-green)] focus:outline-none transition-colors bg-transparent">
-            <option>All Projects</option>
-          </select>
-        </div>
-      </div>
+      </FadeUp>
 
-      {/* Sessions Table */}
-      <div className="glass rounded-2xl overflow-hidden">
-        {/* Table Header */}
-        <div className="grid grid-cols-12 gap-4 px-6 py-3 border-b border-white/5 bg-white/[0.02]">
-          <div className="col-span-1 text-[10px] font-semibold uppercase tracking-widest text-neutral-600">Status</div>
-          <div className="col-span-3 text-[10px] font-semibold uppercase tracking-widest text-neutral-600">Session</div>
-          <div className="col-span-3 text-[10px] font-semibold uppercase tracking-widest text-neutral-600">Environment</div>
-          <div className="col-span-2 text-[10px] font-semibold uppercase tracking-widest text-neutral-600">Duration</div>
-          <div className="col-span-2 text-[10px] font-semibold uppercase tracking-widest text-neutral-600">Recorded</div>
-          <div className="col-span-1" />
-        </div>
+      {/* Main Content Area */}
+      <FadeUp delay={0.1} className="flex-1">
+        <div className="bg-[#0A0A0A] border border-[var(--color-border-dark)] rounded-2xl relative overflow-hidden flex flex-col min-h-[500px] shadow-2xl">
+          {/* Ambient Glow & Grid */}
+          <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:32px_32px] opacity-30 pointer-events-none" />
+          <div className="absolute top-0 right-1/4 w-96 h-96 bg-[var(--color-accent-green)] opacity-[0.02] blur-[100px] pointer-events-none rounded-full" />
+          
+          {/* Header Row */}
+          <div className="grid grid-cols-12 gap-6 px-8 py-6 border-b border-[var(--color-border-dark)] bg-black/40 relative z-10 backdrop-blur-md">
+            <div className="col-span-5 text-xs font-mono uppercase tracking-[0.2em] text-neutral-500 font-bold flex items-center gap-2">
+              <Terminal className="w-4 h-4 text-neutral-600" /> Session Identity
+            </div>
+            <div className="col-span-3 text-xs font-mono uppercase tracking-[0.2em] text-neutral-500 font-bold flex items-center gap-2">
+              <Globe className="w-4 h-4 text-neutral-600" /> Environment
+            </div>
+            <div className="col-span-2 text-xs font-mono uppercase tracking-[0.2em] text-neutral-500 font-bold flex items-center gap-2">
+              <Clock className="w-4 h-4 text-neutral-600" /> Duration
+            </div>
+            <div className="col-span-2 text-xs font-mono uppercase tracking-[0.2em] text-neutral-500 font-bold flex items-center gap-2">
+              Timestamp
+            </div>
+          </div>
 
-        {/* Rows */}
-        <div className="divide-y divide-white/[0.04]">
-          {allSessions.map((session) => (
-            <Link
-              key={session.id}
-              href={`/dashboard/sessions/${session.id}`}
-              className="grid grid-cols-12 gap-4 items-center px-6 py-4 transition-colors hover:bg-white/[0.03] group"
-            >
-              <div className="col-span-1">
-                <StatusBadge status={session.status} />
-              </div>
+          {/* Rows */}
+          <div className="flex-1 overflow-y-auto relative z-10">
+            {allSessions.map((session, i) => {
+              const isActive = session.status === 'active';
+              const dur = session.durationMs;
+              const durStr = dur
+                ? dur >= 60000
+                  ? `${Math.floor(dur / 60000)}m ${Math.round((dur % 60000) / 1000)}s`
+                  : `${Math.round(dur / 1000)}s`
+                : null;
 
-              <div className="col-span-3 flex items-center gap-3">
-                <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-white/5 border border-white/[0.07] transition-all group-hover:bg-[var(--color-accent-green)]/10 group-hover:border-[var(--color-accent-green)]/20">
-                  <Video className="h-3.5 w-3.5 text-neutral-500 group-hover:text-[var(--color-accent-green)]" />
-                </div>
-                <div>
-                  <div className="font-mono text-sm text-emerald-400 leading-none mb-1">
-                    {session.id.substring(0, 12)}…
-                  </div>
-                  {session.country && (
-                    <div className="flex items-center gap-1 text-[11px] text-neutral-600">
-                      <Globe className="h-3 w-3" />{session.country}
+              return (
+                <Link
+                  key={session.id}
+                  href={`/dashboard/sessions/${session.id}`}
+                  className="grid grid-cols-12 gap-6 items-center px-8 py-6 transition-all hover:bg-white/[0.04] group border-b border-[var(--color-border-dark)] last:border-b-0 relative"
+                >
+                  {/* Hover indicator */}
+                  <div className="absolute left-0 top-0 bottom-0 w-1 bg-[var(--color-accent-green)] opacity-0 group-hover:opacity-100 transition-opacity shadow-[0_0_10px_rgba(163,230,53,0.5)]" />
+
+                  {/* Session ID + status */}
+                  <div className="col-span-5 flex items-center gap-5 min-w-0">
+                    <div className="relative flex items-center justify-center w-10 h-10 shrink-0">
+                      <div className={`absolute inset-0 rounded-full border border-dashed ${isActive ? 'border-[var(--color-accent-green)]/40 animate-[spin_4s_linear_infinite]' : 'border-neutral-600'}`} />
+                      <div className={`w-2.5 h-2.5 rounded-full ${isActive ? 'bg-[var(--color-accent-green)] shadow-[0_0_8px_var(--color-accent-green)]' : 'bg-neutral-600'}`} />
                     </div>
-                  )}
-                </div>
-              </div>
-
-              <div className="col-span-3">
-                <div className="text-sm text-neutral-300">{session.browser || '—'}</div>
-                <div className="text-xs text-neutral-600 mt-0.5">{session.os || '—'}</div>
-              </div>
-
-              <div className="col-span-2">
-                {session.durationMs ? (
-                  <div>
-                    <div className="flex items-center gap-1.5 text-sm text-neutral-300 font-mono mb-1.5">
-                      <Clock className="h-3 w-3 text-neutral-600" />
-                      {session.durationMs >= 60000
-                        ? `${Math.floor(session.durationMs / 60000)}m ${Math.round((session.durationMs % 60000) / 1000)}s`
-                        : `${Math.round(session.durationMs / 1000)}s`}
-                    </div>
-                    <div className="h-1 w-full rounded-full bg-white/5 overflow-hidden">
-                      <div
-                        className="h-full bg-[var(--color-accent-green)]/40 rounded-full"
-                        style={{ width: `${Math.min((session.durationMs / 300000) * 100, 100)}%` }}
-                      />
+                    
+                    <div className="min-w-0 flex-1">
+                      <div className="font-mono text-lg text-white group-hover:text-[var(--color-accent-green)] transition-colors truncate">
+                        {session.id}
+                      </div>
+                      <div className="flex items-center gap-3 mt-2">
+                        {session.errorCount && session.errorCount > 0 ? (
+                          <div className="text-xs text-red-400 font-mono bg-red-500/10 px-2 py-0.5 rounded border border-red-500/20">
+                            {session.errorCount} CRITICAL ERRORS
+                          </div>
+                        ) : (
+                          <div className="text-xs text-neutral-500 font-mono tracking-widest uppercase">
+                            {session.country || 'UNKNOWN ORIGIN'}
+                          </div>
+                        )}
+                      </div>
                     </div>
                   </div>
-                ) : (
-                  <span className="text-sm text-neutral-600">—</span>
-                )}
-              </div>
 
-              <div className="col-span-2">
-                <div className="text-sm text-neutral-400">
-                  {session.startedAt
-                    ? formatDistanceToNow(new Date(session.startedAt), { addSuffix: true })
-                    : '—'}
-                </div>
-                {session.errorCount && session.errorCount > 0 ? (
-                  <div className="flex items-center gap-1 text-[11px] text-red-400 mt-0.5">
-                    <AlertTriangle className="h-3 w-3" />
-                    {session.errorCount} error{session.errorCount > 1 ? 's' : ''}
+                  {/* Environment */}
+                  <div className="col-span-3 min-w-0 flex flex-col gap-1.5">
+                    <div className="text-base text-neutral-300 font-medium truncate group-hover:text-white transition-colors">
+                      {session.browser || 'Unknown Client'}
+                    </div>
+                    <div className="text-xs text-neutral-500 font-mono">
+                      {session.os || 'Unknown OS'}
+                    </div>
                   </div>
-                ) : null}
-              </div>
 
-              <div className="col-span-1 flex justify-end">
-                <ChevronRight className="h-4 w-4 text-neutral-700 group-hover:text-[var(--color-accent-green)] transition-colors" />
-              </div>
-            </Link>
-          ))}
-        </div>
+                  {/* Duration */}
+                  <div className="col-span-2 pr-6">
+                    {durStr ? (
+                      <div className="flex flex-col gap-2">
+                        <div className="font-mono text-base text-neutral-300 group-hover:text-white transition-colors">{durStr}</div>
+                        <div className="h-1.5 w-full rounded-full bg-white/5 overflow-hidden flex">
+                          <div
+                            className="h-full rounded-full bg-[var(--color-accent-green)] opacity-60 group-hover:opacity-100 transition-opacity shadow-[0_0_8px_rgba(163,230,53,0.5)]"
+                            style={{
+                              width: `${Math.min(((dur || 0) / 300000) * 100, 100)}%`,
+                            }}
+                          />
+                        </div>
+                      </div>
+                    ) : (
+                      <span className="text-neutral-700 font-mono text-sm">—</span>
+                    )}
+                  </div>
 
-        {/* Footer */}
-        <div className="px-6 py-3 border-t border-white/[0.04] bg-white/[0.01] flex items-center justify-between">
-          <span className="text-xs text-neutral-600">Showing {allSessions.length} of {sessionCount}</span>
-          <span className="text-xs text-neutral-600">Sorted by most recent</span>
+                  {/* When */}
+                  <div className="col-span-2 flex items-center justify-between">
+                    <span className="text-sm font-mono text-neutral-400 group-hover:text-neutral-300 transition-colors">
+                      {session.startedAt
+                        ? formatDistanceToNow(new Date(session.startedAt), { addSuffix: true })
+                        : '—'}
+                    </span>
+                    <div className="w-8 h-8 rounded-full bg-white/5 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all transform group-hover:translate-x-1 border border-white/10">
+                      <MonitorPlay className="w-4 h-4 text-[var(--color-accent-green)] ml-0.5" />
+                    </div>
+                  </div>
+                </Link>
+              );
+            })}
+          </div>
+
+          {/* Footer */}
+          <div className="px-8 py-4 flex items-center justify-between border-t border-[var(--color-border-dark)] bg-black/40 relative z-10">
+            <span className="text-xs font-mono tracking-[0.1em] text-neutral-500 uppercase flex items-center gap-2">
+              <div className="w-2 h-2 rounded-full bg-[var(--color-accent-green)]/50" />
+              Showing {allSessions.length} of {sessionCount}
+            </span>
+            <span className="text-xs font-mono tracking-[0.1em] text-neutral-500 uppercase">
+              Sorted by Recency
+            </span>
+          </div>
         </div>
-      </div>
+      </FadeUp>
     </div>
   );
 }

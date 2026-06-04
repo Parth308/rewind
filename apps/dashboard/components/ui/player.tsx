@@ -36,6 +36,7 @@ export default function Player({ events }: { events: any[] }) {
           height: playerHeight,
           autoPlay: true,
           skipInactive: true,
+          showWarning: false,
         },
       });
     };
