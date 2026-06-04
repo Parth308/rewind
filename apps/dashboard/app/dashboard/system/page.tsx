@@ -29,7 +29,7 @@ export default async function SystemPage() {
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6">
           <div>
             <h1 className="font-serif text-4xl sm:text-5xl font-bold tracking-tight text-white mb-3">System topology.</h1>
-            <p className="text-lg text-neutral-400 max-w-2xl">Real-time resource allocation and queue processing metrics.</p>
+            <p className="text-lg text-white/[0.618] max-w-2xl">Real-time resource allocation and queue processing metrics.</p>
           </div>
         </div>
       </FadeUp>

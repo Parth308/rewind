@@ -39,10 +39,24 @@ export default async function DashboardAnalytics() {
     SELECT date_trunc('day', started_at) as date, count(*) as count
     FROM sessions GROUP BY 1 ORDER BY 1 DESC LIMIT 14
   `);
-  const formattedChartData = sessionsByDayRaw.rows.map((row: any) => ({
-    date: new Date(row.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
-    sessions: parseInt(row.count, 10),
-  })).reverse();
+
+  const countsByDate = new Map();
+  sessionsByDayRaw.rows.forEach((row: any) => {
+    const d = new Date(row.date);
+    const label = d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+    countsByDate.set(label, (countsByDate.get(label) || 0) + parseInt(row.count, 10));
+  });
+
+  const formattedChartData = [];
+  for (let i = 13; i >= 0; i--) {
+    const d = new Date();
+    d.setDate(d.getDate() - i);
+    const label = d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+    formattedChartData.push({
+      date: label,
+      sessions: countsByDate.get(label) || 0,
+    });
+  }
 
   const browserStatsRaw = await db.execute(sql`
     SELECT browser, count(*) as count FROM sessions
@@ -59,7 +73,7 @@ export default async function DashboardAnalytics() {
           <h1 className="font-serif text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight text-white mb-2 sm:mb-3">
             Analytics matrix.
           </h1>
-          <p className="text-base sm:text-lg text-neutral-400 max-w-2xl">
+          <p className="text-base sm:text-lg text-white/[0.618] max-w-2xl">
             High-level telemetry across your entire infrastructure. Monitor events, performance, and exceptions in real-time.
           </p>
         </div>
@@ -101,8 +115,8 @@ export default async function DashboardAnalytics() {
         </FadeUp>
 
         {/* Browser breakdown & Avg Duration */}
-        <FadeUp delay={0.6}>
-          <div className="bg-[#0A0A0A] border border-[var(--color-border-dark)] rounded-2xl p-6 sm:p-8 flex flex-col relative overflow-hidden min-h-[300px]">
+        <FadeUp delay={0.6} className="h-full">
+          <div className="bg-[#0A0A0A] border border-[var(--color-border-dark)] rounded-2xl p-6 sm:p-8 flex flex-col relative overflow-hidden h-full min-h-[300px]">
             <div className="absolute top-0 right-0 -mt-16 -mr-16 w-64 h-64 bg-indigo-500 opacity-5 blur-[100px] rounded-full pointer-events-none" />
             <h3 className="font-serif text-xl sm:text-2xl font-bold text-white mb-1 sm:mb-2 relative z-10">Client Targets</h3>
             <p className="text-xs sm:text-sm font-mono text-neutral-500 mb-6 sm:mb-8 relative z-10">TOP BROWSERS</p>

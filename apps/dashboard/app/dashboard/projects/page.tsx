@@ -26,7 +26,7 @@ export default async function ProjectsPage() {
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6">
           <div>
             <h1 className="font-serif text-4xl sm:text-5xl font-bold tracking-tight text-white mb-3">Project nodes.</h1>
-            <p className="text-lg text-neutral-400 max-w-xl">Configure tracker instances and generate ingestion tokens.</p>
+            <p className="text-lg text-white/[0.618] max-w-xl">Configure tracker instances and generate ingestion tokens.</p>
           </div>
           <CreateProjectButton />
         </div>

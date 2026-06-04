@@ -22,7 +22,7 @@ export default function SettingsPage() {
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
             <h1 className="font-serif text-4xl sm:text-5xl font-bold tracking-tight text-white mb-3">Configuration.</h1>
-            <p className="text-lg text-neutral-400">Manage account parameters and platform preferences.</p>
+            <p className="text-lg text-white/[0.618]">Manage account parameters and platform preferences.</p>
           </div>
         </div>
       </FadeUp>
