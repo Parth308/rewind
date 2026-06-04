@@ -16,6 +16,15 @@ const app = express();
 app.use(cors({ origin: '*' }));
 app.use(express.json());
 
+app.get('/health', async (req, res) => {
+  try {
+    await redis.ping();
+    res.json({ status: 'ok', redis: 'connected' });
+  } catch {
+    res.status(503).json({ status: 'degraded', redis: 'offline' });
+  }
+});
+
 // Serve the built tracker.js bundle so any HTML page can load it
 const trackerBuildPath = path.resolve(__dirname, '../../../tracker/dist');
 if (existsSync(trackerBuildPath)) {
