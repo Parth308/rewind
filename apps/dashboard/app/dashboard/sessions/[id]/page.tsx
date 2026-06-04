@@ -8,7 +8,9 @@ import { formatDistanceToNow } from 'date-fns';
 
 export const dynamic = 'force-dynamic';
 
-export default async function SessionReplay({ params }: { params: { id: string } }) {
+export default async function SessionReplay(props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
+  
   const sessionList = await db.select().from(sessions).where(eq(sessions.id, params.id));
   const session = sessionList[0] || null;
 
@@ -35,9 +37,9 @@ export default async function SessionReplay({ params }: { params: { id: string }
   );
 
   return (
-    <div className="flex flex-col gap-6 h-[calc(100vh-8rem)]">
+    <div className="flex flex-col gap-4 h-full">
       {/* Top Bar */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-white/5 pb-6">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-white/5 pb-4 shrink-0">
         <div className="flex items-center gap-5">
           <Link href="/dashboard" className="flex items-center justify-center h-10 w-10 rounded-xl bg-white/5 hover:bg-white/10 transition-colors border border-white/10 shrink-0">
             <ChevronLeft className="h-5 w-5 text-neutral-400" />
@@ -81,22 +83,20 @@ export default async function SessionReplay({ params }: { params: { id: string }
       <div className="flex flex-col lg:flex-row gap-6 h-full min-h-0">
         
         {/* Left Side: Video Player */}
-        <div className="flex-1 glass rounded-2xl p-2 sm:p-3 shadow-2xl relative flex flex-col min-h-0 border-[var(--color-border-dark)] overflow-hidden group">
-          {/* Ambient Player Glow */}
-          <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-0">
-            <div className="w-full h-[300px] bg-[var(--color-accent-green)] opacity-[0.03] blur-[120px] rounded-full group-hover:opacity-[0.05] transition-opacity duration-1000" />
-          </div>
-          
-          <div className="relative z-10 w-full h-full bg-[#030303] rounded-xl border border-[var(--color-border-dark)] overflow-hidden shadow-inner flex flex-col">
-            {rrwebEvents.length > 0 ? (
-              <Player events={rrwebEvents} />
-            ) : (
-              <div className="flex h-full items-center justify-center flex-col gap-4 text-neutral-500">
-                <Activity className="h-8 w-8 animate-pulse text-[var(--color-accent-green)]/50" />
-                <span className="text-sm font-medium tracking-wide">Waiting for session data...</span>
+        <div className="flex-1 relative flex flex-col min-h-0 overflow-hidden" style={{ minHeight: 0 }}>
+          {rrwebEvents.length > 0 ? (
+            <Player events={rrwebEvents} />
+          ) : (
+            <div className="flex h-full items-center justify-center flex-col gap-4 rounded-2xl" style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.07)' }}>
+              <div className="h-12 w-12 rounded-xl flex items-center justify-center" style={{ background: 'rgba(163,230,53,0.06)', border: '1px solid rgba(163,230,53,0.12)' }}>
+                <Activity className="h-6 w-6 text-[var(--color-accent-green)] opacity-60 animate-pulse" />
               </div>
-            )}
-          </div>
+              <div className="text-center">
+                <p className="text-sm font-medium text-neutral-400 mb-1">Waiting for data</p>
+                <span className="text-xs text-neutral-600 font-mono">Session is being recorded...</span>
+              </div>
+            </div>
+          )}
         </div>
         
         {/* Right Side: Telemetry Tabs */}
@@ -126,7 +126,7 @@ export default async function SessionReplay({ params }: { params: { id: string }
           {/* Network Requests */}
           <div className="glass rounded-2xl flex flex-col min-h-0 flex-1 border-[var(--color-border-dark)] overflow-hidden shadow-xl">
             <div className="flex items-center gap-2 px-5 py-3.5 border-b border-white/5 bg-white/[0.02]">
-              <Network className="h-4 w-4 text-blue-400" />
+              <Network className="h-4 w-4 text-[var(--color-accent-green)]" />
               <h3 className="font-serif text-sm font-bold tracking-wider text-white uppercase">Network</h3>
               <span className="ml-auto text-[10px] font-mono bg-white/10 px-2 py-0.5 rounded-md text-neutral-400">{network.length} reqs</span>
             </div>

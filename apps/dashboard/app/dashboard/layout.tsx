@@ -27,8 +27,8 @@ export default async function DashboardLayout({
 
       <Sidebar isLive={isLive} />
       
-      <div className="relative z-10 flex flex-1 flex-col overflow-y-auto">
-        <main className="flex-1 p-6 sm:p-8 animate-fade-in-up w-full max-w-7xl mx-auto">
+      <div className="relative z-10 flex flex-1 flex-col overflow-hidden">
+        <main className="flex-1 p-6 sm:p-8 animate-fade-in-up w-full max-w-7xl mx-auto flex flex-col overflow-hidden">
           {children}
         </main>
       </div>

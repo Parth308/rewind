@@ -20,9 +20,19 @@ const worker = new Worker('events', async (job: Job) => {
     const { projectId, payload } = job.data;
     
     if (payload.type === 'metadata') {
-      const { sessionId, os, browser, device } = payload;
+      const { sessionId, userAgent } = payload;
+      let os = payload.os || 'Unknown';
+      let browser = payload.browser || 'Unknown';
       
-      // Ensure session exists
+      if (userAgent) {
+        const parser = new UAParser(userAgent);
+        const parsedOs = parser.getOS();
+        const parsedBrowser = parser.getBrowser();
+        if (parsedOs.name) os = `${parsedOs.name} ${parsedOs.version || ''}`.trim();
+        if (parsedBrowser.name) browser = `${parsedBrowser.name} ${parsedBrowser.version || ''}`.trim();
+      }
+      
+      // Ensure session exists or update it if it does
       const existingSession = await db.select().from(sessions).where(eq(sessions.id, sessionId));
       if (existingSession.length === 0) {
         await db.insert(sessions).values({
@@ -32,12 +42,39 @@ const worker = new Worker('events', async (job: Job) => {
           browser: browser || 'Unknown',
           startedAt: new Date(),
         });
+      } else {
+        await db.update(sessions).set({
+          os: os || existingSession[0].os,
+          browser: browser || existingSession[0].browser,
+        }).where(eq(sessions.id, sessionId));
       }
     } else if (payload.type === 'batch' && payload.events && payload.events.length > 0) {
       const sessionId = payload.sessionId;
       
+      // Ensure session exists before inserting events to prevent FK constraint errors
+      let existingSession = await db.select().from(sessions).where(eq(sessions.id, sessionId));
+      if (existingSession.length === 0) {
+        const newSession = {
+          id: sessionId,
+          projectId,
+          os: 'Unknown',
+          browser: 'Unknown',
+          startedAt: new Date(),
+        };
+        await db.insert(sessions).values(newSession);
+        existingSession = [newSession as any];
+      }
+
+      const lastEvent = payload.events[payload.events.length - 1];
+      if (lastEvent && existingSession[0]?.startedAt) {
+        const durationMs = new Date(lastEvent.timestamp).getTime() - new Date(existingSession[0].startedAt).getTime();
+        if (durationMs > 0) {
+          await db.update(sessions).set({ durationMs }).where(eq(sessions.id, sessionId));
+        }
+      }
+
       // Insert rrweb events
-      const rrwebEvents = payload.events.filter((e: any) => !e.type.startsWith('custom_'));
+      const rrwebEvents = payload.events.filter((e: any) => typeof e.type === 'number' || !e.type.startsWith('custom_'));
       if (rrwebEvents.length > 0) {
         await db.insert(events).values(rrwebEvents.map((e: any) => ({
           sessionId,
@@ -47,40 +84,36 @@ const worker = new Worker('events', async (job: Job) => {
         })));
       }
       
-      // Filter out custom events (console, network, error)
-      const consoleEvents = payload.events.filter((e: any) => e.type === 'custom_console');
-      if (consoleEvents.length > 0) {
-        await db.insert(consoleLogs).values(consoleEvents.map((e: any) => ({
-          sessionId,
-          level: e.data.level,
-          message: e.data.message,
-          timestamp: new Date(e.timestamp).getTime()
-        })));
-      }
-
-      const networkEvents = payload.events.filter((e: any) => e.type === 'custom_network');
-      if (networkEvents.length > 0) {
-        await db.insert(networkRequests).values(networkEvents.map((e: any) => ({
-          sessionId,
-          method: e.data.method,
-          url: e.data.url,
-          status: e.data.status,
-          duration: e.data.duration,
-          timestamp: new Date(e.timestamp).getTime()
-        })));
-      }
-
-      const errorEvents = payload.events.filter((e: any) => e.type === 'custom_error');
-      if (errorEvents.length > 0) {
-        await db.insert(errors).values(errorEvents.map((e: any) => ({
-          sessionId,
-          message: e.data.message,
-          stack: e.data.stacktrace,
-          timestamp: new Date(e.timestamp).getTime()
-        })));
+    } else if (payload.type === 'console') {
+      const sessionId = payload.sessionId;
+      // Ensure session exists
+      const existingSession = await db.select().from(sessions).where(eq(sessions.id, sessionId));
+      if (existingSession.length === 0) {
+        await db.insert(sessions).values({ id: sessionId, projectId, os: 'Unknown', browser: 'Unknown', startedAt: new Date() });
       }
       
-      console.log(`Processed batch for session ${sessionId}, total: ${payload.events.length}`);
+      await db.insert(consoleLogs).values(payload.entries.map((e: any) => ({
+        sessionId,
+        level: e.level,
+        message: e.message,
+        timestamp: e.timestamp
+      })));
+    } else if (payload.type === 'network') {
+      const sessionId = payload.sessionId;
+      // Ensure session exists
+      const existingSession = await db.select().from(sessions).where(eq(sessions.id, sessionId));
+      if (existingSession.length === 0) {
+        await db.insert(sessions).values({ id: sessionId, projectId, os: 'Unknown', browser: 'Unknown', startedAt: new Date() });
+      }
+      
+      await db.insert(networkRequests).values(payload.requests.map((e: any) => ({
+        sessionId,
+        method: e.method,
+        url: e.url,
+        status: e.status,
+        duration: e.duration,
+        timestamp: e.timestamp
+      })));
     }
   }
 }, { connection: redis as any });

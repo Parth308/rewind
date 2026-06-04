@@ -12,17 +12,17 @@ export interface RewindConfig {
 
 const DEFAULT_ENDPOINT = 'http://localhost:3001/ingest';
 
-export function getConfig(): RewindConfig | null {
+export function getConfig(overrideRaw?: any): RewindConfig | null {
   const w = window as any;
-  if (!w.__rewind || !w.__rewind.token) {
-    console.error('Rewind tracker: Project token is missing. Please set window.__rewind = { token: "YOUR_TOKEN" }');
+  const raw = overrideRaw || w.__rewind;
+  
+  if (!raw || (!raw.token && !raw.projectToken)) {
+    console.error('Rewind tracker: Project token is missing.');
     return null;
   }
 
-  const raw = w.__rewind;
-
   return {
-    token: raw.token,
+    token: raw.token || raw.projectToken,
     maskInputs: raw.maskInputs !== undefined ? raw.maskInputs : true,
     maskSelectors: raw.maskSelectors || [],
     blockSelectors: raw.blockSelectors || [],
@@ -30,6 +30,6 @@ export function getConfig(): RewindConfig | null {
     userId: raw.userId || null,
     metadata: raw.metadata || {},
     bufferSize: raw.bufferSize || 50,
-    endpoint: raw.endpoint || DEFAULT_ENDPOINT,
+    endpoint: raw.endpoint || raw.ingestorUrl || DEFAULT_ENDPOINT,
   };
 }

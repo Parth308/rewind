@@ -1,145 +1,434 @@
-# Rewind Architecture & Getting Started
-![Node.js](https://img.shields.io/badge/Node.js-20%2B-green)
+<div align="center">
 
-*Unified, high‑performance session recording for web apps.*
+# Rewind
 
-## ⚙️ How It Works
-```mermaid
-flowchart TD
-    A["🚀 Tracker Init"] --> B["Capture Events"]
-    B --> C["Send via Transport"]
-    C --> D{"Success?"}
-    D -->|Yes| E["✅ Ingested by Ingestor"]
-    D -->|No| F["❌ Retry / Log"]
-```
+**Open‑source session recording & replay for web applications.**
 
-## Description
-Rewind is a monorepo powered by **Turborepo** and **pnpm** that captures, ingests, stores, and replays user sessions and DOM events. It provides a tiny, zero‑config JavaScript snippet for your site, a high‑throughput ingestor, a background worker, a REST API, and a sleek Next.js dashboard.
+[![Node.js](https://img.shields.io/badge/Node.js-20%2B-339933?logo=nodedotjs&logoColor=white)](#)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5-3178C6?logo=typescript&logoColor=white)](#)
+[![Next.js](https://img.shields.io/badge/Next.js-15-black?logo=nextdotjs&logoColor=white)](#)
+[![pnpm](https://img.shields.io/badge/pnpm-workspace-F69220?logo=pnpm&logoColor=white)](#)
+[![Turborepo](https://img.shields.io/badge/Turborepo-monorepo-EF4444?logo=turborepo&logoColor=white)](#)
+[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16-4169E1?logo=postgresql&logoColor=white)](#)
+[![Redis](https://img.shields.io/badge/Redis-7-DC382D?logo=redis&logoColor=white)](#)
+[![License](https://img.shields.io/badge/license-MIT-blue)](#)
+
+*Drop a single `<script>` tag on any site and get full DOM replay, network logs, and console capture — with a polished dashboard to browse and replay every session.*
+
+</div>
+
+---
+
+## Table of Contents
+
+1. [Overview](#overview)
+2. [Features](#features)
+3. [Tech Stack](#tech-stack)
+4. [System Architecture](#system-architecture)
+5. [Monorepo Structure](#monorepo-structure)
+6. [Services at a Glance](#services-at-a-glance)
+7. [Getting Started](#getting-started)
+   - [Local Development](#option-a--local-development-recommended)
+   - [Production VPS](#option-b--production-single-server-vps)
+8. [Embedding the Tracker](#embedding-the-tracker)
+9. [Database Management](#database-management)
+10. [Environment Variables](#environment-variables)
+11. [Contributing](#contributing)
+
+---
+
+## Overview
+
+**Rewind** is a self-hosted, privacy-friendly alternative to tools like FullStory or LogRocket. It is built as a **Turborepo + pnpm** monorepo and is designed to run efficiently on a single low-cost VPS while remaining horizontally scalable.
+
+A lightweight JavaScript snippet (the **Tracker**) is embedded on any web page. It silently records DOM mutations, network requests, and console output, then streams the data to the **Ingestor**. The Ingestor queues the work via **BullMQ / Redis** and a **Worker** persists it into **PostgreSQL**. The **Dashboard** lets you browse projects, inspect sessions, and replay them frame-by-frame alongside synchronized network and console timelines.
+
+---
 
 ## Features
-- ✅ Capture DOM mutations, network requests, console logs, and custom events.  
-- ✅ Batch data and transmit via WebSocket with HTTP fallback.  
-- ✅ Ingestor offloads payloads to a **BullMQ** queue backed by **Redis**.  
-- ✅ Worker processes queue jobs and persists events with **Drizzle ORM** into **PostgreSQL**.  
-- ✅ Secure JWT‑based API for dashboard interactions.  
-- ✅ Interactive replay UI built with **rrweb‑player**.  
-- ✅ Type‑safe shared schema and validators using **Zod** and **TypeScript**.  
-- ✅ Fast, production‑ready builds via **esbuild**.
+
+| Category | Capability |
+|---|---|
+| 🎥 **Recording** | Full DOM capture via `rrweb` (mutations, inputs, scroll, resize) |
+| 🌐 **Network** | `fetch` & `XMLHttpRequest` intercept — URL, method, status, duration |
+| 🖥️ **Console** | Captures `log`, `warn`, `error`, `info`, `debug` with timestamps |
+| ⚡ **Transport** | WebSocket primary, HTTP batch fallback, automatic retry |
+| 📬 **Queue** | BullMQ + Redis — decouples ingestion from storage, handles bursts |
+| 🗄️ **Storage** | PostgreSQL + Drizzle ORM — type-safe, schema-first |
+| 🔐 **Auth** | JWT-based API authentication for dashboard users |
+| 🎬 **Replay** | `rrweb-player` with synchronized network + console side-panel |
+| 📊 **System** | Live system metrics page (DB size, Redis memory, BullMQ queue counts, host info) |
+| 🐳 **Deploy** | Multi-stage Dockerfile with `pnpm prune --prod` for lean production images |
+
+---
 
 ## Tech Stack
-- **Node.js** (runtime)  
-- **TypeScript** (static typing)  
-- **Next.js** (dashboard)  
-- **React** + **Tailwind CSS** (UI)  
-- **Express** (ingestor)  
-- **BullMQ** + **Redis** (queue)  
-- **PostgreSQL** + **Drizzle ORM** (database)  
-- **rrweb** & **rrweb‑player** (recording & replay)  
-- **Zod** (validation)  
-- **esbuild** (tracker bundling)
 
-## Installation
-### Option A: Local Development (Recommended)
-1. **Copy environment variables**  
-   ```bash
-   cp .env.example .env
-   ```
-2. **Start the databases** (Postgres & Redis)  
-   ```bash
-   docker compose up -d
-   ```
-3. **Push the database schema**  
-   ```bash
-   pnpm run db:push
-   ```
-4. **Build the Tracker**  
-   ```bash
-   cd apps/tracker
-   pnpm install
-   pnpm run build   # creates dist/tracker.js
-   ```
-5. **Start all services** (hot‑reloading)  
-   ```bash
-   pnpm run dev
-   ```
+```
+Runtime        Node.js 20 + TypeScript 5
+Monorepo       Turborepo · pnpm workspaces
+Dashboard      Next.js 15 (App Router) · React 19 · Tailwind CSS · Framer Motion
+API            Express 4 · JWT (jsonwebtoken) · Zod
+Ingestor       Express 4 · ws (WebSocket)
+Worker         BullMQ consumers
+Database       PostgreSQL 16 · Drizzle ORM
+Queue          BullMQ · ioredis · Redis 7
+Recording      rrweb · rrweb-player
+Tracker build  esbuild (IIFE bundle, ~12 kB gzipped)
+Containers     Docker · docker-compose
+```
 
-### Option B: Production (Single‑Server VPS)
-1. **Configure `.env`** on the VPS – use the `postgres` and `redis` hostnames from `.env.example`.  
-2. **Build and run containers**  
-   ```bash
-   docker compose -f docker-compose.prod.yml up --build -d
-   ```
+---
 
-You're all set — the service is now running.
+## System Architecture
 
-## Usage
-### Embed the Tracker on Your Site
+### End-to-End Data Flow
+
+```mermaid
+flowchart LR
+    subgraph Browser["🌐 Client Browser"]
+        direction TB
+        Site["Your Website"] -- "DOM events\nnetwork / console" --> T["📦 Tracker\n(tracker.js)"]
+    end
+
+    subgraph Ingestor["⚡ Ingestor  :3001"]
+        direction TB
+        WS["WebSocket\nServer"] -- "validates\nproject token" --> Q["BullMQ\nProducer"]
+    end
+
+    subgraph Queue["🔴 Redis"]
+        JQ[("events\nqueue")]
+    end
+
+    subgraph Worker["⚙️ Worker"]
+        WK["BullMQ\nConsumer"] -- "Drizzle ORM" --> PG
+    end
+
+    subgraph Storage["🗄️ PostgreSQL"]
+        PG[("rewind\ndatabase")]
+    end
+
+    subgraph DashLayer["🖥️ Dashboard  :3000"]
+        direction TB
+        UI["Next.js App"] -- "REST calls" --> API["API  :3002"]
+        UI -- "direct server\nqueries" --> PG
+        API -- "JWT auth\n+ queries" --> PG
+    end
+
+    T -- "WebSocket\nbatch" --> WS
+    Q --> JQ
+    JQ --> WK
+```
+
+### Request Lifecycle
+
+```mermaid
+sequenceDiagram
+    autonumber
+    participant Browser
+    participant Tracker
+    participant Ingestor
+    participant Redis
+    participant Worker
+    participant Postgres
+    participant Dashboard
+
+    Browser->>Tracker: User interaction (click, scroll, navigation)
+    Tracker->>Tracker: Buffer events (rrweb + network + console)
+    Tracker->>Ingestor: Send batch over WebSocket
+    Ingestor->>Ingestor: Validate project token
+    Ingestor->>Redis: Enqueue job (BullMQ)
+    Ingestor-->>Tracker: ACK
+
+    Redis->>Worker: Dequeue job
+    Worker->>Postgres: INSERT events (Drizzle ORM)
+
+    Dashboard->>Postgres: Query sessions & events
+    Dashboard->>Dashboard: Render replay with rrweb-player
+```
+
+---
+
+## Monorepo Structure
+
+```
+rewind/
+├── apps/
+│   ├── tracker/          # Vanilla JS snippet (esbuild → dist/tracker.js)
+│   ├── ingestor/         # Express + WebSocket server  [port 3001]
+│   ├── worker/           # BullMQ consumer process
+│   ├── api/              # REST API (auth, projects, sessions)  [port 3002]
+│   └── dashboard/        # Next.js 15 dashboard  [port 3000]
+│
+├── packages/
+│   └── shared/           # Drizzle schema + Zod validators (shared across apps)
+│
+├── docker-compose.yml         # Local dev databases (Postgres :5433, Redis :6379)
+├── docker-compose.prod.yml    # Full production stack (all services + databases)
+├── Dockerfile                 # Multi-stage build for production apps
+├── turbo.json                 # Turborepo task graph
+├── pnpm-workspace.yaml        # pnpm workspace config
+└── .env.example               # Reference environment file
+```
+
+---
+
+## Services at a Glance
+
+### 1 · Tracker &nbsp;`apps/tracker`
+
+The tiny script you drop on any website.
+
+- Uses **rrweb** to record all DOM mutations, user inputs, scroll events, and viewport resizes.
+- Monkey-patches `window.fetch`, `XMLHttpRequest`, and `console.*` to capture network activity and logs without affecting page behaviour.
+- Events are buffered locally and flushed as compressed JSON batches over a **WebSocket** connection. Falls back to HTTP `POST` when WebSocket is unavailable.
+- Built with **esbuild** into a single IIFE bundle (`dist/tracker.js`, ~12 kB gzipped).
+
+Key files: `src/index.ts` · `src/capture/network.ts` · `src/capture/console.ts` · `build.js`
+
+---
+
+### 2 · Ingestor &nbsp;`apps/ingestor` &nbsp;— port `3001`
+
+The high-throughput ingestion gateway.
+
+- **Express** HTTP server + **ws** WebSocket server running on the same port.
+- Authenticates every connection by looking up the `projectToken` in PostgreSQL.
+- Immediately offloads validated batches to a **BullMQ** queue in **Redis** — the Ingestor never does heavy processing, keeping latency minimal.
+- Exposes a `/health` endpoint that checks Redis connectivity; the Dashboard sidebar uses this to show a live/offline indicator.
+
+---
+
+### 3 · Worker &nbsp;`apps/worker`
+
+The background queue processor.
+
+- Runs one or more **BullMQ** consumers subscribed to the `events` queue.
+- Transforms raw tracker payloads into normalised DB rows and bulk-inserts them via **Drizzle ORM**.
+- Can be scaled horizontally — spin up additional worker containers to handle ingestion spikes without touching the Ingestor or API.
+
+---
+
+### 4 · API &nbsp;`apps/api` &nbsp;— port `3002`
+
+The REST backend for the Dashboard.
+
+- Organised into focused routers: `auth`, `projects`, `sessions`.
+- JWT-based authentication: issues signed tokens on `/auth/login` and validates them on all protected routes via Express middleware.
+- Uses the same **Drizzle ORM** client as the Worker for consistent, type-safe queries.
+
+---
+
+### 5 · Dashboard &nbsp;`apps/dashboard` &nbsp;— port `3000`
+
+The main user interface.
+
+- **Next.js 15** App Router with React Server Components for fast, data-rich pages.
+- "Terminal Brutalist" design system — dark background (`#050505`), lime-green accents, glassmorphism cards, and serif typography.
+- Session list with filtering and sorting; click any session to open the **Replay** view.
+- **Replay** view renders `rrweb-player` and synchronises a side-panel timeline of network requests and console logs scrubbed to the current playback time.
+- **System** page (`/dashboard/system`) shows live metrics: PostgreSQL DB size, Redis memory, BullMQ queue counts, host OS uptime, RAM usage, and CPU info — all fetched server-side with a 10-second revalidation window.
+- **Onboarding Guide** walks new users through tracker installation with ready-to-copy code snippets for plain HTML, React/Vite, and Next.js.
+
+---
+
+### 6 · Shared &nbsp;`packages/shared`
+
+The single source of truth for data shapes.
+
+- **Drizzle ORM** schema: `users`, `projects`, `sessions`, `events` tables with indexes defined in the new object-notation style.
+- **Zod** validators mirroring the schema — imported by both the API (for request validation) and the Dashboard (for type-safe server queries).
+
+---
+
+## Getting Started
+
+### Prerequisites
+
+- [Node.js 20+](https://nodejs.org)
+- [pnpm 9+](https://pnpm.io) — `npm i -g pnpm`
+- [Docker Desktop](https://www.docker.com/products/docker-desktop/) (for local databases)
+
+---
+
+### Option A — Local Development (Recommended)
+
+Run all services locally with hot-reloading. Docker is only used for the databases.
+
+```bash
+# 1. Clone the repo
+git clone https://github.com/Parth308/rewind.git
+cd rewind
+
+# 2. Copy environment variables
+cp .env.example .env
+#    Open .env and review the defaults — they work out of the box for local dev.
+
+# 3. Install all workspace dependencies
+pnpm install
+
+# 4. Start Postgres (port 5433) and Redis (port 6379)
+docker compose up -d
+
+# 5. Push the database schema
+pnpm run db:push
+
+# 6. Build the Tracker bundle (only needed once, or after tracker changes)
+cd apps/tracker && pnpm install && pnpm run build && cd ../..
+
+# 7. Start all services in parallel with hot-reloading
+pnpm run dev
+```
+
+Services will be available at:
+
+| Service | URL |
+|---|---|
+| Dashboard | http://localhost:3000 |
+| Ingestor | http://localhost:3001 |
+| API | http://localhost:3002 |
+| Postgres | `localhost:5433` |
+| Redis | `localhost:6379` |
+
+---
+
+### Option B — Production (Single-Server VPS)
+
+Everything runs inside Docker — no Node.js or pnpm needed on the host.
+
+```bash
+# 1. Clone the repo on your VPS
+git clone https://github.com/Parth308/rewind.git
+cd rewind
+
+# 2. Configure environment
+cp .env.example .env
+#    Edit .env: ensure DATABASE_URL uses host "postgres"
+#                         REDIS_URL uses host "redis"
+#                         API_URL uses "http://api:3002"
+
+# 3. Build images and start all containers
+docker compose -f docker-compose.prod.yml up --build -d
+
+# 4. (First run only) Push the database schema
+docker compose -f docker-compose.prod.yml exec api pnpm run db:push
+```
+
+The multi-stage **Dockerfile** uses `pnpm fetch` + `pnpm install --offline` for layer caching, then `pnpm prune --prod` to strip dev dependencies before creating the final runner image — keeping production images lean.
+
+---
+
+## Embedding the Tracker
+
+After building the Tracker (`pnpm run build` inside `apps/tracker`), the bundle is automatically served by the Ingestor at `GET /tracker.js`.
+
+### Plain HTML
+
 ```html
-<script src="http://localhost:3000/tracker.js"></script>
+<script src="http://localhost:3001/tracker.js"></script>
 <script>
-  // Initialise the tracker with your project token
   window.Rewind.init({
-    projectToken: 'your-project-token-here',
-    ingestorUrl: 'ws://localhost:3001'
+    projectToken: 'your-project-token',
+    ingestorUrl:  'ws://localhost:3001'
   });
 </script>
 ```
 
-The script is produced by the `build` script in `apps/tracker` and lives in `dist/tracker.js`.  
-It automatically captures:
+### React / Vite
 
-- DOM changes (`rrweb`)  
-- Network requests (fetch/XHR) – see `src/capture/network.ts`  
-- Console output (`console.log`, `console.error`, etc.) – see `src/capture/console.ts`
+```tsx
+// src/main.tsx  (or App.tsx)
+import { useEffect } from 'react';
 
-## 🧩 System Architecture Diagram
-```mermaid
-graph TD
-    Client[Client Website / Browser] -->|DOM Events + Logs + Network| Tracker
-    Tracker[@rewind/tracker] -->|WebSocket / HTTP Batch| Ingestor
-    Ingestor[@rewind/ingestor] -->|BullMQ Queue| Redis[(Redis)]
-    Redis -->|Queue Jobs| Worker[@rewind/worker]
-    Worker -->|Drizzle ORM Inserts| Postgres[(PostgreSQL)]
-    
-    Dashboard[@rewind/dashboard] -->|Queries| API[@rewind/api]
-    Dashboard -->|Direct DB Queries| Postgres
-    API -->|Validates JWT & Queries| Postgres
+useEffect(() => {
+  const script = document.createElement('script');
+  script.src = 'http://localhost:3001/tracker.js';
+  script.onload = () => {
+    (window as any).Rewind.init({
+      projectToken: 'your-project-token',
+      ingestorUrl:  'ws://localhost:3001',
+    });
+  };
+  document.head.appendChild(script);
+}, []);
 ```
 
-## 🏗️ Architecture & Services Overview
-### 1. Tracker (`apps/tracker`)
-- **What it does:** Vanilla JS snippet embedded on client sites.  
-- **How it works:** Uses `rrweb` for DOM capture and overrides `fetch`, `XMLHttpRequest`, and `console` to record network and log events. Batches are sent over WebSocket (or HTTP fallback) to the Ingestor.  
-- **Build:** `pnpm run build` creates a minified IIFE bundle (`dist/tracker.js`) via **esbuild**.  
-- **Key files:** `src/capture/console.ts`, `src/capture/network.ts`, `build.js`, `.gitignore`.
+### Next.js (App Router)
 
-### 2. Ingestor (`apps/ingestor`)
-- **What it does:** High‑throughput entry point for tracker data.  
-- **How it works:** Express + WebSocket server authenticates connections, receives batches, and pushes them to a Redis‑backed BullMQ queue.  
-- **Port:** `3001`
+```tsx
+// app/layout.tsx
+import Script from 'next/script';
 
-### 3. Worker (`apps/worker`)
-- **What it does:** Background queue processor.  
-- **How it works:** Pulls jobs from Redis, transforms raw payloads, and inserts events into PostgreSQL via Drizzle ORM. Scales horizontally.  
+export default function RootLayout({ children }: { children: React.ReactNode }) {
+  return (
+    <html>
+      <body>
+        {children}
+        <Script src="http://localhost:3001/tracker.js" strategy="afterInteractive"
+          onLoad={() => {
+            (window as any).Rewind.init({
+              projectToken: 'your-project-token',
+              ingestorUrl:  'ws://localhost:3001',
+            });
+          }}
+        />
+      </body>
+    </html>
+  );
+}
+```
 
-### 4. API (`apps/api`)
-- **What it does:** Modular REST API for the Dashboard.  
-- **How it works:** Controllers (`auth`, `projects`, `sessions`) handle JWT authentication and data queries.  
-- **Port:** `3002`
+> **Tip:** Replace `localhost:3001` with your production Ingestor domain when deploying.
 
-### 5. Dashboard (`apps/dashboard`)
-- **What it does:** Main UI built with Next.js 15 and a “Terminal Brutalist” design system.  
-- **How it works:** Shows analytics, session lists, and replays sessions using `rrweb-player`.  
-- **Port:** `3000`
+---
 
-### 6. Shared (`packages/shared`)
-- **What it does:** Source of truth for database schema and validators.  
-- **How it works:** Contains Drizzle ORM schema (Users, Projects, Sessions, Events, …) and shared Zod validators.
+## Database Management
 
-## 🗄️ Database Management
-1. **Edit schema** – `packages/shared/src/schema.ts`  
-2. **Apply changes** – `pnpm run db:push`  
-3. **Optional UI** – `npx drizzle-kit studio` (run inside `packages/shared`)
+All schema changes live in `packages/shared/src/schema.ts`.
 
-## Contributors
-- **Parth308** – thank you for adding the console and network capture modules, the build script, and the .gitignore – they make the tracker robust and production‑ready.
+```bash
+# Apply schema changes to the database
+pnpm run db:push
+
+# Generate SQL migration files (optional, for audit trail)
+pnpm run db:generate
+
+# Open Drizzle Studio (visual DB browser)
+cd packages/shared
+npx drizzle-kit studio
+```
+
+---
+
+## Environment Variables
+
+| Variable | Default | Description |
+|---|---|---|
+| `DATABASE_URL` | `postgresql://postgres:postgres@postgres:5432/rewind` | PostgreSQL connection string |
+| `REDIS_URL` | `redis://redis:6379` | Redis connection string |
+| `JWT_SECRET` | — | Secret used to sign and verify JWTs |
+| `API_PORT` | `3002` | Port for the REST API |
+| `INGESTOR_PORT` | `3001` | Port for the Ingestor |
+| `FRONTEND_URL` | `http://localhost:3000` | Dashboard URL (used for CORS) |
+| `API_URL` | `http://api:3002` | API URL as seen from the Dashboard |
+| `TRACKER_INGESTOR_URL` | `ws://localhost:3001` | WebSocket URL embedded in tracker snippet |
+
+> For local development, copy `.env.example` to `.env` and use `localhost` hostnames. For production Docker deployments, use the Docker service names (`postgres`, `redis`, `api`).
+
+---
+
+## Contributing
+
+1. Fork the repository and create a feature branch: `git checkout -b feat/your-feature`
+2. Install dependencies: `pnpm install`
+3. Make your changes — keep commits small and descriptive.
+4. Run the linter: `pnpm run lint`
+5. Open a Pull Request with a clear description of what changed and why.
+
+---
+
+<div align="center">
+
+Made with ❤️ by **Parth308**
+
+</div>

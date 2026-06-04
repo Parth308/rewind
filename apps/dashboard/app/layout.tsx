@@ -3,6 +3,7 @@ import { JetBrains_Mono, Playfair_Display } from "next/font/google";
 import "@fontsource/google-sans/400.css";
 import "@fontsource/google-sans/500.css";
 import "@fontsource/google-sans/700.css";
+import "rrweb-player/dist/style.css";
 import "./globals.css";
 
 const playfair = Playfair_Display({

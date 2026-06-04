@@ -92,7 +92,7 @@ export default async function DashboardSessions() {
                   <Video className="h-3.5 w-3.5 text-neutral-500 group-hover:text-[var(--color-accent-green)]" />
                 </div>
                 <div>
-                  <div className="font-mono text-sm text-[var(--color-accent-green)] leading-none mb-1">
+                  <div className="font-mono text-sm text-emerald-400 leading-none mb-1">
                     {session.id.substring(0, 12)}…
                   </div>
                   {session.country && (

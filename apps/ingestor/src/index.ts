@@ -26,12 +26,13 @@ app.get('/health', async (req, res) => {
 });
 
 // Serve the built tracker.js bundle so any HTML page can load it
-const trackerBuildPath = path.resolve(__dirname, '../../../tracker/dist');
-if (existsSync(trackerBuildPath)) {
-  app.use('/tracker', express.static(trackerBuildPath));
-  console.log('Serving tracker from', trackerBuildPath);
-} else {
+const trackerBuildPath = path.resolve(__dirname, '../../tracker/dist');
+app.use('/tracker', express.static(trackerBuildPath));
+
+if (!existsSync(trackerBuildPath)) {
   console.warn('Tracker not built yet. Run: pnpm -F @rewind/tracker build');
+} else {
+  console.log('Serving tracker from', trackerBuildPath);
 }
 
 const PORT = process.env.PORT || 3001;

@@ -1,6 +1,7 @@
-import { LayoutTemplate, Trash2, Plus, Zap } from 'lucide-react';
+import { LayoutTemplate, Trash2, Zap } from 'lucide-react';
 import { db } from '@/lib/db';
-import { projects } from '@rewind/shared';
+import { projects, sessions } from '@rewind/shared';
+import { eq } from 'drizzle-orm';
 import { CreateProjectButton } from './create-project-button';
 import { CopyToken } from './copy-token';
 import { deleteProject } from './actions';
@@ -9,6 +10,15 @@ export const dynamic = 'force-dynamic';
 
 export default async function ProjectsPage() {
   const allProjects = await db.select().from(projects);
+
+  // Check connection status by checking if there's at least one session
+  const connectionStatuses = await Promise.all(allProjects.map(async (project) => {
+    const sessionExists = await db.select({ id: sessions.id })
+                                .from(sessions)
+                                .where(eq(sessions.projectId, project.id))
+                                .limit(1);
+    return sessionExists.length > 0;
+  }));
 
   return (
     <div className="flex flex-col gap-8">
@@ -21,56 +31,71 @@ export default async function ProjectsPage() {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-        {allProjects.map((project) => (
-          <div key={project.id} className="glass relative overflow-hidden rounded-2xl p-6 flex flex-col gap-5 transition-all hover:bg-white/[0.04] group border border-[var(--color-border-dark)]">
-            <div className="absolute top-0 right-0 -mt-8 -mr-8 w-32 h-32 bg-[var(--color-accent-green)] opacity-[0.03] rounded-full blur-2xl group-hover:opacity-[0.08] transition-opacity" />
-            
-            <div className="flex justify-between items-start relative z-10">
-              <div className="h-12 w-12 rounded-xl bg-[var(--color-accent-green)]/10 text-[var(--color-accent-green)] flex items-center justify-center shrink-0 border border-[var(--color-accent-green)]/20 shadow-[inset_0_1px_0_rgba(163,230,53,0.2)]">
-                <LayoutTemplate className="h-6 w-6" />
-              </div>
-              <form action={deleteProject.bind(null, project.id)}>
-                <button
-                  type="submit"
-                  className="text-neutral-500 hover:text-red-400 transition-colors p-2 rounded-lg hover:bg-red-400/10"
-                  title="Delete project"
-                >
-                  <Trash2 className="h-4 w-4" />
-                </button>
-              </form>
-            </div>
+        {allProjects.map((project, index) => {
+          const isConnected = connectionStatuses[index];
 
-            <div className="relative z-10">
-              <h3 className="font-serif text-xl font-bold text-white mb-1">{project.name}</h3>
-              <div className="flex items-center gap-2">
-                <div className="relative flex h-2 w-2">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[var(--color-accent-green)] opacity-60" />
-                  <span className="relative inline-flex rounded-full h-2 w-2 bg-[var(--color-accent-green)]" />
+          return (
+            <div key={project.id} className="glass relative overflow-hidden rounded-2xl p-6 flex flex-col gap-5 transition-all hover:bg-white/[0.04] group border border-[var(--color-border-dark)]">
+              <div className="absolute top-0 right-0 -mt-8 -mr-8 w-32 h-32 bg-[var(--color-accent-green)] opacity-[0.03] rounded-full blur-2xl group-hover:opacity-[0.08] transition-opacity" />
+              
+              <div className="flex justify-between items-start relative z-10">
+                <div className="h-12 w-12 rounded-xl bg-[var(--color-accent-green)]/10 text-[var(--color-accent-green)] flex items-center justify-center shrink-0 border border-[var(--color-accent-green)]/20 shadow-[inset_0_1px_0_rgba(163,230,53,0.2)]">
+                  <LayoutTemplate className="h-6 w-6" />
                 </div>
-                <span className="text-xs font-medium text-neutral-400 uppercase tracking-wider">Active</span>
+                <form action={deleteProject.bind(null, project.id)}>
+                  <button
+                    type="submit"
+                    className="text-neutral-500 hover:text-red-400 transition-colors p-2 rounded-lg hover:bg-red-400/10"
+                    title="Delete project"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </button>
+                </form>
               </div>
-            </div>
 
-            <div className="relative z-10">
-              <CopyToken token={project.token} />
-            </div>
-
-            <div className="border-t border-white/5 pt-5 relative z-10">
-              <div className="flex items-center gap-2 mb-3">
-                <Zap className="h-4 w-4 text-[var(--color-accent-green)]" />
-                <p className="text-xs text-neutral-300 font-medium">Quick Install Snippet</p>
+              <div className="relative z-10">
+                <h3 className="font-serif text-xl font-bold text-white mb-1">{project.name}</h3>
+                <div className="flex items-center gap-2">
+                  <div className="relative flex h-2 w-2">
+                    {isConnected ? (
+                      <>
+                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[var(--color-accent-green)] opacity-60" />
+                        <span className="relative inline-flex rounded-full h-2 w-2 bg-[var(--color-accent-green)]" />
+                      </>
+                    ) : (
+                      <>
+                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-yellow-500 opacity-60" />
+                        <span className="relative inline-flex rounded-full h-2 w-2 bg-yellow-500" />
+                      </>
+                    )}
+                  </div>
+                  <span className="text-xs font-medium text-neutral-400 uppercase tracking-wider">
+                    {isConnected ? 'Connected' : 'Waiting for events'}
+                  </span>
+                </div>
               </div>
-              <div className="bg-[#050505] rounded-xl p-4 border border-white/5 shadow-inner">
-                <pre className="font-mono text-[11px] text-neutral-400 overflow-x-auto whitespace-pre leading-relaxed">
+
+              <div className="relative z-10">
+                <CopyToken token={project.token} />
+              </div>
+
+              <div className="border-t border-white/5 pt-5 relative z-10">
+                <div className="flex items-center gap-2 mb-3">
+                  <Zap className="h-4 w-4 text-[var(--color-accent-green)]" />
+                  <p className="text-xs text-neutral-300 font-medium">Quick Install Snippet</p>
+                </div>
+                <div className="bg-[#050505] rounded-xl p-4 border border-white/5 shadow-inner">
+                  <pre className="font-mono text-[11px] text-neutral-400 overflow-x-auto whitespace-pre leading-relaxed">
 {`window.__rewind = {
   token: '${project.token.substring(0, 16)}...',
   endpoint: 'http://localhost:3001/ingest',
 };`}
-                </pre>
+                  </pre>
+                </div>
               </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
 
         {allProjects.length === 0 && (
           <div className="col-span-full glass relative overflow-hidden rounded-2xl p-16 text-center flex flex-col items-center justify-center border-dashed border-2 border-white/10 bg-transparent min-h-[400px]">
