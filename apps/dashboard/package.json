@@ -1,5 +1,5 @@
 {
-  "name": "dashboard",
+  "name": "@rewind/dashboard",
   "version": "0.1.0",
   "private": true,
   "scripts": {
@@ -10,17 +10,25 @@
   },
   "dependencies": {
     "@fontsource/google-sans": "^5.2.1",
+    "@rewind/shared": "workspace:*",
     "clsx": "^2.1.1",
+    "date-fns": "^4.4.0",
+    "drizzle-orm": "^0.30.10",
     "framer-motion": "^12.40.0",
     "lucide-react": "^1.17.0",
     "next": "16.2.6",
+    "pg": "^8.11.5",
     "react": "19.2.4",
     "react-dom": "19.2.4",
+    "recharts": "^3.8.1",
+    "rrweb": "^2.0.0-alpha.20",
+    "rrweb-player": "^1.0.0-alpha.4",
     "tailwind-merge": "^3.6.0"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
+    "@types/pg": "^8.11.6",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "eslint": "^9",
