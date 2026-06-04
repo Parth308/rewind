@@ -1,0 +1,22 @@
+{
+  "name": "rewind",
+  "private": true,
+  "scripts": {
+    "build": "turbo run build",
+    "dev": "turbo run dev",
+    "lint": "turbo run lint",
+    "format": "prettier --write \"**/*.{ts,tsx,md}\"",
+    "db:push": "pnpm -F @rewind/shared run db:push",
+    "db:generate": "pnpm -F @rewind/shared run db:generate"
+  },
+  "devDependencies": {
+    "prettier": "^3.0.0",
+    "tsx": "^4.22.4",
+    "turbo": "^2.0.0",
+    "typescript": "^5.5.0"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "packageManager": "pnpm@9.0.0"
+}
