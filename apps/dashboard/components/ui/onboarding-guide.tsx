@@ -83,14 +83,49 @@ export function OnboardingGuide({ hasProject, projectToken }: OnboardingGuidePro
 <!-- Step 2: Load the tracker (auto-starts on load) -->
 <script src="http://localhost:3001/tracker/tracker.js"></script>`;
 
-  const npmSnippet = `// Set config before the tracker module initializes
-window.__rewind = {
-  token: '${projectToken ?? 'YOUR_PROJECT_TOKEN'}',
-  endpoint: 'http://localhost:3001/ingest',
-};
+  const reactSnippet = `// In your main.tsx or App.tsx
+import { useEffect } from 'react';
 
-// The tracker auto-starts when the script executes
-// (no .init() call needed)`;
+export function App() {
+  useEffect(() => {
+    if (typeof window !== 'undefined' && !window.__rewind) {
+      window.__rewind = {
+        token: '${projectToken ?? 'YOUR_PROJECT_TOKEN'}',
+        endpoint: 'http://localhost:3001/ingest',
+      };
+      
+      const script = document.createElement('script');
+      script.src = 'http://localhost:3001/tracker/tracker.js';
+      script.async = true;
+      document.head.appendChild(script);
+    }
+  }, []);
+
+  return <div>Your App Here</div>;
+}`;
+
+  const nextJsSnippet = `// In your app/layout.tsx
+import Script from 'next/script';
+
+export default function RootLayout({ children }: { children: React.ReactNode }) {
+  return (
+    <html lang="en">
+      <head>
+        <Script id="rewind-config" strategy="beforeInteractive">
+          {\`window.__rewind = {
+            token: '${projectToken ?? 'YOUR_PROJECT_TOKEN'}',
+            endpoint: 'http://localhost:3001/ingest',
+          };\`}
+        </Script>
+        <Script 
+          src="http://localhost:3001/tracker/tracker.js" 
+          strategy="afterInteractive" 
+        />
+      </head>
+      <body>{children}</body>
+    </html>
+  );
+}`;
 
   return (
     <div className="flex flex-col gap-8 max-w-4xl">
@@ -231,19 +266,30 @@ window.__rewind = {
                 <CodeBlock code={trackerSnippet} language="html" />
               </div>
 
-              <div className="flex items-center gap-3 my-2">
+              <div className="flex items-center gap-3 my-6">
                 <div className="flex-1 h-px bg-white/5" />
-                <span className="text-xs text-neutral-600">or</span>
+                <span className="text-xs text-neutral-600 font-mono">FRAMEWORKS</span>
                 <div className="flex-1 h-px bg-white/5" />
               </div>
 
-              <div>
-                <h3 className="text-sm font-semibold text-neutral-300 mb-1 flex items-center gap-2">
-                  <span className="flex h-5 w-5 items-center justify-center rounded-full bg-blue-500/20 text-blue-400 text-[10px] font-bold">B</span>
-                  Via JavaScript Module
-                </h3>
-                <p className="text-xs text-neutral-500 mb-2">Import directly if you're using a JS/TS framework like React or Vue.</p>
-                <CodeBlock code={npmSnippet} language="typescript" />
+              <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
+                <div>
+                  <h3 className="text-sm font-semibold text-neutral-300 mb-1 flex items-center gap-2">
+                    <span className="flex h-5 w-5 items-center justify-center rounded-full bg-blue-500/20 text-blue-400 text-[10px] font-bold">B</span>
+                    React (Vite/CRA)
+                  </h3>
+                  <p className="text-xs text-neutral-500 mb-2">Initialize the tracker in your root component.</p>
+                  <CodeBlock code={reactSnippet} language="tsx" />
+                </div>
+
+                <div>
+                  <h3 className="text-sm font-semibold text-neutral-300 mb-1 flex items-center gap-2">
+                    <span className="flex h-5 w-5 items-center justify-center rounded-full bg-blue-500/20 text-blue-400 text-[10px] font-bold">C</span>
+                    Next.js (App Router)
+                  </h3>
+                  <p className="text-xs text-neutral-500 mb-2">Use the built-in Script component in layout.tsx.</p>
+                  <CodeBlock code={nextJsSnippet} language="tsx" />
+                </div>
               </div>
             </div>
 
