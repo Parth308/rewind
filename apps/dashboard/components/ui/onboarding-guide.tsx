@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { CheckCircle2, ChevronRight, Copy, Check, LayoutTemplate, Code2, Rocket, ExternalLink, ArrowRight, Play } from 'lucide-react';
 import { FadeUp } from '@/components/ui/fade-up';
@@ -56,7 +57,11 @@ interface Step {
 }
 
 export function OnboardingGuide({ hasProject, projectToken }: OnboardingGuideProps) {
+  const router = useRouter();
   const [activeStep, setActiveStep] = useState(hasProject ? 1 : 0);
+  const [activeTab, setActiveTab] = useState<'html' | 'react' | 'next'>('html');
+
+  const ingestUrl = process.env.NEXT_PUBLIC_INGEST_URL || 'http://localhost:3001';
 
   const steps: Step[] = [
     {
@@ -86,12 +91,12 @@ export function OnboardingGuide({ hasProject, projectToken }: OnboardingGuidePro
 <script>
   window.__rewind = {
     token: '${projectToken ?? 'YOUR_PROJECT_TOKEN'}',
-    endpoint: 'http://localhost:3001/ingest',
+    endpoint: '${ingestUrl}/ingest',
   };
 </script>
 
 <!-- Step 2: Inject the tracker script (auto-initializes) -->
-<script src="http://localhost:3001/tracker/tracker.js"></script>`;
+<script src="${ingestUrl}/tracker/tracker.js"></script>`;
 
   const reactSnippet = `// Main entry point (e.g. main.tsx or App.tsx)
 import { useEffect } from 'react';
@@ -308,41 +313,57 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                   </div>
                 )}
 
-                <div className="space-y-12">
-                  <div>
-                    <h3 className="text-lg font-serif text-white mb-2 flex items-center gap-3">
-                      <span className="flex h-6 w-6 items-center justify-center rounded bg-blue-500/20 text-blue-400 text-xs font-mono font-bold border border-blue-500/30">1</span>
-                      Standard HTML Injection
-                    </h3>
-                    <p className="text-sm font-mono text-neutral-500 mb-4">Embed within the <code className="text-neutral-300 bg-white/10 px-1.5 py-0.5 rounded border border-white/10">&lt;head&gt;</code> of your index document.</p>
-                    <CodeBlock code={trackerSnippet} language="html" />
+                <div>
+                  <div className="flex items-center gap-2 border-b border-[var(--color-border-dark)] mb-6">
+                    <button 
+                      onClick={() => setActiveTab('html')} 
+                      className={`px-4 py-3 font-mono text-sm border-b-2 transition-colors relative top-px ${activeTab === 'html' ? 'border-[var(--color-accent-green)] text-[var(--color-accent-green)] font-bold' : 'border-transparent text-neutral-500 hover:text-neutral-300'}`}
+                    >
+                      HTML / Vanilla
+                    </button>
+                    <button 
+                      onClick={() => setActiveTab('react')} 
+                      className={`px-4 py-3 font-mono text-sm border-b-2 transition-colors relative top-px ${activeTab === 'react' ? 'border-[var(--color-accent-green)] text-[var(--color-accent-green)] font-bold' : 'border-transparent text-neutral-500 hover:text-neutral-300'}`}
+                    >
+                      React / Vite
+                    </button>
+                    <button 
+                      onClick={() => setActiveTab('next')} 
+                      className={`px-4 py-3 font-mono text-sm border-b-2 transition-colors relative top-px ${activeTab === 'next' ? 'border-[var(--color-accent-green)] text-[var(--color-accent-green)] font-bold' : 'border-transparent text-neutral-500 hover:text-neutral-300'}`}
+                    >
+                      Next.js
+                    </button>
                   </div>
 
-                  <div className="flex items-center gap-4 py-2">
-                    <div className="flex-1 h-px bg-[var(--color-border-dark)]" />
-                    <span className="text-[10px] text-neutral-600 font-mono tracking-[0.2em] uppercase">Supported Frameworks</span>
-                    <div className="flex-1 h-px bg-[var(--color-border-dark)]" />
-                  </div>
-
-                  <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
-                    <div>
-                      <h3 className="text-lg font-serif text-white mb-2 flex items-center gap-3">
-                        <span className="flex h-6 w-6 items-center justify-center rounded bg-blue-500/20 text-blue-400 text-xs font-mono font-bold border border-blue-500/30">2</span>
-                        React (Vite/CRA)
-                      </h3>
-                      <p className="text-sm font-mono text-neutral-500 mb-4">Initialize at application root.</p>
-                      <CodeBlock code={reactSnippet} language="tsx" />
-                    </div>
-
-                    <div>
-                      <h3 className="text-lg font-serif text-white mb-2 flex items-center gap-3">
-                        <span className="flex h-6 w-6 items-center justify-center rounded bg-blue-500/20 text-blue-400 text-xs font-mono font-bold border border-blue-500/30">3</span>
-                        Next.js (App Router)
-                      </h3>
-                      <p className="text-sm font-mono text-neutral-500 mb-4">Utilize next/script in layout.tsx.</p>
-                      <CodeBlock code={nextJsSnippet} language="tsx" />
-                    </div>
-                  </div>
+                  <AnimatePresence mode="wait">
+                    {activeTab === 'html' && (
+                      <motion.div key="html" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} transition={{ duration: 0.2 }}>
+                        <h3 className="text-lg font-serif text-white mb-2 flex items-center gap-3">
+                          Standard HTML Injection
+                        </h3>
+                        <p className="text-sm font-mono text-neutral-500 mb-4">Embed within the <code className="text-neutral-300 bg-white/10 px-1.5 py-0.5 rounded border border-white/10">&lt;head&gt;</code> of your index document.</p>
+                        <CodeBlock code={trackerSnippet} language="html" />
+                      </motion.div>
+                    )}
+                    {activeTab === 'react' && (
+                      <motion.div key="react" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} transition={{ duration: 0.2 }}>
+                        <h3 className="text-lg font-serif text-white mb-2 flex items-center gap-3">
+                          React Integration
+                        </h3>
+                        <p className="text-sm font-mono text-neutral-500 mb-4">Initialize at application root component.</p>
+                        <CodeBlock code={reactSnippet} language="tsx" />
+                      </motion.div>
+                    )}
+                    {activeTab === 'next' && (
+                      <motion.div key="next" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} transition={{ duration: 0.2 }}>
+                        <h3 className="text-lg font-serif text-white mb-2 flex items-center gap-3">
+                          Next.js (App Router) Integration
+                        </h3>
+                        <p className="text-sm font-mono text-neutral-500 mb-4">Utilize <code className="text-neutral-300 bg-white/10 px-1.5 py-0.5 rounded border border-white/10">next/script</code> in your root layout.</p>
+                        <CodeBlock code={nextJsSnippet} language="tsx" />
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
                 </div>
 
                 <div className="bg-black border border-[var(--color-accent-green)]/30 rounded-xl p-6 relative overflow-hidden">
@@ -405,7 +426,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                   ))}
                 </div>
 
-                <div className="border border-[var(--color-border-dark)] rounded-xl p-8 bg-black/50">
+                <div className="border border-[var(--color-border-dark)] rounded-xl p-8 bg-black/50 mt-6">
                   <h3 className="font-mono text-sm text-white mb-6 uppercase tracking-widest flex items-center gap-3">
                     <div className="w-2 h-2 bg-[var(--color-accent-green)] rounded-full animate-pulse" />
                     Verification Protocol
@@ -421,20 +442,21 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                     </div>
                     <div className="flex gap-4 items-start">
                       <span className="text-[var(--color-accent-green)] font-bold shrink-0 mt-0.5">03</span>
-                      <p>Return to this console and <span className="text-white border-b border-white/30 pb-0.5">refresh the viewport</span>.</p>
+                      <p>Return to this console and click SCAN FOR SESSIONS.</p>
                     </div>
                   </div>
                 </div>
 
-                <div className="flex items-center gap-6 pt-6 border-t border-[var(--color-border-dark)]">
-                  <Link
-                    href="/dashboard"
+                <div className="flex items-center gap-6 pt-6 border-t border-[var(--color-border-dark)] mt-6">
+                  <button
+                    onClick={() => {
+                      router.refresh();
+                    }}
                     className="flex items-center gap-3 rounded-xl bg-[var(--color-accent-green)] px-8 py-4 font-mono text-sm font-bold text-black transition-all hover:bg-[var(--color-accent-green-hover)] shadow-[0_0_20px_rgba(163,230,53,0.3)]"
-                    onClick={() => window.location.reload()}
                   >
                     <Play className="h-4 w-4" />
                     SCAN FOR SESSIONS
-                  </Link>
+                  </button>
                   <button
                     onClick={() => setActiveStep(1)}
                     className="font-mono text-sm text-neutral-500 hover:text-white transition-colors"
