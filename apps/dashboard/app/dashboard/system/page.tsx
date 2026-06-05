@@ -132,14 +132,27 @@ export default async function SystemPage() {
               <Cpu className="w-5 h-5 text-indigo-400" /> Host Machine
             </h3>
 
-            {/* Simulated Server Rack Graphic */}
-            <div className="w-full bg-[#111] border border-white/5 rounded-lg p-4 space-y-3 mb-10 shadow-inner">
-              {[1,2,3].map((i) => (
-                <div key={i} className="flex gap-2 items-center">
-                  <div className={`w-2 h-2 rounded-full ${i === 2 ? 'bg-indigo-400 shadow-[0_0_8px_rgba(129,140,248,0.8)]' : 'bg-neutral-600'}`} />
-                  <div className="flex-1 h-3 bg-white/5 rounded" />
-                </div>
-              ))}
+            {/* Dynamic Compute Rack Graphic */}
+            <div className="w-full bg-[#111] border border-white/5 rounded-lg p-4 space-y-3 mb-10 shadow-inner max-h-[180px] overflow-y-auto">
+              {Array.from({ length: os.cpus }).map((_, i) => {
+                // Pseudo-random load per core based on system loadavg and uptime
+                const baseLoad = (os.loadavg[0] / Math.max(1, os.cpus)) * 100;
+                const load = Math.max(5, Math.min(95, baseLoad + (Math.sin(os.uptime + i * 45) * 20)));
+                const isActive = load > 50;
+                
+                return (
+                  <div key={i} className="flex gap-3 items-center">
+                    <span className="text-[9px] font-mono text-neutral-600 w-4 text-right">0{i}</span>
+                    <div className={`w-2 h-2 rounded-full shrink-0 transition-colors duration-1000 ${isActive ? 'bg-indigo-400 shadow-[0_0_8px_rgba(129,140,248,0.8)]' : 'bg-indigo-400/20'}`} />
+                    <div className="flex-1 h-3 bg-white/5 rounded overflow-hidden">
+                      <div 
+                        className="h-full bg-indigo-500/50 transition-all duration-1000 ease-out" 
+                        style={{ width: `${load}%` }} 
+                      />
+                    </div>
+                  </div>
+                );
+              })}
             </div>
             
             <div className="space-y-6 relative z-10 flex-1">

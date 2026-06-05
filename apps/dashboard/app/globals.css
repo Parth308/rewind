@@ -426,3 +426,39 @@
 .rrweb-player-container .switch {
   accent-color: #a3e635 !important;
 }
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+/* Custom RRWeb Timeline Tags */
+.rr-player-tag {
+  background-color: var(--color-accent-green) !important;
+  border-radius: 50% !important;
+  width: 6px !important;
+  height: 6px !important;
+  margin-top: -1px;
+  cursor: pointer !important;
+  box-shadow: 0 0 10px var(--color-accent-green) !important;
+  z-index: 50 !important;
+}
+
+.rr-player-tag:hover {
+  background-color: #fff !important;
+  box-shadow: 0 0 15px #fff !important;
+}

@@ -52,6 +52,7 @@ export async function getSystemMetrics() {
       memUsagePercent,
       uptime,
       cpus: cpus.length,
+      loadavg: os.loadavg(),
       arch: os.arch(),
       platform: os.platform(),
       release: os.release()

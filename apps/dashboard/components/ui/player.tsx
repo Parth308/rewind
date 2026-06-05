@@ -1,12 +1,41 @@
 // components/ui/player.tsx
 'use client';
 
-import { useEffect, useRef, useCallback } from 'react';
+import { useEffect, useRef, useCallback, useState } from 'react';
 
-export default function Player({ events }: { events: any[] }) {
+type FrustrationDot = {
+  offsetMs: number;
+  type: 'rage' | 'dead' | 'uturn' | 'scroll';
+  label: string;
+};
+
+// Color, glow, label per frustration type
+const DOT_CFG: Record<FrustrationDot['type'], { color: string; glow: string; emoji: string; desc: string }> = {
+  rage: { color: '#fb923c', glow: 'rgba(251,146,60,0.5)', emoji: '🔥', desc: 'Rage Click — rapid repeated clicks in same area' },
+  dead: { color: '#facc15', glow: 'rgba(250,204,21,0.5)', emoji: '💀', desc: 'Dead Click — click with no DOM response' },
+  uturn: { color: '#60a5fa', glow: 'rgba(96,165,250,0.5)', emoji: '↩️', desc: 'U-Turn — immediate page navigation reversal' },
+  scroll: { color: '#c084fc', glow: 'rgba(192,132,252,0.5)', emoji: '↕️', desc: 'Wild Scrolling — excessive erratic scrolling' },
+};
+
+// The rrweb control bar is 80px (flex-col, justify-content: space-around, 2 rows).
+// Timeline row is ~20px tall, buttons row ~32px tall, leaving 28px of spacing.
+// space-around: ~7px top margin + 10px to center of timeline row = 17px from controller top
+// → scrubber center is at 80 - 17 = 63px from wrapper bottom.
+const SCRUBBER_BOTTOM_PX = 65;
+
+export default function Player({
+  events,
+  frustrationDots = [],
+  totalMs = 0,
+}: {
+  events: any[];
+  frustrationDots?: FrustrationDot[];
+  totalMs?: number;
+}) {
   const wrapperRef = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const playerRef = useRef<any>(null);
+  const [hoveredIdx, setHoveredIdx] = useState<number | null>(null);
 
   const togglePlay = useCallback(() => {
     if (!playerRef.current) return;
@@ -17,23 +46,18 @@ export default function Player({ events }: { events: any[] }) {
 
   useEffect(() => {
     if (typeof window === 'undefined' || !containerRef.current || !wrapperRef.current || events.length < 2) return;
-
     let destroyed = false;
 
     const initPlayer = async (width: number, height: number) => {
       if (destroyed || playerRef.current) return;
       const rrwebPlayer = (await import('rrweb-player')).default;
       if (destroyed || playerRef.current) return;
-
-      // Reserve space for rrweb's own control bar (~80px)
-      const playerHeight = height - 80;
-
       playerRef.current = new rrwebPlayer({
         target: containerRef.current!,
         props: {
           events,
           width,
-          height: playerHeight,
+          height: height - 80, // leave room for control bar
           autoPlay: true,
           skipInactive: true,
           showWarning: false,
@@ -49,7 +73,6 @@ export default function Player({ events }: { events: any[] }) {
         initPlayer(Math.floor(width), Math.floor(height));
       }
     });
-
     ro.observe(wrapperRef.current);
 
     return () => {
@@ -69,6 +92,18 @@ export default function Player({ events }: { events: any[] }) {
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [togglePlay]);
+
+  const handleDotClick = useCallback((offsetMs: number) => {
+    if (!playerRef.current) return;
+    const p = playerRef.current;
+    // rrweb-player exposes goto(timeMs, play?)
+    if (typeof p.goto === 'function') {
+      p.goto(offsetMs, true);
+    } else if (p.$set) {
+      // Svelte component fallback: set currentTime
+      p.$set({ currentTime: offsetMs });
+    }
+  }, []);
 
   const recordedUrl =
     events.length > 0 && events[0]?.data?.href
@@ -122,9 +157,100 @@ export default function Player({ events }: { events: any[] }) {
         </div>
       </div>
 
-      {/* Replay area — flex-1, measured by ResizeObserver */}
+      {/* Replay area */}
       <div ref={wrapperRef} className="flex-1 min-h-0 relative overflow-hidden" style={{ background: '#080808' }}>
         <div ref={containerRef} className="rrweb-player-container w-full h-full" />
+
+        {/* Frustration markers — overlaid ON the rrweb progress track */}
+        {frustrationDots.length > 0 && totalMs > 0 && (
+          <div
+            className="absolute left-0 right-0 pointer-events-none"
+            style={{
+              // The .rr-progress track center sits inside the 80px control bar.
+              // .rr-controller is flex-col justify-space-around → timeline is in upper section ≈ 26px from bottom of bar.
+              bottom: `${SCRUBBER_BOTTOM_PX}px`,
+              height: 0,
+              // Horizontal padding mirrors rrweb's 80% width + centering:
+              // rrweb: .rr-timeline width:80%, centered → 10% margin each side of .rr-controller width.
+              // But .rr-controller is 100% of wrapper width, so left/right 10% of wrapper.
+              left: '10%',
+              right: '10%',
+            }}
+          >
+            {frustrationDots.map((dot, i) => {
+              const cfg = DOT_CFG[dot.type];
+              const pct = Math.min((dot.offsetMs / totalMs) * 100, 100);
+              const isHovered = hoveredIdx === i;
+              const offsetSec = Math.floor(dot.offsetMs / 1000);
+              const mm = Math.floor(offsetSec / 60);
+              const ss = offsetSec % 60;
+              const timeStr = mm > 0 ? `${mm}m ${ss}s` : `${ss}s`;
+
+              return (
+                <div
+                  key={i}
+                  style={{
+                    position: 'absolute',
+                    left: `${pct}%`,
+                    top: '50%',
+                    transform: 'translate(-50%, -50%)',
+                    pointerEvents: 'auto',
+                    zIndex: 50,
+                  }}
+                >
+                  {/* Tooltip — compact: just name + time */}
+                  {isHovered && (
+                    <div
+                      style={{
+                        position: 'absolute',
+                        bottom: '18px',
+                        left: '50%',
+                        transform: 'translateX(-50%)',
+                        background: '#1a1a1a',
+                        border: `1px solid ${cfg.color}50`,
+                        borderRadius: '8px',
+                        padding: '5px 10px',
+                        whiteSpace: 'nowrap',
+                        pointerEvents: 'none',
+                        zIndex: 100,
+                        boxShadow: `0 4px 20px rgba(0,0,0,0.7)`,
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '6px',
+                      }}
+                    >
+                      <span style={{ fontSize: '12px' }}>{cfg.emoji}</span>
+                      <span style={{ fontFamily: 'monospace', fontSize: '11px', fontWeight: 700, color: cfg.color }}>{dot.label}</span>
+                      <span style={{ fontFamily: 'monospace', fontSize: '10px', color: '#4b5563' }}>· {timeStr}</span>
+                    </div>
+                  )}
+
+                  {/* The dot itself */}
+                  <button
+                    onClick={() => handleDotClick(dot.offsetMs)}
+                    onMouseEnter={() => setHoveredIdx(i)}
+                    onMouseLeave={() => setHoveredIdx(null)}
+                    title={`${dot.label} at ${timeStr}`}
+                    style={{
+                      width: isHovered ? '14px' : '10px',
+                      height: isHovered ? '14px' : '10px',
+                      borderRadius: '50%',
+                      background: cfg.color,
+                      boxShadow: isHovered
+                        ? `0 0 0 3px ${cfg.glow}, 0 0 16px ${cfg.glow}`
+                        : `0 0 8px ${cfg.glow}`,
+                      border: `2px solid ${isHovered ? '#fff' : cfg.color}`,
+                      cursor: 'pointer',
+                      padding: 0,
+                      transition: 'all 0.15s ease',
+                      display: 'block',
+                    }}
+                  />
+                </div>
+              );
+            })}
+          </div>
+        )}
       </div>
     </div>
   );

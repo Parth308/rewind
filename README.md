@@ -2,7 +2,7 @@
 
 # Rewind
 
-**Open‑source session recording & replay for web applications.**
+**The open-source intelligence layer for your frontend.**
 
 [![Node.js](https://img.shields.io/badge/Node.js-20%2B-339933?logo=nodedotjs&logoColor=white)](#)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5-3178C6?logo=typescript&logoColor=white)](#)
@@ -13,7 +13,7 @@
 [![Redis](https://img.shields.io/badge/Redis-7-DC382D?logo=redis&logoColor=white)](#)
 [![License](https://img.shields.io/badge/license-MIT-blue)](#)
 
-*Drop a single `<script>` tag on any site and get full DOM replay, network logs, and console capture — with a polished dashboard to browse and replay every session.*
+*Drop a single `<script>` tag to get full DOM replay, network logs, and console capture. Empower your support, engineering, and product teams to understand user behavior instantly.*
 
 </div>
 
@@ -42,6 +42,12 @@
 **Rewind** is a self-hosted, privacy-friendly alternative to tools like FullStory or LogRocket. It is built as a **Turborepo + pnpm** monorepo and is designed to run efficiently on a single low-cost VPS while remaining horizontally scalable.
 
 A lightweight JavaScript snippet (the **Tracker**) is embedded on any web page. It silently records DOM mutations, network requests, and console output, then streams the data to the **Ingestor**. The Ingestor queues the work via **BullMQ / Redis** and a **Worker** persists it into **PostgreSQL**. The **Dashboard** lets you browse projects, inspect sessions, and replay them frame-by-frame alongside synchronized network and console timelines.
+
+### Use Cases
+- **Customer Support:** A user submits a ticket saying "I can't checkout." The support agent pulls up the user's latest session clip to see exactly what they did, skipping the painful "can you reproduce this?" back-and-forth.
+- **Engineering & Debugging:** Stop trying to reproduce complex frontend bugs locally. Watch the exact sequence of user events alongside synchronized network requests and console errors to pinpoint the root cause immediately.
+- **Product & UX Analytics:** Discover hidden friction points. Identify "rage clicks", track where users abandon their carts, and watch the sessions of users who dropped off to understand *why* they left.
+- **AI-Powered Insights:** Query sessions using natural language (e.g., "Show me users who got a payment error") and generate automated summaries of a user's journey.
 
 ---
 

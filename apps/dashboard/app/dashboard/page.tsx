@@ -5,7 +5,7 @@ import { desc, count } from 'drizzle-orm';
 import { formatDistanceToNow } from 'date-fns';
 import { OnboardingGuide } from '@/components/ui/onboarding-guide';
 import { FadeUp } from '@/components/ui/fade-up';
-import { MonitorPlay, Terminal, Globe, Clock, ChevronRight } from 'lucide-react';
+import { MonitorPlay, Terminal, Globe, Clock, ChevronRight, Flame, MousePointerClick, CornerUpLeft, ChevronsUpDown } from 'lucide-react';
 
 export const dynamic = 'force-dynamic';
 
@@ -17,6 +17,8 @@ export default async function DashboardSessions() {
     .from(sessions)
     .orderBy(desc(sessions.startedAt))
     .limit(50);
+
+  const maxDuration = allSessions.reduce((m, s) => Math.max(m, s.durationMs ?? 0), 0) || 1;
 
   const firstProject = projectCount > 0
     ? (await db.select().from(projects).limit(1))[0]
@@ -100,12 +102,33 @@ export default async function DashboardSessions() {
                       <div className="font-mono text-base lg:text-lg text-white group-hover:text-[var(--color-accent-green)] transition-colors truncate">
                         {session.id}
                       </div>
-                      <div className="flex items-center gap-3 mt-1.5 lg:mt-2">
-                        {session.errorCount && session.errorCount > 0 ? (
+                      <div className="flex flex-wrap items-center gap-2 mt-1.5 lg:mt-2">
+                        {(session.errorCount ?? 0) > 0 ? (
                           <div className="text-[10px] lg:text-xs text-red-400 font-mono bg-red-500/10 px-2 py-0.5 rounded border border-red-500/20">
                             {session.errorCount} CRITICAL ERRORS
                           </div>
-                        ) : (
+                        ) : null}
+                        {session.hasRageClicks && (
+                          <div className="flex items-center gap-1 text-[10px] lg:text-xs text-orange-400 font-mono bg-orange-500/10 px-2 py-0.5 rounded border border-orange-500/20" title="Rage Clicks Detected">
+                            <Flame className="w-3 h-3" /> RAGE
+                          </div>
+                        )}
+                        {session.hasDeadClicks && (
+                          <div className="flex items-center gap-1 text-[10px] lg:text-xs text-yellow-400 font-mono bg-yellow-500/10 px-2 py-0.5 rounded border border-yellow-500/20" title="Dead Clicks Detected">
+                            <MousePointerClick className="w-3 h-3" /> DEAD CLICK
+                          </div>
+                        )}
+                        {session.hasUTurns && (
+                          <div className="flex items-center gap-1 text-[10px] lg:text-xs text-blue-400 font-mono bg-blue-500/10 px-2 py-0.5 rounded border border-blue-500/20" title="U-Turns Detected">
+                            <CornerUpLeft className="w-3 h-3" /> U-TURN
+                          </div>
+                        )}
+                        {session.hasWildScrolling && (
+                          <div className="flex items-center gap-1 text-[10px] lg:text-xs text-purple-400 font-mono bg-purple-500/10 px-2 py-0.5 rounded border border-purple-500/20" title="Wild Scrolling Detected">
+                            <ChevronsUpDown className="w-3 h-3" /> SCROLL
+                          </div>
+                        )}
+                        {(!(session.errorCount ?? 0) && !session.hasRageClicks && !session.hasDeadClicks && !session.hasUTurns && !session.hasWildScrolling) && (
                           <div className="text-[10px] lg:text-xs text-neutral-500 font-mono tracking-widest uppercase">
                             {session.country || 'UNKNOWN ORIGIN'}
                           </div>
@@ -139,7 +162,7 @@ export default async function DashboardSessions() {
                             <div
                               className="h-full rounded-full bg-[var(--color-accent-green)] opacity-60 group-hover:opacity-100 transition-opacity shadow-[0_0_8px_rgba(163,230,53,0.5)]"
                               style={{
-                                width: `${Math.min(((dur || 0) / 300000) * 100, 100)}%`,
+                                width: `${Math.min(((dur || 0) / maxDuration) * 100, 100)}%`,
                               }}
                             />
                           </div>
