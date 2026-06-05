@@ -1,13 +1,13 @@
 import Link from 'next/link';
-import Player from '@/components/ui/player';
 import { db } from '@/lib/db';
-import { events, sessions, consoleLogs, networkRequests, errors } from '@rewind/shared';
+import { events, sessions, consoleLogs, networkRequests } from '@rewind/shared';
 import { eq } from 'drizzle-orm';
 import { formatDistanceToNow } from 'date-fns';
 import { FadeUp } from '@/components/ui/fade-up';
-import { ArrowLeft, Terminal, Activity, Monitor, Flame, MousePointerClick, CornerUpLeft, ChevronsUpDown, Clock } from 'lucide-react';
+import { SessionContent } from '@/components/ui/session-content';
+import { ArrowLeft, Flame, MousePointerClick, CornerUpLeft, ChevronsUpDown } from 'lucide-react';
 
-type FrustrationEvent = {
+type FrustrationDot = {
   offsetMs: number;
   label: string;
   type: 'rage' | 'dead' | 'uturn' | 'scroll';
@@ -24,12 +24,11 @@ export default async function SessionReplay(props: { params: Promise<{ id: strin
   const dbEvents = await db.select().from(events).where(eq(events.sessionId, params.id)).orderBy(events.timestamp);
   const rrwebEvents = dbEvents.map(e => e.data as any);
 
-  const logs = await db.select().from(consoleLogs).where(eq(consoleLogs.sessionId, params.id)).orderBy(consoleLogs.timestamp);
+  const logs    = await db.select().from(consoleLogs).where(eq(consoleLogs.sessionId, params.id)).orderBy(consoleLogs.timestamp);
   const network = await db.select().from(networkRequests).where(eq(networkRequests.sessionId, params.id)).orderBy(networkRequests.timestamp);
 
-  // Compute frustration events for the timeline panel + rrweb tags
-  const frustrationEvents: FrustrationEvent[] = [];
-  const frustrationTags: Record<string, string> = {};
+  // Compute frustration dot positions from rrweb events
+  const frustrationDots: FrustrationDot[] = [];
 
   if (rrwebEvents.length > 0) {
     const startTime = rrwebEvents[0].timestamp;
@@ -41,25 +40,18 @@ export default async function SessionReplay(props: { params: Promise<{ id: strin
       if (ev.type === 3 && ev.data) {
         if (ev.data.source === 2 && ev.data.type === 2) {
           clicks.push(ev);
-
           let isRage = false;
           const recentClicks = clicks.filter((c: any) => ev.timestamp - c.timestamp < 1000);
           if (recentClicks.length >= 3) {
             const xs = recentClicks.map((c: any) => c.data.x);
             const ys = recentClicks.map((c: any) => c.data.y);
-            const maxDist = Math.max(
-              Math.max(...xs) - Math.min(...xs),
-              Math.max(...ys) - Math.min(...ys)
-            );
+            const maxDist = Math.max(Math.max(...xs) - Math.min(...xs), Math.max(...ys) - Math.min(...ys));
             if (maxDist < 50) {
-              const offsetMs = ev.timestamp - startTime;
-              frustrationTags[String(offsetMs)] = '🔥 Rage Click';
-              frustrationEvents.push({ offsetMs, label: 'Rage Click', type: 'rage' });
+              frustrationDots.push({ offsetMs: ev.timestamp - startTime, label: 'Rage Click', type: 'rage' });
               clicks.length = 0;
               isRage = true;
             }
           }
-
           if (!isRage) {
             let hasMutation = false;
             for (let j = i + 1; j < rrwebEvents.length; j++) {
@@ -68,32 +60,24 @@ export default async function SessionReplay(props: { params: Promise<{ id: strin
               if (nextEv.type === 3 && nextEv.data.source === 0) { hasMutation = true; break; }
             }
             if (!hasMutation) {
-              const offsetMs = ev.timestamp - startTime;
-              frustrationTags[String(offsetMs)] = '💀 Dead Click';
-              frustrationEvents.push({ offsetMs, label: 'Dead Click', type: 'dead' });
+              frustrationDots.push({ offsetMs: ev.timestamp - startTime, label: 'Dead Click', type: 'dead' });
             }
           }
         }
-
         if (ev.data.source === 3) {
           scrollCount++;
           if (scrollCount === 21) {
-            const offsetMs = ev.timestamp - startTime;
-            frustrationTags[String(offsetMs)] = '↕️ Wild Scrolling';
-            frustrationEvents.push({ offsetMs, label: 'Wild Scrolling', type: 'scroll' });
+            frustrationDots.push({ offsetMs: ev.timestamp - startTime, label: 'Wild Scrolling', type: 'scroll' });
             scrollCount = 0;
           }
         }
       }
-
       if ((ev.type === 5 && ev.data?.tag === 'navigation') || ev.type === 4) {
         for (let j = i + 1; j < rrwebEvents.length; j++) {
           const nextEv = rrwebEvents[j];
           if (nextEv.timestamp - ev.timestamp > 5000) break;
           if ((nextEv.type === 5 && nextEv.data?.tag === 'navigation') || nextEv.type === 4) {
-            const offsetMs = nextEv.timestamp - startTime;
-            frustrationTags[String(offsetMs)] = '↩️ U-Turn';
-            frustrationEvents.push({ offsetMs, label: 'U-Turn', type: 'uturn' });
+            frustrationDots.push({ offsetMs: nextEv.timestamp - startTime, label: 'U-Turn', type: 'uturn' });
             break;
           }
         }
@@ -111,18 +95,13 @@ export default async function SessionReplay(props: { params: Promise<{ id: strin
   );
 
   const totalMs = session.durationMs ?? 0;
+  const sessionStartTime = rrwebEvents[0]?.timestamp ?? 0;
+
   const durStr = totalMs
     ? totalMs >= 60000
       ? `${Math.floor(totalMs / 60000)}m ${Math.round((totalMs % 60000) / 1000)}s`
       : `${Math.round(totalMs / 1000)}s`
     : null;
-
-  const fmtOffset = (ms: number) => {
-    const s = Math.floor(ms / 1000);
-    const m = Math.floor(s / 60);
-    if (m > 0) return `${m}m ${s % 60}s`;
-    return `${s}s`;
-  };
 
   return (
     <div className="flex flex-col gap-6" style={{ height: 'calc(100vh - 7rem)' }}>
@@ -131,7 +110,7 @@ export default async function SessionReplay(props: { params: Promise<{ id: strin
       <FadeUp>
         <div className="flex items-center justify-between p-6 bg-[#0A0A0A] border border-[var(--color-border-dark)] rounded-2xl relative overflow-hidden shadow-xl shrink-0">
           <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:16px_16px] pointer-events-none opacity-50" />
-          
+
           <div className="flex items-center gap-6 relative z-10">
             <Link
               href="/dashboard"
@@ -139,50 +118,28 @@ export default async function SessionReplay(props: { params: Promise<{ id: strin
             >
               <ArrowLeft className="w-5 h-5" />
             </Link>
-            
             <div className="h-8 w-px bg-[var(--color-border-dark)]" />
-            
             <div>
-              <div className="font-mono text-lg text-white font-bold tracking-wider">
-                {params.id}
-              </div>
+              <div className="font-mono text-lg text-white font-bold tracking-wider">{params.id}</div>
               <div className="flex items-center gap-4 text-xs font-mono text-neutral-500 mt-1 uppercase tracking-widest">
-                {session.os && <span className="text-[var(--color-accent-green)]">{session.os}</span>}
+                {session.os     && <span className="text-[var(--color-accent-green)]">{session.os}</span>}
                 {session.browser && <span>{session.browser}</span>}
-                {durStr && <span className="text-indigo-400">{durStr} DURATION</span>}
+                {durStr          && <span className="text-indigo-400">{durStr} DURATION</span>}
                 {session.startedAt && (
                   <span>{formatDistanceToNow(new Date(session.startedAt), { addSuffix: true })}</span>
                 )}
               </div>
-              
-              {/* Frustration Badges */}
               {(session.hasRageClicks || session.hasDeadClicks || session.hasUTurns || session.hasWildScrolling) && (
                 <div className="flex flex-wrap items-center gap-2 mt-3">
-                  {session.hasRageClicks && (
-                    <div className="flex items-center gap-1.5 text-xs text-orange-400 font-mono bg-orange-500/10 px-2.5 py-1 rounded border border-orange-500/20 shadow-[0_0_10px_rgba(249,115,22,0.1)]">
-                      <Flame className="w-3.5 h-3.5" /> RAGE CLICKS
-                    </div>
-                  )}
-                  {session.hasDeadClicks && (
-                    <div className="flex items-center gap-1.5 text-xs text-yellow-400 font-mono bg-yellow-500/10 px-2.5 py-1 rounded border border-yellow-500/20 shadow-[0_0_10px_rgba(234,179,8,0.1)]">
-                      <MousePointerClick className="w-3.5 h-3.5" /> DEAD CLICKS
-                    </div>
-                  )}
-                  {session.hasUTurns && (
-                    <div className="flex items-center gap-1.5 text-xs text-blue-400 font-mono bg-blue-500/10 px-2.5 py-1 rounded border border-blue-500/20 shadow-[0_0_10px_rgba(56,187,248,0.1)]">
-                      <CornerUpLeft className="w-3.5 h-3.5" /> U-TURNS
-                    </div>
-                  )}
-                  {session.hasWildScrolling && (
-                    <div className="flex items-center gap-1.5 text-xs text-purple-400 font-mono bg-purple-500/10 px-2.5 py-1 rounded border border-purple-500/20 shadow-[0_0_10px_rgba(168,85,247,0.1)]">
-                      <ChevronsUpDown className="w-3.5 h-3.5" /> WILD SCROLLING
-                    </div>
-                  )}
+                  {session.hasRageClicks   && <div className="flex items-center gap-1.5 text-xs text-orange-400 font-mono bg-orange-500/10 px-2.5 py-1 rounded border border-orange-500/20"><Flame className="w-3.5 h-3.5" /> RAGE CLICKS</div>}
+                  {session.hasDeadClicks   && <div className="flex items-center gap-1.5 text-xs text-yellow-400 font-mono bg-yellow-500/10 px-2.5 py-1 rounded border border-yellow-500/20"><MousePointerClick className="w-3.5 h-3.5" /> DEAD CLICKS</div>}
+                  {session.hasUTurns       && <div className="flex items-center gap-1.5 text-xs text-blue-400 font-mono bg-blue-500/10 px-2.5 py-1 rounded border border-blue-500/20"><CornerUpLeft className="w-3.5 h-3.5" /> U-TURNS</div>}
+                  {session.hasWildScrolling && <div className="flex items-center gap-1.5 text-xs text-purple-400 font-mono bg-purple-500/10 px-2.5 py-1 rounded border border-purple-500/20"><ChevronsUpDown className="w-3.5 h-3.5" /> WILD SCROLLING</div>}
                 </div>
               )}
             </div>
           </div>
-          
+
           <div className="relative z-10 flex items-center gap-3 bg-[#111] border border-[var(--color-border-dark)] px-4 py-2 rounded-lg">
             <div className="relative flex h-2 w-2">
               <span className="animate-[ping_2s_cubic-bezier(0,0,0.2,1)_infinite] absolute inline-flex h-full w-full rounded-full bg-[var(--color-accent-green)] opacity-60" />
@@ -193,114 +150,16 @@ export default async function SessionReplay(props: { params: Promise<{ id: strin
         </div>
       </FadeUp>
 
-      {/* Main Content */}
-      <FadeUp delay={0.1} className="flex flex-col xl:flex-row gap-6 flex-1 min-h-0 overflow-y-auto xl:overflow-hidden">
-
-        {/* Player — full height, no extra wrapper */}
-        <div className="flex-1 min-h-[400px] xl:min-h-0 flex flex-col rounded-2xl border border-[var(--color-border-dark)] bg-[#050505] overflow-hidden relative shadow-2xl">
-          <div className="flex items-center gap-3 px-5 py-3 bg-[#111] border-b border-[var(--color-border-dark)] relative z-10 shrink-0">
-            <Monitor className="w-4 h-4 text-neutral-500" />
-            <span className="text-xs font-mono text-neutral-400 uppercase tracking-widest">Viewport Reproduction</span>
-          </div>
-          <div className="flex-1 relative z-10 overflow-hidden">
-            {rrwebEvents.length > 0 ? (
-              <Player events={rrwebEvents} frustrationDots={frustrationEvents} totalMs={totalMs} />
-            ) : (
-              <div className="absolute inset-0 flex items-center justify-center flex-col gap-4 bg-[linear-gradient(rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:32px_32px]">
-                <div className="w-16 h-16 rounded-2xl border border-[var(--color-border-dark)] bg-[#111] flex items-center justify-center text-neutral-600 shadow-inner">
-                  <Monitor className="w-8 h-8 opacity-50" />
-                </div>
-                <span className="font-mono text-xs tracking-widest uppercase text-neutral-600">No DOM Mutations Recorded</span>
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* Right panel */}
-        <div className="w-full xl:w-[400px] shrink-0 flex flex-col gap-6 min-h-[600px] xl:min-h-0">
-
-          {/* Console */}
-          <div className="flex-1 min-h-0 flex flex-col rounded-2xl border border-[var(--color-border-dark)] bg-[#0A0A0A] overflow-hidden shadow-2xl relative">
-            <div className="absolute right-0 top-0 w-48 h-48 bg-purple-500/5 blur-[50px] rounded-full pointer-events-none" />
-            
-            <div className="flex items-center justify-between px-5 py-3 bg-[#111] border-b border-[var(--color-border-dark)] relative z-10 shrink-0">
-              <div className="flex items-center gap-3">
-                <Terminal className="w-4 h-4 text-purple-400" />
-                <span className="text-xs font-mono text-neutral-400 tracking-widest uppercase">Console Stream</span>
-              </div>
-              <span className="text-[10px] font-mono text-purple-400/80 bg-purple-500/10 px-2 py-0.5 rounded border border-purple-500/20">{logs.length} EVENTS</span>
-            </div>
-            
-            <div className="flex-1 overflow-y-auto p-4 font-mono text-xs space-y-2 relative z-10">
-              {logs.length === 0 ? (
-                <div className="text-neutral-700 text-center py-10 uppercase tracking-widest text-[10px]">Empty Buffer</div>
-              ) : logs.map((log) => (
-                <div
-                  key={log.id}
-                  className={`flex gap-3 py-2 px-3 rounded-lg border ${
-                    log.level === 'error' ? 'bg-red-500/5 border-red-500/20 text-red-400' : 
-                    log.level === 'warn' ? 'bg-amber-500/5 border-amber-500/20 text-amber-400' : 
-                    'bg-white/[0.02] border-white/5 text-neutral-400'
-                  }`}
-                >
-                  <span className="opacity-50 shrink-0 tabular-nums text-[10px] mt-0.5">
-                    {new Date(log.timestamp).toLocaleTimeString([], { hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit' })}
-                  </span>
-                  <span className="break-all leading-relaxed">{log.message}</span>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Network */}
-          <div className="flex-1 min-h-0 flex flex-col rounded-2xl border border-[var(--color-border-dark)] bg-[#0A0A0A] overflow-hidden shadow-2xl relative">
-            <div className="absolute right-0 top-0 w-48 h-48 bg-blue-500/5 blur-[50px] rounded-full pointer-events-none" />
-            
-            <div className="flex items-center justify-between px-5 py-3 bg-[#111] border-b border-[var(--color-border-dark)] relative z-10 shrink-0">
-              <div className="flex items-center gap-3">
-                <Activity className="w-4 h-4 text-blue-400" />
-                <span className="text-xs font-mono text-neutral-400 tracking-widest uppercase">Network Requests</span>
-              </div>
-              <span className="text-[10px] font-mono text-blue-400/80 bg-blue-500/10 px-2 py-0.5 rounded border border-blue-500/20">{network.length} REQS</span>
-            </div>
-            
-            <div className="flex-1 overflow-y-auto p-4 font-mono text-[11px] space-y-1 relative z-10">
-              {network.length === 0 ? (
-                <div className="text-neutral-700 text-center py-10 uppercase tracking-widest text-[10px]">No Network Traffic</div>
-              ) : network.map((req) => {
-                const status = req.status || 200;
-                const isErr = status >= 400;
-                return (
-                  <div key={req.id} className="flex items-center gap-3 py-1.5 px-2 rounded hover:bg-white/[0.03] transition-colors group" title={req.url}>
-                    <span
-                      className="shrink-0 font-bold tracking-wider px-1.5 py-0.5 rounded uppercase"
-                      style={{
-                        background: isErr ? 'rgba(239,68,68,0.1)' : 'rgba(163,230,53,0.1)',
-                        color: isErr ? '#f87171' : '#a3e635',
-                        border: `1px solid ${isErr ? 'rgba(239,68,68,0.2)' : 'rgba(163,230,53,0.2)'}`,
-                      }}
-                    >
-                      {req.method}
-                    </span>
-                    <span
-                      className="shrink-0 tabular-nums"
-                      style={{ color: isErr ? '#f87171' : '#6b7280' }}
-                    >
-                      {status}
-                    </span>
-                    <span className="truncate text-neutral-500 group-hover:text-neutral-300 transition-colors flex-1">
-                      {req.url}
-                    </span>
-                    {req.duration != null && (
-                      <span className="shrink-0 text-neutral-600 tabular-nums group-hover:text-neutral-400">{req.duration}ms</span>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-
-        </div>
+      {/* Main Content — client component handles player + time-synced sidebar */}
+      <FadeUp delay={0.1} className="flex-1 min-h-0 overflow-hidden flex flex-col">
+        <SessionContent
+          rrwebEvents={rrwebEvents}
+          frustrationDots={frustrationDots}
+          totalMs={totalMs}
+          sessionStartTime={sessionStartTime}
+          logs={logs}
+          network={network}
+        />
       </FadeUp>
     </div>
   );
