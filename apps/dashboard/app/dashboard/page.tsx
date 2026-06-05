@@ -49,8 +49,8 @@ export default async function DashboardSessions() {
       </FadeUp>
 
       {/* Main Content Area */}
-      <FadeUp delay={0.1} className="flex-1">
-        <div className="bg-[#0A0A0A] border border-[var(--color-border-dark)] rounded-2xl relative overflow-hidden flex flex-col min-h-[500px] shadow-2xl">
+      <FadeUp delay={0.1} className="flex-1 flex flex-col">
+        <div className="bg-[#0A0A0A] border border-[var(--color-border-dark)] rounded-2xl relative overflow-hidden flex flex-col h-[calc(100vh-16rem)] min-h-[500px] shadow-2xl">
           {/* Ambient Glow & Grid */}
           <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:32px_32px] opacity-30 pointer-events-none" />
           <div className="absolute top-0 right-1/4 w-96 h-96 bg-[var(--color-accent-green)] opacity-[0.02] blur-[100px] pointer-events-none rounded-full" />

@@ -9,11 +9,11 @@ type FrustrationDot = {
   label: string;
 };
 
-const DOT_CFG: Record<FrustrationDot['type'], { color: string; glow: string; emoji: string }> = {
-  rage: { color: '#fb923c', glow: 'rgba(251,146,60,0.5)', emoji: '🔥' },
-  dead: { color: '#facc15', glow: 'rgba(250,204,21,0.5)', emoji: '💀' },
-  uturn: { color: '#60a5fa', glow: 'rgba(96,165,250,0.5)', emoji: '↩️' },
-  scroll: { color: '#c084fc', glow: 'rgba(192,132,252,0.5)', emoji: '↕️' },
+const DOT_CFG: Record<FrustrationDot['type'], { color: string; glow: string }> = {
+  rage: { color: '#fb923c', glow: 'rgba(251,146,60,0.5)' },
+  dead: { color: '#facc15', glow: 'rgba(250,204,21,0.5)' },
+  uturn: { color: '#60a5fa', glow: 'rgba(96,165,250,0.5)' },
+  scroll: { color: '#c084fc', glow: 'rgba(192,132,252,0.5)' },
 };
 
 // rrweb control bar is 80px; .rr-timeline (flex-col, space-around, row 1 of 2)
@@ -190,7 +190,6 @@ export default function Player({
                       padding: '5px 10px', whiteSpace: 'nowrap', pointerEvents: 'none', zIndex: 100,
                       boxShadow: '0 4px 20px rgba(0,0,0,0.7)', display: 'flex', alignItems: 'center', gap: '6px',
                     }}>
-                      <span style={{ fontSize: '12px' }}>{cfg.emoji}</span>
                       <span style={{ fontFamily: 'monospace', fontSize: '11px', fontWeight: 700, color: cfg.color }}>{dot.label}</span>
                       <span style={{ fontFamily: 'monospace', fontSize: '10px', color: '#4b5563' }}>· {timeStr}</span>
                     </div>

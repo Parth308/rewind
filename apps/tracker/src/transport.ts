@@ -55,6 +55,22 @@ export class Transport {
     setTimeout(() => this.connect(), delay);
   }
 
+  // Called by Recorder on beforeunload — uses sendBeacon which the browser
+  // guarantees to complete even as the page is tearing down.
+  public beaconFlush(payload: any) {
+    payload.sessionId = this.sessionId;
+    let endpoint = this.config.endpoint;
+    if (!endpoint.endsWith('/')) endpoint += '/';
+    endpoint += this.config.token;
+
+    if (navigator.sendBeacon) {
+      navigator.sendBeacon(endpoint, JSON.stringify(payload));
+    } else {
+      // fallback for environments without sendBeacon
+      this.send(payload);
+    }
+  }
+
   public send(payload: any) {
     payload.sessionId = this.sessionId;
     if (this.ws && this.ws.readyState === WebSocket.OPEN) {
