@@ -3,6 +3,7 @@ import { sessions, events, networkRequests, errors } from '@rewind/shared';
 import { count, sql } from 'drizzle-orm';
 import AnalyticsCharts from './AnalyticsCharts';
 import { FadeUp } from '@/components/ui/fade-up';
+import { AiUsageCard } from './AiUsageCard';
 
 export const dynamic = 'force-dynamic';
 
@@ -152,6 +153,11 @@ export default async function DashboardAnalytics() {
           </div>
         </FadeUp>
       </div>
+
+      {/* AI Usage (Full Width Bottom) */}
+      <FadeUp delay={0.7} className="mt-4">
+        <AiUsageCard />
+      </FadeUp>
     </div>
   );
 }

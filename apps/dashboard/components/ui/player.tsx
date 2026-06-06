@@ -89,6 +89,10 @@ export default function Player({
     return () => {
       destroyed = true;
       ro.disconnect();
+      if (playerRef.current) {
+        try { playerRef.current.pause(); } catch (e) {}
+        try { playerRef.current.$destroy(); } catch (e) {}
+      }
       if (containerRef.current) containerRef.current.innerHTML = '';
       playerRef.current = null;
     };

@@ -1,7 +1,6 @@
 import { getSystemMetrics } from '@/lib/system';
 import { FadeUp } from '@/components/ui/fade-up';
 import { Activity, Database, Cpu, Server, Zap, ArrowRight, Layers } from 'lucide-react';
-import { AiUsageCard } from './AiUsageCard';
 
 export const dynamic = 'force-dynamic';
 
@@ -176,11 +175,6 @@ export default async function SystemPage() {
               </div>
             </div>
           </div>
-        </FadeUp>
-
-        {/* AI Usage (Full Width Bottom) */}
-        <FadeUp delay={0.4} className="col-span-1 xl:col-span-3 mt-4">
-          <AiUsageCard />
         </FadeUp>
 
       </div>
