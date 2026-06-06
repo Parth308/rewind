@@ -3,12 +3,15 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "dev": "tsx watch src/index.ts",
-    "start": "tsx src/index.ts",
+    "dev": "dotenv -e .env -- tsx watch src/index.ts",
+    "start": "dotenv -e .env -- tsx src/index.ts",
     "build": "tsc"
   },
   "dependencies": {
+    "@ai-sdk/google": "^3.0.80",
+    "@ai-sdk/openai": "^3.0.68",
     "@rewind/shared": "workspace:*",
+    "ai": "^6.0.197",
     "bullmq": "^5.7.8",
     "drizzle-orm": "^0.30.10",
     "ioredis": "^5.4.1",
@@ -19,6 +22,7 @@
   "devDependencies": {
     "@types/pg": "^8.11.6",
     "@types/ua-parser-js": "^0.7.39",
+    "dotenv-cli": "^11.0.0",
     "ts-node-dev": "^2.0.0",
     "typescript": "^5.5.0"
   }

@@ -9,8 +9,11 @@
     "lint": "eslint"
   },
   "dependencies": {
+    "@ai-sdk/google": "^3.0.80",
+    "@ai-sdk/openai": "^3.0.68",
     "@fontsource/google-sans": "^5.2.1",
     "@rewind/shared": "workspace:*",
+    "ai": "^6.0.197",
     "bullmq": "^5.7.8",
     "clsx": "^2.1.1",
     "date-fns": "^4.4.0",

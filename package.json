@@ -2,15 +2,16 @@
   "name": "rewind",
   "private": true,
   "scripts": {
-    "build": "turbo run build",
-    "start": "turbo run start",
-    "dev": "turbo run dev",
+    "build": "dotenv -e .env -- turbo run build",
+    "start": "dotenv -e .env -- turbo run start",
+    "dev": "dotenv -e .env -- turbo run dev",
     "lint": "turbo run lint",
     "format": "prettier --write \"**/*.{ts,tsx,md}\"",
-    "db:push": "pnpm -F @rewind/shared run db:push",
-    "db:generate": "pnpm -F @rewind/shared run db:generate"
+    "db:push": "dotenv -e .env -- pnpm -F @rewind/shared run db:push",
+    "db:generate": "dotenv -e .env -- pnpm -F @rewind/shared run db:generate"
   },
   "devDependencies": {
+    "dotenv-cli": "^11.0.0",
     "prettier": "^3.0.0",
     "tsx": "^4.22.4",
     "turbo": "^2.0.0",

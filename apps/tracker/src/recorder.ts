@@ -37,7 +37,8 @@ export class Recorder {
     // Auto-flush when the page is hidden (tab switch, mobile background) or closed
     const onVisibilityChange = () => {
       if (document.visibilityState === 'hidden') {
-        this.flush();
+        // Use beaconFlush so isFinal=true is sent — triggers embedding pipeline
+        this.beaconFlush();
       }
     };
     // beforeunload fires before the page unloads — last chance to send data
@@ -77,7 +78,7 @@ export class Recorder {
     if (this.buffer.length === 0) return;
     const events = [...this.buffer];
     this.buffer = [];
-    this.transport.beaconFlush({ type: 'batch', events });
+    this.transport.beaconFlush({ type: 'batch', events, isFinal: true });
   }
 
   private flush() {

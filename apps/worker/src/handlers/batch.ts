@@ -2,12 +2,19 @@ import { eq, min, max } from 'drizzle-orm';
 import { db } from '../db';
 import { sessions, events } from '@rewind/shared';
 import { detectFrustrationSignals } from '../utils/frustration';
+import { Queue } from 'bullmq';
+import Redis from 'ioredis';
+
+const REDIS_URL = process.env.REDIS_URL || 'redis://localhost:6379';
+const redis = new Redis(REDIS_URL, { maxRetriesPerRequest: null });
+const eventsQueue = new Queue('events', { connection: redis as any });
 
 export async function handleBatch(projectId: string, payload: any) {
   if (!payload.events || payload.events.length === 0) return;
 
   const sessionId = payload.sessionId;
   const batchEvents: any[] = payload.events;
+  console.log(`[Batch] session=${sessionId} events=${batchEvents.length} isFinal=${payload.isFinal ?? false}`);
 
   // ── Ensure session row exists ────────────────────────────────────────────
   // Prefer the metadata handler to create the row; this is a safety fallback.
@@ -74,4 +81,31 @@ export async function handleBatch(projectId: string, payload: any) {
   if (flags.hasWildScrolling) updateData.hasWildScrolling = true;
 
   await db.update(sessions).set(updateData).where(eq(sessions.id, sessionId));
+
+  // ── Debounce AI Embedding ─────────────────────────────────────────────────
+  // We debounce the summarization job by 15 seconds after the LAST activity.
+  // This ensures that page navigations (which fire beforeunload and send a batch)
+  // don't prematurely finalize the session if the user immediately loads another page.
+  const jobId = `embed_${sessionId}`;
+  const existingJob = await eventsQueue.getJob(jobId);
+  if (existingJob) {
+    const state = await existingJob.getState();
+    if (state === 'delayed' || state === 'waiting' || state === 'completed' || state === 'failed') {
+      await existingJob.remove();
+    } else if (state === 'active') {
+      // It's actively embedding right now. Don't queue again immediately.
+      return;
+    }
+  }
+
+  if (payload.isFinal) {
+    console.log(`[Batch] Session ${sessionId} marked as final (tab hidden/closed). Queueing AI summarization...`);
+  }
+
+  await eventsQueue.add('embed_session', { sessionId }, {
+    jobId,
+    delay: 15000,
+    attempts: 3,
+    backoff: { type: 'exponential', delay: 10000 }
+  });
 }

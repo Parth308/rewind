@@ -4,6 +4,7 @@ import { handleMetadata } from './handlers/metadata';
 import { handleBatch } from './handlers/batch';
 import { handleConsole } from './handlers/console';
 import { handleNetwork } from './handlers/network';
+import { handleEmbedding } from './handlers/embedding';
 
 const REDIS_URL = process.env.REDIS_URL || 'redis://localhost:6379';
 const redis = new Redis(REDIS_URL, { maxRetriesPerRequest: null });
@@ -27,6 +28,13 @@ const worker = new Worker('events', async (job: Job) => {
     } catch (err) {
       console.error(`Error processing ${payload.type} for project ${projectId}:`, err);
       throw err; // Re-throw to let BullMQ handle retries
+    }
+  } else if (job.name === 'embed_session') {
+    try {
+      await handleEmbedding(job.data.sessionId);
+    } catch (err) {
+      console.error(`Error embedding session ${job.data.sessionId}:`, err);
+      throw err;
     }
   }
 }, { connection: redis as any });

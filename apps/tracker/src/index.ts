@@ -16,34 +16,31 @@ function generateSessionId() {
 }
 
 /**
- * Returns the current session ID for this browser tab.
+ * Returns the current session ID for this browser tab/window.
  *
  * Reuses the existing ID if the session hasn't expired (30 min inactivity window),
- * so navigating between pages in the same tab counts as one session — not many.
+ * so navigating between pages counts as one session.
  *
- * sessionStorage is intentionally tab-scoped:
- *   • New tab  → new session  ✓
- *   • Browser close → sessionStorage wiped → new session on return  ✓
- *   • Same tab, A→B→C page navigation → same session ID  ✓
+ * localStorage is used so sessions persist across domain navigations and new tabs.
  */
 function getOrCreateSessionId(): string {
   try {
-    const sid    = sessionStorage.getItem(SESSION_ID_KEY);
-    const expiry = Number(sessionStorage.getItem(SESSION_EXP_KEY) ?? 0);
+    const sid    = localStorage.getItem(SESSION_ID_KEY);
+    const expiry = Number(localStorage.getItem(SESSION_EXP_KEY) ?? 0);
 
     if (sid && Date.now() < expiry) {
       // Still within the inactivity window — reuse and extend
-      sessionStorage.setItem(SESSION_EXP_KEY, String(Date.now() + SESSION_TTL_MS));
+      localStorage.setItem(SESSION_EXP_KEY, String(Date.now() + SESSION_TTL_MS));
       return sid;
     }
   } catch {
-    // sessionStorage unavailable (e.g. cross-origin iframe) — fall through to new ID
+    // localStorage unavailable — fall through to new ID
   }
 
   const newSid = generateSessionId();
   try {
-    sessionStorage.setItem(SESSION_ID_KEY,  newSid);
-    sessionStorage.setItem(SESSION_EXP_KEY, String(Date.now() + SESSION_TTL_MS));
+    localStorage.setItem(SESSION_ID_KEY,  newSid);
+    localStorage.setItem(SESSION_EXP_KEY, String(Date.now() + SESSION_TTL_MS));
   } catch {
     // ignore — ID won't persist across pages but at least this page works
   }

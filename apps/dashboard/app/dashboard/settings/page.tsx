@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Settings, Shield, Key, Bell, CreditCard, Save } from 'lucide-react';
 import { FadeUp } from '@/components/ui/fade-up';
+import { ApiSettingsTab } from './ApiSettings';
 
 const tabs = [
   { id: 'general', name: 'General', icon: Settings },
@@ -133,7 +134,9 @@ export default function SettingsPage() {
                 </motion.div>
               )}
 
-              {activeTab !== 'general' && (
+              {activeTab === 'api' && <ApiSettingsTab key="api" />}
+
+              {activeTab !== 'general' && activeTab !== 'api' && (
                 <motion.div
                   key="other"
                   initial={{ opacity: 0, y: 10 }}

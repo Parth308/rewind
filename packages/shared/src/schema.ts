@@ -2,6 +2,7 @@ import {
   pgTable, uuid, varchar, text, integer, bigint, boolean,
   timestamp, jsonb, index, uniqueIndex,
 } from 'drizzle-orm/pg-core';
+import { customType } from 'drizzle-orm/pg-core';
 
 // ─── USERS ────────────────────────────────────────────────
 export const users = pgTable('users', {
@@ -11,6 +12,7 @@ export const users = pgTable('users', {
   name:          varchar('name', { length: 100 }),
   createdAt:     timestamp('created_at', { withTimezone: true }).defaultNow(),
   updatedAt:     timestamp('updated_at', { withTimezone: true }).defaultNow(),
+  settings:      jsonb('settings').default({}),
 });
 
 // ─── PROJECTS ─────────────────────────────────────────────
@@ -63,6 +65,40 @@ export const sessions = pgTable('sessions', {
   durationIdx: index('idx_sessions_duration').on(table.projectId, table.durationMs),
   browserIdx: index('idx_sessions_browser').on(table.projectId, table.browser),
   countryIdx: index('idx_sessions_country').on(table.projectId, table.country),
+}));
+
+// ─── SESSION EMBEDDINGS (pgvector) ────────────────────────
+export const aiUsageLogs = pgTable('ai_usage_logs', {
+  id:               uuid('id').primaryKey().defaultRandom(),
+  projectId:        uuid('project_id').notNull().references(() => projects.id, { onDelete: 'cascade' }),
+  action:           varchar('action', { length: 50 }).notNull(), // 'summarize_session', 'embed_session', 'semantic_search'
+  provider:         varchar('provider', { length: 50 }).notNull(), // 'google', 'openai'
+  model:            varchar('model', { length: 100 }).notNull(),
+  promptTokens:     integer('prompt_tokens').notNull().default(0),
+  completionTokens: integer('completion_tokens').notNull().default(0),
+  totalTokens:      integer('total_tokens').notNull().default(0),
+  createdAt:        timestamp('created_at', { withTimezone: true }).defaultNow(),
+}, (table) => ({
+  projectIdIdx: index('idx_ai_usage_project_id').on(table.projectId),
+  createdAtIdx: index('idx_ai_usage_created_at').on(table.createdAt),
+}));
+
+
+export const sessionEmbeddings = pgTable('session_embeddings', {
+  id:            uuid('id').primaryKey().defaultRandom(),
+  sessionId:     uuid('session_id').notNull().references(() => sessions.id, { onDelete: 'cascade' }),
+  narrative:     text('narrative').notNull(),
+  // using customType with just 'vector' as data type to see if it fixes the parse issue, 
+  // or we can just use the provided pgvector type.
+  embedding:     customType<{ data: number[]; driverData: string }>({
+    dataType() { return 'vector'; },
+    toDriver(value: number[]): string { return JSON.stringify(value); },
+    fromDriver(value: string): number[] { return typeof value === 'string' ? JSON.parse(value) : value; }
+  })('embedding').notNull(),
+  modelUsed:     varchar('model_used', { length: 50 }).notNull(),
+  createdAt:     timestamp('created_at', { withTimezone: true }).defaultNow(),
+}, (table) => ({
+  sessionIdIdx: index('idx_embeddings_session_id').on(table.sessionId),
 }));
 
 // ─── EVENTS (largest table — ~80% of storage) ─────────────

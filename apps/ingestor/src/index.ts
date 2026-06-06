@@ -15,6 +15,8 @@ import { existsSync } from 'fs';
 const app = express();
 app.use(cors({ origin: '*' }));
 app.use(express.json());
+// sendBeacon sends text/plain — parse that too
+app.use(express.text({ type: 'text/plain' }));
 
 app.get('/health', async (req, res) => {
   try {
@@ -78,7 +80,8 @@ wss.on('connection', async (ws, req) => {
   });
 });
 
-app.post('/ingest/:token', async (req, res) => {
+app.post('/ingest/:token', async (req, res) =>
+{
   const { token } = req.params;
   
   const projectList = await db.select().from(projects).where(eq(projects.token, token));
@@ -88,9 +91,19 @@ app.post('/ingest/:token', async (req, res) => {
   const project = projectList[0];
 
   try {
+    // sendBeacon sends body as text/plain — parse if needed
+    let payload = req.body;
+    if (typeof payload === 'string') {
+      try { payload = JSON.parse(payload); } catch { /* leave as-is */ }
+    }
+    
+    if (payload?.isFinal) {
+      console.log(`[Ingestor] isFinal=true received for session ${payload.sessionId} — will trigger embedding`);
+    }
+
     await eventsQueue.add('process_batch', {
       projectId: project.id,
-      payload: req.body
+      payload,
     });
     res.json({ success: true });
   } catch (e) {

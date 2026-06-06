@@ -10,8 +10,13 @@
     "db:generate": "drizzle-kit generate"
   },
   "dependencies": {
+    "@ai-sdk/anthropic": "^3.0.81",
+    "@ai-sdk/google": "^3.0.80",
+    "@ai-sdk/openai": "^3.0.68",
+    "ai": "^6.0.197",
     "drizzle-orm": "^0.30.10",
     "pg": "^8.11.5",
+    "pgvector": "^0.3.0",
     "zod": "^3.23.8"
   },
   "devDependencies": {

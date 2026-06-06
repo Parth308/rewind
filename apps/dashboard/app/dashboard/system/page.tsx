@@ -1,6 +1,7 @@
 import { getSystemMetrics } from '@/lib/system';
 import { FadeUp } from '@/components/ui/fade-up';
 import { Activity, Database, Cpu, Server, Zap, ArrowRight, Layers } from 'lucide-react';
+import { AiUsageCard } from './AiUsageCard';
 
 export const dynamic = 'force-dynamic';
 
@@ -106,9 +107,10 @@ export default async function SystemPage() {
                 <Zap className="w-5 h-5 text-amber-400" /> BullMQ Ingestion Queue
               </h3>
               
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 relative z-10">
+              <div className="grid grid-cols-2 sm:grid-cols-5 gap-4 relative z-10">
                 {[
                   { label: "WAITING", value: redis.queueCounts.waiting || 0, color: "text-neutral-300", border: "border-neutral-700" },
+                  { label: "DELAYED", value: redis.queueCounts.delayed || 0, color: "text-purple-400", border: "border-purple-500/30", glow: "shadow-[0_0_15px_rgba(168,85,247,0.15)]" },
                   { label: "ACTIVE", value: redis.queueCounts.active || 0, color: "text-blue-400", border: "border-blue-500/30", glow: "shadow-[0_0_15px_rgba(59,130,246,0.15)]" },
                   { label: "COMPLETED", value: redis.queueCounts.completed || 0, color: "text-[var(--color-accent-green)]", border: "border-[var(--color-accent-green)]/30", glow: "shadow-[0_0_15px_rgba(163,230,53,0.15)]" },
                   { label: "FAILED", value: redis.queueCounts.failed || 0, color: "text-red-400", border: "border-red-500/30", glow: "shadow-[0_0_15px_rgba(239,68,68,0.15)]" }
@@ -174,6 +176,11 @@ export default async function SystemPage() {
               </div>
             </div>
           </div>
+        </FadeUp>
+
+        {/* AI Usage (Full Width Bottom) */}
+        <FadeUp delay={0.4} className="col-span-1 xl:col-span-3 mt-4">
+          <AiUsageCard />
         </FadeUp>
 
       </div>
