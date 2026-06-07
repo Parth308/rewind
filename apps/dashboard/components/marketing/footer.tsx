@@ -20,7 +20,7 @@ export const Footer = () => {
             <p className="text-xl text-neutral-400 mb-10">Join elite engineering teams taking control of their debugging pipeline.</p>
           </FadeUp>
           <FadeUp delay={0.2} className="flex flex-col sm:flex-row justify-center gap-4">
-            <a href="#" className="flex h-14 items-center justify-center rounded-lg bg-white px-10 font-semibold text-black hover:bg-neutral-200 transition-colors">
+            <a href="/docs/installation" className="flex h-14 items-center justify-center rounded-lg bg-[var(--color-accent-green)] px-10 font-semibold text-black hover:bg-[var(--color-accent-green-hover)] transition-colors shadow-[0_0_20px_rgba(163,230,53,0.3)]">
               Deploy Rewind Free
             </a>
             <a href="https://github.com/Parth308/rewind" className="flex h-14 items-center justify-center gap-2 rounded-lg border border-[var(--color-border-dark)] bg-[var(--color-surface)] px-10 text-white hover:bg-white/10 transition-colors">
@@ -41,9 +41,9 @@ export const Footer = () => {
             <span>Rewind © {new Date().getFullYear()}. Open Source.</span>
           </div>
           <div className="flex gap-8">
-            <a href="#" className="hover:text-white transition-colors">Documentation</a>
-            <a href="#" className="hover:text-white transition-colors">Twitter</a>
-            <a href="#" className="hover:text-white transition-colors">Terms</a>
+            <a href="/docs" className="hover:text-white transition-colors">Documentation</a>
+            <a href="/dashboard" className="hover:text-white transition-colors">Dashboard</a>
+            <a href="/docs/privacy" className="hover:text-white transition-colors">Privacy & Terms</a>
           </div>
         </div>
       </footer>

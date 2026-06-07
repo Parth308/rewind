@@ -14,7 +14,8 @@ export const Navbar = () => {
         <a href="#demo" className="transition-colors hover:text-white">Demo</a>
         <a href="#features" className="transition-colors hover:text-white">Features</a>
         <a href="#architecture" className="transition-colors hover:text-white">Architecture</a>
-        <a href="#pricing" className="transition-colors hover:text-white">Pricing</a>
+        <a href="/docs" className="transition-colors text-[var(--color-accent-green)] hover:text-white">Docs</a>
+        <a href="/dashboard" className="transition-colors hover:text-white">Dashboard</a>
         <a href="https://github.com/Parth308/rewind" className="flex items-center gap-2 text-white transition-opacity hover:opacity-80">
           <GithubIcon className="h-4 w-4" />
           <span>GitHub</span>

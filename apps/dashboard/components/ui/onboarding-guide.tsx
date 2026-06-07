@@ -59,7 +59,7 @@ interface Step {
 export function OnboardingGuide({ hasProject, projectToken }: OnboardingGuideProps) {
   const router = useRouter();
   const [activeStep, setActiveStep] = useState(hasProject ? 1 : 0);
-  const [activeTab, setActiveTab] = useState<'html' | 'react' | 'next'>('html');
+  const [activeTab, setActiveTab] = useState<'html' | 'react' | 'next' | 'vue' | 'svelte'>('html');
 
   const ingestUrl = process.env.NEXT_PUBLIC_INGEST_URL || 'http://localhost:3001';
 
@@ -141,6 +141,36 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     </html>
   );
 }`;
+
+  const vueSnippet = `// Main entry point (main.ts)
+import { createApp } from 'vue'
+import App from './App.vue'
+
+if (typeof window !== 'undefined' && !window.__rewind) {
+  window.__rewind = {
+    token: '${projectToken ?? 'YOUR_PROJECT_TOKEN'}',
+    endpoint: '${ingestUrl}/ingest',
+  };
+  
+  const script = document.createElement('script');
+  script.src = '${ingestUrl}/tracker/tracker.js';
+  script.async = true;
+  document.head.appendChild(script);
+}
+
+createApp(App).mount('#app')`;
+
+  const svelteSnippet = `<!-- Root layout (src/app.html) -->
+<head>
+  <script>
+    window.__rewind = {
+      token: '${projectToken ?? 'YOUR_PROJECT_TOKEN'}',
+      endpoint: '${ingestUrl}/ingest',
+    };
+  </script>
+  <script src="${ingestUrl}/tracker/tracker.js" async></script>
+  %svelte.head%
+</head>`;
 
   return (
     <div className="flex flex-col gap-10 max-w-5xl mx-auto pb-10">
@@ -314,24 +344,36 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                 )}
 
                 <div>
-                  <div className="flex items-center gap-2 border-b border-[var(--color-border-dark)] mb-6">
+                  <div className="flex items-center gap-2 border-b border-[var(--color-border-dark)] mb-6 overflow-x-auto scrollbar-hide">
                     <button 
                       onClick={() => setActiveTab('html')} 
-                      className={`px-4 py-3 font-mono text-sm border-b-2 transition-colors relative top-px ${activeTab === 'html' ? 'border-[var(--color-accent-green)] text-[var(--color-accent-green)] font-bold' : 'border-transparent text-neutral-500 hover:text-neutral-300'}`}
+                      className={`px-4 py-3 font-mono text-sm border-b-2 transition-colors relative top-px whitespace-nowrap ${activeTab === 'html' ? 'border-[var(--color-accent-green)] text-[var(--color-accent-green)] font-bold' : 'border-transparent text-neutral-500 hover:text-neutral-300'}`}
                     >
                       HTML / Vanilla
                     </button>
                     <button 
                       onClick={() => setActiveTab('react')} 
-                      className={`px-4 py-3 font-mono text-sm border-b-2 transition-colors relative top-px ${activeTab === 'react' ? 'border-[var(--color-accent-green)] text-[var(--color-accent-green)] font-bold' : 'border-transparent text-neutral-500 hover:text-neutral-300'}`}
+                      className={`px-4 py-3 font-mono text-sm border-b-2 transition-colors relative top-px whitespace-nowrap ${activeTab === 'react' ? 'border-[var(--color-accent-green)] text-[var(--color-accent-green)] font-bold' : 'border-transparent text-neutral-500 hover:text-neutral-300'}`}
                     >
                       React / Vite
                     </button>
                     <button 
                       onClick={() => setActiveTab('next')} 
-                      className={`px-4 py-3 font-mono text-sm border-b-2 transition-colors relative top-px ${activeTab === 'next' ? 'border-[var(--color-accent-green)] text-[var(--color-accent-green)] font-bold' : 'border-transparent text-neutral-500 hover:text-neutral-300'}`}
+                      className={`px-4 py-3 font-mono text-sm border-b-2 transition-colors relative top-px whitespace-nowrap ${activeTab === 'next' ? 'border-[var(--color-accent-green)] text-[var(--color-accent-green)] font-bold' : 'border-transparent text-neutral-500 hover:text-neutral-300'}`}
                     >
                       Next.js
+                    </button>
+                    <button 
+                      onClick={() => setActiveTab('vue')} 
+                      className={`px-4 py-3 font-mono text-sm border-b-2 transition-colors relative top-px whitespace-nowrap ${activeTab === 'vue' ? 'border-[var(--color-accent-green)] text-[var(--color-accent-green)] font-bold' : 'border-transparent text-neutral-500 hover:text-neutral-300'}`}
+                    >
+                      Vue.js
+                    </button>
+                    <button 
+                      onClick={() => setActiveTab('svelte')} 
+                      className={`px-4 py-3 font-mono text-sm border-b-2 transition-colors relative top-px whitespace-nowrap ${activeTab === 'svelte' ? 'border-[var(--color-accent-green)] text-[var(--color-accent-green)] font-bold' : 'border-transparent text-neutral-500 hover:text-neutral-300'}`}
+                    >
+                      SvelteKit
                     </button>
                   </div>
 
@@ -361,6 +403,24 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                         </h3>
                         <p className="text-sm font-mono text-neutral-500 mb-4">Utilize <code className="text-neutral-300 bg-white/10 px-1.5 py-0.5 rounded border border-white/10">next/script</code> in your root layout.</p>
                         <CodeBlock code={nextJsSnippet} language="tsx" />
+                      </motion.div>
+                    )}
+                    {activeTab === 'vue' && (
+                      <motion.div key="vue" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} transition={{ duration: 0.2 }}>
+                        <h3 className="text-lg font-serif text-white mb-2 flex items-center gap-3">
+                          Vue 3 / Vite Integration
+                        </h3>
+                        <p className="text-sm font-mono text-neutral-500 mb-4">Inject the script dynamically in your <code className="text-neutral-300 bg-white/10 px-1.5 py-0.5 rounded border border-white/10">main.ts</code> before mounting the app.</p>
+                        <CodeBlock code={vueSnippet} language="typescript" />
+                      </motion.div>
+                    )}
+                    {activeTab === 'svelte' && (
+                      <motion.div key="svelte" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} transition={{ duration: 0.2 }}>
+                        <h3 className="text-lg font-serif text-white mb-2 flex items-center gap-3">
+                          SvelteKit Integration
+                        </h3>
+                        <p className="text-sm font-mono text-neutral-500 mb-4">Add the script tag directly into your <code className="text-neutral-300 bg-white/10 px-1.5 py-0.5 rounded border border-white/10">src/app.html</code> document head.</p>
+                        <CodeBlock code={svelteSnippet} language="html" />
                       </motion.div>
                     )}
                   </AnimatePresence>

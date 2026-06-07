@@ -37,6 +37,13 @@
 
 ---
 
+## Documentation
+
+Full documentation (including Installation, Hardware Scaling, and AI Setup) is built directly into the Next.js application with a beautiful "Terminal Brutalist" interface. 
+Once you start the application locally, visit **[http://localhost:3000/docs](http://localhost:3000/docs)**.
+
+---
+
 ## Overview
 
 **Rewind** is a self-hosted, privacy-friendly alternative to tools like FullStory or LogRocket. It is built as a **Turborepo + pnpm** monorepo and is designed to run efficiently on a single low-cost VPS while remaining horizontally scalable.
@@ -64,6 +71,8 @@ A lightweight JavaScript snippet (the **Tracker**) is embedded on any web page. 
 | 🔐 **Auth** | JWT-based API authentication for dashboard users |
 | 🎬 **Replay** | `rrweb-player` with synchronized network + console side-panel |
 | 📊 **System** | Live system metrics page (DB size, Redis memory, BullMQ queue counts, host info) |
+| 🧠 **AI Summaries** | Vercel AI SDK integration (Google, OpenAI, Anthropic) to summarize sessions |
+| 🔍 **Vector Search** | `pgvector` embeddings to search sessions by intent rather than keywords |
 | 🐳 **Deploy** | Multi-stage Dockerfile with `pnpm prune --prod` for lean production images |
 
 ---
