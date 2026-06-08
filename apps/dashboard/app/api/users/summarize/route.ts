@@ -5,6 +5,9 @@ import { eq, desc, or, sql } from 'drizzle-orm';
 import { getLanguageModel } from '@rewind/shared/src/ai';
 import { streamText } from 'ai';
 
+export const dynamic = 'force-dynamic';
+export const maxDuration = 60;
+
 export async function POST(req: Request) {
   try {
     const { userId, projectId } = await req.json();
@@ -64,11 +67,12 @@ export async function POST(req: Request) {
       
       CRITICAL INSTRUCTIONS:
       1. Write a direct, highly analytical brief. No pleasantries.
-      2. Identify the most severe or recurring problems (errors, rage clicks, failures).
-      3. Describe anything "fishy" or unusual (e.g. erratic behavior, repeated failures on the same page, signs of being a bot or malicious).
-      4. Point out what their likely goal or intent is, and whether they succeeded or are currently blocked.
-      5. Explicitly state the *last known problem* they experienced.
-      6. Use markdown formatting (bullet points, bold text for emphasis).
+      2. Provide a detailed narrative of the user's overall journey and experience.
+      3. Identify the most severe or recurring problems (errors, rage clicks, failures).
+      4. Describe anything "fishy" or unusual (e.g. erratic behavior, repeated failures on the same page, signs of being a bot or malicious).
+      5. Point out what their likely goal or intent is, and whether they succeeded or are currently blocked.
+      6. Explicitly state the *last known problem* they experienced.
+      7. Use rich markdown formatting (nested bullet points, bold text for emphasis). Provide high-quality, comprehensive insights without unnecessary fluff.
     `;
 
     const model = getLanguageModel(projectConfig);
@@ -81,8 +85,13 @@ export async function POST(req: Request) {
 
     return result.toTextStreamResponse();
 
-  } catch (error) {
+  } catch (error: any) {
     console.error('[User Summary] Error:', error);
-    return NextResponse.json({ error: 'Failed to generate summary' }, { status: 500 });
+    
+    // Extract the exact API error message (e.g. invalid key, high demand, etc.)
+    // and return it so the frontend can display it properly to the user.
+    const errorMessage = error?.message || 'An unexpected error occurred while generating the brief.';
+    
+    return new Response(errorMessage, { status: 500 });
   }
 }
