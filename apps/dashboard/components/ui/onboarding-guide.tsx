@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
-import { CheckCircle2, ChevronRight, Copy, Check, LayoutTemplate, Code2, Rocket, ExternalLink, ArrowRight, Play } from 'lucide-react';
+import { CheckCircle2, ChevronRight, Copy, Check, LayoutTemplate, Code2, Rocket, ExternalLink, ArrowRight, Play, User } from 'lucide-react';
 import { FadeUp } from '@/components/ui/fade-up';
 
 interface OnboardingGuideProps {
@@ -444,6 +444,22 @@ createApp(App).mount('#app')`;
                     {'>'} The tracker initializes <strong>automatically</strong> upon load.<br />
                     {'>'} Ensure <code>window.__rewind.token</code> is assigned prior to script execution.
                   </p>
+                </div>
+
+                <div className="bg-[#111] border border-[var(--color-border-dark)] rounded-xl p-6 mt-4 relative overflow-hidden shadow-xl">
+                  <div className="absolute top-0 right-0 w-32 h-32 bg-blue-500/5 blur-[50px] rounded-full pointer-events-none" />
+                  <h4 className="text-sm font-serif font-bold text-white mb-3 flex items-center gap-2 relative z-10">
+                    <User className="w-4 h-4 text-blue-400" /> Unlock Better Insights
+                  </h4>
+                  <p className="text-xs font-mono text-neutral-400 mb-4 leading-relaxed relative z-10">
+                    To enable AI Support Briefs and the User CRM, identify your users after they log in. You can do this by fetching your backend's <code>/me</code> endpoint and passing the result to the tracker:
+                  </p>
+                  <div className="relative z-10 -mt-2">
+                    <CodeBlock 
+                      language="javascript" 
+                      code={`fetch('/api/me')\n  .then(res => res.json())\n  .then(user => {\n    if (user?.id) {\n      window.Rewind.identify(user.id, {\n        email: user.email,\n        plan: user.plan\n      });\n    }\n  });`}
+                    />
+                  </div>
                 </div>
 
                 <div className="flex items-center gap-6 pt-6 border-t border-[var(--color-border-dark)]">

@@ -80,6 +80,23 @@ pnpm run dev`} />
         <li>Review the <a href="/docs/scaling" className="text-[var(--color-accent-green)] hover:underline">Hardware & Scaling</a> requirements to ensure your database won't crash under load.</li>
         <li>Configure your AI Provider keys (Google Gemini, OpenAI, Anthropic) by checking out the <a href="/docs/ai-setup" className="text-[var(--color-accent-green)] hover:underline">AI Setup & Configuration</a> guide to unlock session summarization.</li>
       </ul>
+
+      <h2 id="user-identification">User Identification (Recommended)</h2>
+      <p>To get the best insights, including the AI Support Briefs and the User CRM features, you should identify your users after they log in. You can typically do this by fetching the <code>/me</code> endpoint of your own backend and passing the result to the tracker:</p>
+      
+      <CodeBlock language="javascript" code={`// Example: Fetch user data from your own backend and pass it to Rewind
+fetch('/api/me')
+  .then(res => res.json())
+  .then(user => {
+    if (user && user.id) {
+      window.Rewind.identify(user.id, {
+        email: user.email,
+        plan: user.plan,
+        role: user.role
+      });
+    }
+  })
+  .catch(err => console.error('Failed to identify user', err));`} />
     </>
   );
 }
