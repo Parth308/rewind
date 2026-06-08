@@ -1,7 +1,8 @@
 import Link from 'next/link';
 import { db } from '@/lib/db';
 import { sessions, projects } from '@rewind/shared';
-import { desc, count } from 'drizzle-orm';
+import { desc, count, eq } from 'drizzle-orm';
+import { cookies } from 'next/headers';
 import { formatDistanceToNow } from 'date-fns';
 import { OnboardingGuide } from '@/components/ui/onboarding-guide';
 import { FadeUp } from '@/components/ui/fade-up';
@@ -10,25 +11,47 @@ import { MonitorPlay, Terminal, Globe, Clock, ChevronRight, Flame, MousePointerC
 export const dynamic = 'force-dynamic';
 
 export default async function DashboardSessions() {
-  const [{ value: sessionCount }] = await db.select({ value: count() }).from(sessions);
+  const cookieStore = await cookies();
+  const projectId = cookieStore.get('rewind_active_project')?.value || 'all';
+
+  let sessionCountQuery = db.select({ value: count() }).from(sessions);
+  if (projectId !== 'all') sessionCountQuery = sessionCountQuery.where(eq(sessions.projectId, projectId)) as any;
+  const [{ value: sessionCount }] = await sessionCountQuery;
+
   const [{ value: projectCount }] = await db.select({ value: count() }).from(projects);
 
-  const allSessions = await db.select()
-    .from(sessions)
+  let sessionsQuery = db.select({
+    session: sessions,
+    projectName: projects.name,
+  })
+  .from(sessions)
+  .leftJoin(projects, eq(projects.id, sessions.projectId));
+
+  if (projectId !== 'all') {
+    sessionsQuery = sessionsQuery.where(eq(sessions.projectId, projectId)) as any;
+  }
+
+  const allSessionsData = await sessionsQuery
     .orderBy(desc(sessions.startedAt))
     .limit(50);
 
-  const maxDuration = allSessions.reduce((m, s) => Math.max(m, s.durationMs ?? 0), 0) || 1;
+  const maxDuration = allSessionsData.reduce((m, {session: s}) => Math.max(m, s.durationMs ?? 0), 0) || 1;
 
-  const firstProject = projectCount > 0
-    ? (await db.select().from(projects).limit(1))[0]
-    : null;
+  let activeProject = null;
+  if (projectId !== 'all') {
+    const records = await db.select().from(projects).where(eq(projects.id, projectId));
+    activeProject = records.length > 0 ? records[0] : null;
+  } else if (projectCount > 0) {
+    activeProject = (await db.select().from(projects).limit(1))[0];
+  }
 
   if (sessionCount === 0) {
     return (
       <OnboardingGuide
         hasProject={projectCount > 0}
-        projectToken={firstProject?.token ?? null}
+        projectToken={activeProject?.token ?? null}
+        projectName={activeProject?.name ?? null}
+        isGlobal={projectId === 'all'}
       />
     );
   }
@@ -73,7 +96,7 @@ export default async function DashboardSessions() {
 
           {/* Rows */}
           <div className="flex-1 overflow-y-auto relative z-10">
-            {allSessions.map((session, i) => {
+            {allSessionsData.map(({session, projectName}, i) => {
               const isActive = session.status === 'active';
               const dur = session.durationMs;
               const durStr = dur
@@ -131,6 +154,11 @@ export default async function DashboardSessions() {
                         {(!(session.errorCount ?? 0) && !session.hasRageClicks && !session.hasDeadClicks && !session.hasUTurns && !session.hasWildScrolling) && (
                           <div className="text-[10px] lg:text-xs text-neutral-500 font-mono tracking-widest uppercase">
                             {session.country || 'UNKNOWN ORIGIN'}
+                          </div>
+                        )}
+                        {projectId === 'all' && projectName && (
+                          <div className="text-[10px] lg:text-xs text-neutral-400 font-mono bg-white/5 px-2 py-0.5 rounded border border-white/10 ml-2">
+                            {projectName}
                           </div>
                         )}
                       </div>
@@ -198,7 +226,7 @@ export default async function DashboardSessions() {
           <div className="px-6 lg:px-8 py-4 flex flex-col sm:flex-row items-center justify-between gap-3 border-t border-[var(--color-border-dark)] bg-black/40 relative z-10">
             <span className="text-xs font-mono tracking-[0.1em] text-neutral-500 uppercase flex items-center gap-2">
               <div className="w-2 h-2 rounded-full bg-[var(--color-accent-green)]/50" />
-              Showing {allSessions.length} of {sessionCount}
+              Showing {allSessionsData.length} of {sessionCount}
             </span>
             <span className="text-xs font-mono tracking-[0.1em] text-neutral-500 uppercase">
               Sorted by Recency

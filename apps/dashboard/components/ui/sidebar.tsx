@@ -1,11 +1,11 @@
 "use client";
 
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { clsx } from 'clsx';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useState, useEffect } from 'react';
-import { Menu, X } from 'lucide-react';
+import { Menu, X, ChevronDown, Folder } from 'lucide-react';
 
 const nav = [
   { name: 'Sessions', href: '/dashboard', exact: true },
@@ -16,9 +16,21 @@ const nav = [
   { name: 'Settings', href: '/dashboard/settings', exact: false },
 ];
 
-export function Sidebar({ isLive = true }: { isLive?: boolean }) {
+export function Sidebar({ isLive = true, projects = [], activeProjectId = 'all' }: { isLive?: boolean, projects?: any[], activeProjectId?: string }) {
   const pathname = usePathname();
+  const router = useRouter();
   const [isOpen, setIsOpen] = useState(false);
+  const [isProjectDropdownOpen, setIsProjectDropdownOpen] = useState(false);
+
+  const handleProjectSwitch = (id: string) => {
+    document.cookie = `rewind_active_project=${id}; path=/; max-age=31536000`;
+    setIsProjectDropdownOpen(false);
+    router.refresh();
+  };
+
+  const activeProjectName = activeProjectId === 'all' 
+    ? 'Global (All Projects)' 
+    : projects.find(p => p.id === activeProjectId)?.name || 'Unknown Project';
 
   useEffect(() => {
     setIsOpen(false);
@@ -73,18 +85,54 @@ export function Sidebar({ isLive = true }: { isLive?: boolean }) {
         {/* Background Grid */}
         <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:24px_24px] pointer-events-none opacity-60" />
 
-        {/* Desktop Logo */}
-        <div className="hidden md:flex h-20 items-center px-6 border-b border-[var(--color-border-dark)] shrink-0 relative z-10 bg-[#050505]/80 backdrop-blur-md">
-          <Link href="/dashboard" className="flex items-center gap-4 group relative">
+        {/* Desktop Header & Switcher */}
+        <div className="hidden md:flex flex-col px-4 py-4 border-b border-[var(--color-border-dark)] shrink-0 relative z-50 bg-[#050505]/80 backdrop-blur-md gap-5">
+          <Link href="/dashboard" className="flex items-center gap-3 px-2 group relative w-fit">
             <div className="absolute inset-0 bg-[var(--color-accent-green)] blur-[25px] opacity-10 group-hover:opacity-40 transition-opacity" />
-            <div
-              className="h-10 w-10 rounded-xl flex items-center justify-center text-[#0a0a0a] font-black text-lg font-mono shadow-[0_0_20px_rgba(163,230,53,0.3)] relative z-10"
-              style={{ background: '#a3e635' }}
-            >
-              R
-            </div>
-            <span className="font-serif text-2xl font-bold text-white tracking-tight relative z-10">Rewind</span>
+            <div className="h-8 w-8 rounded-lg flex items-center justify-center text-[#0a0a0a] font-black text-sm font-mono shadow-[0_0_15px_rgba(163,230,53,0.3)] relative z-10" style={{ background: '#a3e635' }}>R</div>
+            <span className="font-serif text-xl font-bold text-white tracking-tight relative z-10">Rewind</span>
           </Link>
+
+          <div className="relative">
+            <button 
+              onClick={() => setIsProjectDropdownOpen(!isProjectDropdownOpen)}
+              className="w-full flex items-center justify-between gap-2 px-3 py-2 bg-white/[0.03] hover:bg-white/[0.06] border border-white/5 hover:border-white/10 rounded-lg transition-all"
+            >
+              <div className="flex items-center gap-2 truncate">
+                <Folder className="w-4 h-4 text-[var(--color-accent-green)]" />
+                <span className="text-sm font-medium text-neutral-200 truncate">{activeProjectName}</span>
+              </div>
+              <ChevronDown className="w-4 h-4 text-neutral-500 shrink-0" />
+            </button>
+
+            <AnimatePresence>
+              {isProjectDropdownOpen && (
+                <motion.div
+                  initial={{ opacity: 0, y: -5 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -5 }}
+                  className="absolute top-full left-0 right-0 mt-2 bg-[#0A0A0A] border border-[var(--color-border-dark)] rounded-lg overflow-hidden shadow-2xl z-50 py-1"
+                >
+                  <button
+                    onClick={() => handleProjectSwitch('all')}
+                    className="w-full text-left px-3 py-2 text-sm text-neutral-300 hover:bg-white/[0.06] hover:text-white transition-colors flex items-center gap-2"
+                  >
+                    Global (All Projects)
+                  </button>
+                  <div className="my-1 border-t border-[var(--color-border-dark)]" />
+                  {projects.map((p) => (
+                    <button
+                      key={p.id}
+                      onClick={() => handleProjectSwitch(p.id)}
+                      className="w-full text-left px-3 py-2 text-sm text-neutral-300 hover:bg-white/[0.06] hover:text-white transition-colors truncate"
+                    >
+                      {p.name}
+                    </button>
+                  ))}
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
         </div>
 
         {/* Mobile drawer header */}

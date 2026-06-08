@@ -3,11 +3,8 @@ import { aiUsageLogs, projects } from '@rewind/shared';
 import { eq, sql } from 'drizzle-orm';
 import { BarChart3, BrainCircuit } from 'lucide-react';
 
-export async function AiUsageCard() {
-  const allProjects = await db.select().from(projects).limit(1);
-  if (allProjects.length === 0) return null;
-
-  const projectId = allProjects[0].id;
+export async function AiUsageCard({ projectId }: { projectId: string }) {
+  // Per-model usage breakdown
 
   // Per-model usage breakdown
   const usageData = await db
@@ -21,7 +18,7 @@ export async function AiUsageCard() {
       calls: sql<number>`count(*)`,
     })
     .from(aiUsageLogs)
-    .where(eq(aiUsageLogs.projectId, projectId))
+    .where(projectId !== 'all' ? eq(aiUsageLogs.projectId, projectId) : undefined)
     .groupBy(aiUsageLogs.model, aiUsageLogs.provider, aiUsageLogs.action)
     .orderBy(sql`sum(${aiUsageLogs.totalTokens}) desc`);
 

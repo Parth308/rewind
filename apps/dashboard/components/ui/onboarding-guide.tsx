@@ -10,6 +10,8 @@ import { FadeUp } from '@/components/ui/fade-up';
 interface OnboardingGuideProps {
   hasProject: boolean;
   projectToken: string | null;
+  projectName?: string | null;
+  isGlobal?: boolean;
 }
 
 function CodeBlock({ code, language = 'html' }: { code: string; language?: string }) {
@@ -56,7 +58,7 @@ interface Step {
   completed: boolean;
 }
 
-export function OnboardingGuide({ hasProject, projectToken }: OnboardingGuideProps) {
+export function OnboardingGuide({ hasProject, projectToken, projectName, isGlobal }: OnboardingGuideProps) {
   const router = useRouter();
   const [activeStep, setActiveStep] = useState(hasProject ? 1 : 0);
   const [activeTab, setActiveTab] = useState<'html' | 'react' | 'next' | 'vue' | 'svelte'>('html');
@@ -327,7 +329,17 @@ createApp(App).mount('#app')`;
                   </div>
                   <div>
                     <h2 className="font-serif text-3xl font-bold text-white">Inject Script</h2>
-                    <p className="text-neutral-400 font-mono text-sm mt-2">Embed the tracking client into your application architecture.</p>
+                    <p className="text-neutral-400 font-mono text-sm mt-2">
+                      Embed the tracking client into your application architecture
+                      {projectName ? ' for ' : '.'}
+                      {projectName && <span className="text-[var(--color-accent-green)] font-bold">{projectName}</span>}
+                      {projectName ? '.' : ''}
+                    </p>
+                    {isGlobal && projectName && (
+                      <div className="mt-2 text-xs text-neutral-500 font-mono">
+                        Note: You are currently viewing 'Global (All Projects)'. The snippet below contains the token for the {projectName} project.
+                      </div>
+                    )}
                   </div>
                 </div>
 
@@ -468,7 +480,10 @@ createApp(App).mount('#app')`;
                   </div>
                   <div>
                     <h2 className="font-serif text-3xl font-bold text-white">Monitor Telemetry</h2>
-                    <p className="text-neutral-400 font-mono text-sm mt-2">Awaiting inbound data streams from client applications.</p>
+                    <p className="text-neutral-400 font-mono text-sm mt-2">
+                      Awaiting inbound data streams from client applications
+                      {projectName && !isGlobal ? ` for ${projectName}` : ''}.
+                    </p>
                   </div>
                 </div>
 
@@ -515,7 +530,7 @@ createApp(App).mount('#app')`;
                     className="flex items-center gap-3 rounded-xl bg-[var(--color-accent-green)] px-8 py-4 font-mono text-sm font-bold text-black transition-all hover:bg-[var(--color-accent-green-hover)] shadow-[0_0_20px_rgba(163,230,53,0.3)]"
                   >
                     <Play className="h-4 w-4" />
-                    SCAN FOR SESSIONS
+                    SCAN FOR SESSIONS {projectName && !isGlobal ? `IN ${projectName.toUpperCase()}` : ''}
                   </button>
                   <button
                     onClick={() => setActiveStep(1)}

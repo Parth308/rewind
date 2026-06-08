@@ -11,6 +11,7 @@
   "dependencies": {
     "@ai-sdk/google": "^3.0.80",
     "@ai-sdk/openai": "^3.0.68",
+    "@ai-sdk/react": "^3.0.200",
     "@fontsource/google-sans": "^5.2.1",
     "@rewind/shared": "workspace:*",
     "ai": "^6.0.197",
@@ -25,6 +26,7 @@
     "pg": "^8.11.5",
     "react": "19.2.4",
     "react-dom": "19.2.4",
+    "react-markdown": "^10.1.0",
     "recharts": "^3.8.1",
     "rrweb": "^2.0.0-alpha.20",
     "rrweb-player": "^1.0.0-alpha.4",

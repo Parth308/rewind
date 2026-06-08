@@ -6,6 +6,7 @@ import { setupNetworkCapture } from './capture/network';
 
 const SESSION_ID_KEY  = '__rewind_sid';
 const SESSION_EXP_KEY = '__rewind_exp';
+const USER_ID_KEY     = '__rewind_uid';
 const SESSION_TTL_MS  = 30 * 60 * 1000; // 30 min inactivity = new session
 
 function generateSessionId() {
@@ -47,7 +48,25 @@ function getOrCreateSessionId(): string {
   return newSid;
 }
 
+/**
+ * Returns a permanent anonymous User ID for this browser.
+ * Persists indefinitely in localStorage.
+ */
+function getOrCreateUserId(): string {
+  try {
+    const uid = localStorage.getItem(USER_ID_KEY);
+    if (uid) return uid;
+  } catch {}
+
+  const newUid = generateSessionId(); // Use same UUID generator
+  try {
+    localStorage.setItem(USER_ID_KEY, newUid);
+  } catch {}
+  return newUid;
+}
+
 let initialized = false;
+let globalTransport: import('./transport').Transport | null = null;
 
 function init(overrideConfig?: Partial<RewindConfig>) {
   if (initialized) return;
@@ -61,9 +80,14 @@ function init(overrideConfig?: Partial<RewindConfig>) {
   // (e.g. navigated from page A → page B in the same tab)
   const sessionId = getOrCreateSessionId();
   
-  console.log(`[Rewind] Tracker initialized successfully. Session ID: ${sessionId}`);
+  // Get permanent anonymous ID if the developer hasn't provided a real userId
+  const anonymousUserId = getOrCreateUserId();
+  const effectiveUserId = config.userId || anonymousUserId;
+  
+  console.log(`[Rewind] Tracker initialized successfully.\n- Session ID: ${sessionId}\n- User ID: ${effectiveUserId}`);
 
   const transport = new Transport(config, sessionId);
+  globalTransport = transport;
   
   // Send metadata right away
   if (config.userId || Object.keys(config.metadata).length > 0 || true) {
@@ -76,7 +100,8 @@ function init(overrideConfig?: Partial<RewindConfig>) {
         height: window.innerHeight,
       },
       metadata: {
-        userId: config.userId,
+        userId: effectiveUserId,
+        isAnonymous: !config.userId,
         ...config.metadata,
       }
     });
@@ -97,9 +122,23 @@ function init(overrideConfig?: Partial<RewindConfig>) {
   };
 }
 
+function identify(userId: string, metadata?: Record<string, any>) {
+  if (!globalTransport) {
+    console.warn('[Rewind] Tracker not initialized. Call Rewind.init() first.');
+    return;
+  }
+  globalTransport.send({
+    type: 'identify',
+    userId,
+    metadata: metadata || {}
+  });
+  console.info(`[Rewind] Identified user: ${userId}`);
+}
+
 // Expose the API globally as documented
 (window as any).Rewind = {
-  init
+  init,
+  identify
 };
 
 // Try to auto-start if window.__rewind is already present

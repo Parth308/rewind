@@ -2,20 +2,26 @@ import { NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { users, projects } from '@rewind/shared';
 import { eq } from 'drizzle-orm';
+import { cookies } from 'next/headers';
 
 export async function GET() {
   try {
-    // In a real app with auth, we'd get the user ID from session.
-    // For now, we'll just get the first project and user.
-    const allProjects = await db.select().from(projects).limit(1);
+    const cookieStore = await cookies();
+    const projectId = cookieStore.get('rewind_active_project')?.value || 'all';
+
     const allUsers = await db.select().from(users).limit(1);
     
     let projectSettings = {};
     let userSettings = {};
     
-    if (allProjects.length > 0) {
-      projectSettings = allProjects[0].settings || {};
+    if (projectId !== 'all') {
+      const activeProject = await db.select().from(projects).where(eq(projects.id, projectId));
+      if (activeProject.length > 0) projectSettings = activeProject[0].settings || {};
+    } else {
+      const allProjects = await db.select().from(projects).limit(1);
+      if (allProjects.length > 0) projectSettings = allProjects[0].settings || {};
     }
+
     if (allUsers.length > 0) {
       userSettings = allUsers[0].settings || {};
     }
@@ -73,12 +79,25 @@ export async function PATCH(req: Request) {
       }
     } else {
       // Per-project
-      const allProjects = await db.select().from(projects).limit(1);
-      if (allProjects.length > 0) {
-        const existingSettings = allProjects[0].settings || {};
-        await db.update(projects)
-          .set({ settings: { ...existingSettings, ai: newAiSettings } })
-          .where(eq(projects.id, allProjects[0].id));
+      const cookieStore = await cookies();
+      const projectId = cookieStore.get('rewind_active_project')?.value || 'all';
+
+      if (projectId !== 'all') {
+        const activeProject = await db.select().from(projects).where(eq(projects.id, projectId));
+        if (activeProject.length > 0) {
+          const existingSettings = activeProject[0].settings || {};
+          await db.update(projects)
+            .set({ settings: { ...existingSettings, ai: newAiSettings } })
+            .where(eq(projects.id, projectId));
+        }
+      } else {
+        const allProjects = await db.select().from(projects).limit(1);
+        if (allProjects.length > 0) {
+          const existingSettings = allProjects[0].settings || {};
+          await db.update(projects)
+            .set({ settings: { ...existingSettings, ai: newAiSettings } })
+            .where(eq(projects.id, allProjects[0].id));
+        }
       }
     }
 

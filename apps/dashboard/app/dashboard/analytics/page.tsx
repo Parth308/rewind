@@ -1,9 +1,10 @@
 import { db } from '@/lib/db';
 import { sessions, events, networkRequests, errors } from '@rewind/shared';
-import { count, sql } from 'drizzle-orm';
+import { count, sql, eq } from 'drizzle-orm';
 import AnalyticsCharts from './AnalyticsCharts';
 import { FadeUp } from '@/components/ui/fade-up';
 import { AiUsageCard } from './AiUsageCard';
+import { cookies } from 'next/headers';
 
 export const dynamic = 'force-dynamic';
 
@@ -24,13 +25,31 @@ function StatCard({ label, value, color, glowClass }: {
 }
 
 export default async function DashboardAnalytics() {
-  const [totalSessions] = await db.select({ value: count() }).from(sessions);
-  const [totalEvents] = await db.select({ value: count() }).from(events);
-  const [totalErrors] = await db.select({ value: count() }).from(errors);
-  const [totalNetwork] = await db.select({ value: count() }).from(networkRequests);
+  const cookieStore = await cookies();
+  const projectId = cookieStore.get('rewind_active_project')?.value || 'all';
+
+  const [totalSessions] = await db.select({ value: count() })
+    .from(sessions)
+    .where(projectId !== 'all' ? eq(sessions.projectId, projectId) : undefined);
+
+  const [totalEvents] = await db.select({ value: count() })
+    .from(events)
+    .innerJoin(sessions, eq(events.sessionId, sessions.id))
+    .where(projectId !== 'all' ? eq(sessions.projectId, projectId) : undefined);
+
+  const [totalErrors] = await db.select({ value: count() })
+    .from(errors)
+    .innerJoin(sessions, eq(errors.sessionId, sessions.id))
+    .where(projectId !== 'all' ? eq(sessions.projectId, projectId) : undefined);
+
+  const [totalNetwork] = await db.select({ value: count() })
+    .from(networkRequests)
+    .innerJoin(sessions, eq(networkRequests.sessionId, sessions.id))
+    .where(projectId !== 'all' ? eq(sessions.projectId, projectId) : undefined);
 
   const avgDurationRaw = await db.execute(sql`
     SELECT AVG(duration_ms) as avg_ms FROM sessions WHERE duration_ms IS NOT NULL
+    ${projectId !== 'all' ? sql`AND project_id = ${projectId}` : sql``}
   `);
   const avgMs = avgDurationRaw.rows[0]?.avg_ms
     ? Math.round(Number(avgDurationRaw.rows[0].avg_ms) / 1000)
@@ -38,7 +57,9 @@ export default async function DashboardAnalytics() {
 
   const sessionsByDayRaw = await db.execute(sql`
     SELECT date_trunc('day', started_at) as date, count(*) as count
-    FROM sessions GROUP BY 1 ORDER BY 1 DESC LIMIT 14
+    FROM sessions 
+    ${projectId !== 'all' ? sql`WHERE project_id = ${projectId}` : sql``}
+    GROUP BY 1 ORDER BY 1 DESC LIMIT 14
   `);
 
   const countsByDate = new Map();
@@ -61,7 +82,9 @@ export default async function DashboardAnalytics() {
 
   const browserStatsRaw = await db.execute(sql`
     SELECT browser, count(*) as count FROM sessions
-    WHERE browser IS NOT NULL GROUP BY browser ORDER BY count DESC LIMIT 5
+    WHERE browser IS NOT NULL 
+    ${projectId !== 'all' ? sql`AND project_id = ${projectId}` : sql``}
+    GROUP BY browser ORDER BY count DESC LIMIT 5
   `);
   const browserStats = browserStatsRaw.rows as { browser: string; count: string }[];
   const totalBrowserCount = browserStats.reduce((sum, b) => sum + parseInt(b.count), 0);
@@ -156,7 +179,7 @@ export default async function DashboardAnalytics() {
 
       {/* AI Usage (Full Width Bottom) */}
       <FadeUp delay={0.7} className="mt-4">
-        <AiUsageCard />
+        <AiUsageCard projectId={projectId} />
       </FadeUp>
     </div>
   );

@@ -1,13 +1,11 @@
-import { db } from '@/lib/db';
-import { projects } from '@rewind/shared';
+import { cookies } from 'next/headers';
 import SearchClient from './search-client';
 
 export const dynamic = 'force-dynamic';
 
 export default async function SearchPage() {
-  // Get the first project (assuming single project workspace for now)
-  const allProjects = await db.select().from(projects).limit(1);
-  const projectId = allProjects.length > 0 ? allProjects[0].id : null;
+  const cookieStore = await cookies();
+  const projectId = cookieStore.get('rewind_active_project')?.value || 'all';
 
   return <SearchClient projectId={projectId} />;
 }

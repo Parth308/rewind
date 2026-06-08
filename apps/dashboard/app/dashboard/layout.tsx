@@ -1,4 +1,7 @@
 import { Sidebar } from '@/components/ui/sidebar';
+import { db } from '@/lib/db';
+import { projects } from '@rewind/shared';
+import { cookies } from 'next/headers';
 
 async function checkIngestorHealth() {
   try {
@@ -12,6 +15,10 @@ async function checkIngestorHealth() {
 
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
   const isLive = await checkIngestorHealth();
+  
+  const allProjects = await db.select().from(projects);
+  const cookieStore = await cookies();
+  const activeProjectId = cookieStore.get('rewind_active_project')?.value || 'all';
 
   return (
     <div className="flex h-screen bg-[#050505] font-sans text-[#fdfdfc] selection:bg-[var(--color-accent-green)]/30">
@@ -20,7 +27,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
         <div className="w-[800px] h-[400px] bg-[var(--color-accent-green)] opacity-[0.03] blur-[120px] rounded-full -translate-y-1/2" />
       </div>
 
-      <Sidebar isLive={isLive} />
+      <Sidebar isLive={isLive} projects={allProjects} activeProjectId={activeProjectId} />
 
       {/* Content — flex-col, takes remaining width, scrolls vertically */}
       <div className="relative z-10 flex flex-col flex-1 overflow-y-auto overflow-x-hidden w-0">

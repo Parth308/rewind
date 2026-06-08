@@ -5,6 +5,7 @@ import { handleBatch } from './handlers/batch';
 import { handleConsole } from './handlers/console';
 import { handleNetwork } from './handlers/network';
 import { handleEmbedding } from './handlers/embedding';
+import { handleIdentify } from './handlers/identify';
 
 const REDIS_URL = process.env.REDIS_URL || 'redis://localhost:6379';
 const redis = new Redis(REDIS_URL, { maxRetriesPerRequest: null });
@@ -24,6 +25,8 @@ const worker = new Worker('events', async (job: Job) => {
         await handleConsole(projectId, payload);
       } else if (payload.type === 'network') {
         await handleNetwork(projectId, payload);
+      } else if (payload.type === 'identify') {
+        await handleIdentify(projectId, payload);
       }
     } catch (err) {
       console.error(`Error processing ${payload.type} for project ${projectId}:`, err);
