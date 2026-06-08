@@ -14,6 +14,7 @@ const nav = [
   { name: 'Hardware & Scaling', href: '/docs/scaling', exact: false },
   { name: 'Features', href: '/docs/features', exact: false },
   { name: 'Architecture', href: '/docs/architecture', exact: false },
+  { name: 'User Profiles', href: '/docs/user-profiles', exact: false },
   { name: 'Data Privacy', href: '/docs/privacy', exact: false },
   { name: 'API Reference', href: '/docs/api-reference', exact: false },
   { name: 'Troubleshooting', href: '/docs/troubleshooting', exact: false },

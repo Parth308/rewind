@@ -51,10 +51,10 @@ Once you start the application locally, visit **[http://localhost:3000/docs](htt
 A lightweight JavaScript snippet (the **Tracker**) is embedded on any web page. It silently records DOM mutations, network requests, and console output, then streams the data to the **Ingestor**. The Ingestor queues the work via **BullMQ / Redis** and a **Worker** persists it into **PostgreSQL**. The **Dashboard** lets you browse projects, inspect sessions, and replay them frame-by-frame alongside synchronized network and console timelines.
 
 ### Use Cases
-- **Customer Support:** A user submits a ticket saying "I can't checkout." The support agent pulls up the user's latest session clip to see exactly what they did, skipping the painful "can you reproduce this?" back-and-forth.
+- **Customer Support:** A user submits a ticket saying "I can't checkout." The support agent pulls up the user's dedicated profile to see their lifetime friction points, views the AI-generated Support Brief, and watches their latest session clip to see exactly what they did.
 - **Engineering & Debugging:** Stop trying to reproduce complex frontend bugs locally. Watch the exact sequence of user events alongside synchronized network requests and console errors to pinpoint the root cause immediately.
 - **Product & UX Analytics:** Discover hidden friction points. Identify "rage clicks", track where users abandon their carts, and watch the sessions of users who dropped off to understand *why* they left.
-- **AI-Powered Insights:** Query sessions using natural language (e.g., "Show me users who got a payment error") and generate automated summaries of a user's journey.
+- **AI-Powered Insights:** Query sessions using natural language (e.g., "Show me users who got a payment error") and generate automated, streaming summaries of a user's entire historical journey.
 
 ---
 
@@ -71,7 +71,8 @@ A lightweight JavaScript snippet (the **Tracker**) is embedded on any web page. 
 | 🔐 **Auth** | JWT-based API authentication for dashboard users |
 | 🎬 **Replay** | `rrweb-player` with synchronized network + console side-panel |
 | 📊 **System** | Live system metrics page (DB size, Redis memory, BullMQ queue counts, host info) |
-| 🧠 **AI Summaries** | Vercel AI SDK integration (Google, OpenAI, Anthropic) to summarize sessions |
+| 👥 **User Profiles** | Dedicated CRM-style pages aggregating user lifetime stats, attributes, and session history |
+| 🧠 **AI Summaries** | Vercel AI SDK streams detailed Customer Support Briefs based on a user's entire history |
 | 🔍 **Vector Search** | `pgvector` embeddings to search sessions by intent rather than keywords |
 | 🐳 **Deploy** | Multi-stage Dockerfile with `pnpm prune --prod` for lean production images |
 
