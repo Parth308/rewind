@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { sessions, sessionEmbeddings, projects } from '@rewind/shared';
-import { eq } from 'drizzle-orm';
+import { eq, desc, or, sql } from 'drizzle-orm';
 import { getLanguageModel } from '@rewind/shared/src/ai';
 import { streamText } from 'ai';
 
@@ -20,7 +20,8 @@ export async function POST(req: Request) {
       projectConfig = projectRecords.length > 0 ? (projectRecords[0].settings as any)?.ai : undefined;
     }
 
-    // Fetch all session narratives for this user
+    // Fetch all session narratives for this user, strictly limiting to the most recent 15 sessions
+    // to prevent the LLM context window from blowing up on power-users, which causes extreme slowdowns.
     const userSessions = await db.select({
       id: sessions.id,
       narrative: sessionEmbeddings.narrative,
@@ -29,7 +30,14 @@ export async function POST(req: Request) {
     })
     .from(sessions)
     .leftJoin(sessionEmbeddings, eq(sessions.id, sessionEmbeddings.sessionId))
-    .where(eq(sessions.userId, userId));
+    .where(
+      or(
+        eq(sessions.userId, userId),
+        sql`${sessions.metadata}->>'userId' = ${userId}`
+      )
+    )
+    .orderBy(desc(sessions.startedAt))
+    .limit(15);
 
     if (userSessions.length === 0) {
       return NextResponse.json({ error: 'No sessions found for user' }, { status: 404 });

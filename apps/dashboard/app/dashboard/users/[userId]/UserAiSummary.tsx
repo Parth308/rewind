@@ -8,6 +8,7 @@ import ReactMarkdown from 'react-markdown';
 export function UserAiSummary({ userId, projectId }: { userId: string, projectId: string }) {
   const { completion, complete, isLoading, error } = useCompletion({
     api: '/api/users/summarize',
+    streamProtocol: 'text',
     body: { userId, projectId }
   });
 
@@ -56,9 +57,23 @@ export function UserAiSummary({ userId, projectId }: { userId: string, projectId
       </div>
 
       {error ? (
-        <div className="flex items-start gap-3 text-red-400 bg-red-400/10 p-4 rounded-lg border border-red-400/20">
-          <AlertTriangle className="w-5 h-5 shrink-0" />
-          <p className="text-sm font-mono">{error.message || 'Failed to generate brief.'}</p>
+        <div className="flex flex-col gap-4">
+          <div className="flex items-start gap-3 text-red-400 bg-red-400/10 p-4 rounded-lg border border-red-400/20">
+            <AlertTriangle className="w-5 h-5 shrink-0 mt-0.5" />
+            <div className="flex flex-col gap-1">
+              <p className="font-mono font-bold text-sm uppercase">Generation Failed</p>
+              <p className="text-sm font-sans text-red-300">
+                {error.message || 'The AI provider is currently experiencing issues. Please try again.'}
+              </p>
+            </div>
+          </div>
+          <button 
+            onClick={handleGenerate}
+            disabled={isLoading}
+            className="self-start px-4 py-2 bg-red-400/10 text-red-400 border border-red-400/20 rounded-lg text-xs font-mono font-bold uppercase tracking-wider hover:bg-red-400/20 transition-colors disabled:opacity-50"
+          >
+            Try Again
+          </button>
         </div>
       ) : (
         <div className="prose prose-invert prose-green max-w-none font-mono text-sm leading-relaxed prose-headings:font-mono prose-headings:uppercase prose-headings:tracking-widest prose-a:text-[var(--color-accent-green)]">
