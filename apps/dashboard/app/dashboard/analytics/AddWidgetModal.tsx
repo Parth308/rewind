@@ -21,6 +21,15 @@ export function AddWidgetModal({ isOpen, onClose, projectId, onAdd }: { isOpen: 
     }
   }, [isOpen, projectId]);
 
+  useEffect(() => {
+    if (!isOpen) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen, onClose]);
+
   if (!isOpen) return null;
 
   const handleSubmit = async (e: any) => {
@@ -76,60 +85,68 @@ export function AddWidgetModal({ isOpen, onClose, projectId, onAdd }: { isOpen: 
                 <LayoutTemplate className="w-6 h-6" />
                 <span className="text-xs font-bold">Stat Card</span>
               </button>
+              <button type="button" onClick={() => { setType('client_targets'); setMetric('client_targets'); }} className={`p-4 rounded-xl border flex flex-col items-center gap-2 transition-all ${type === 'client_targets' ? 'bg-white/10 border-white/20 text-white' : 'bg-transparent border-white/5 text-neutral-500 hover:bg-white/5'}`}>
+                <MousePointerClick className="w-6 h-6" />
+                <span className="text-xs font-bold">Client Targets</span>
+              </button>
             </div>
           </div>
 
-          <div>
-            <label className="text-xs font-mono text-neutral-400 uppercase tracking-widest block mb-3">Metric</label>
-            <select value={metric} onChange={(e) => setMetric(e.target.value)} className="w-full bg-[#111] border border-white/10 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-white/30 transition-colors">
-              <option value="sessions">Total Sessions</option>
-              <option value="events">All DOM Events</option>
-              <option value="network">Network Requests</option>
-              <option value="rage_clicks">Rage Clicks</option>
-              <option value="dead_clicks">Dead Clicks</option>
-              <option value="u_turns">U-Turns</option>
-              <option value="wild_scrolling">Wild Scrolling</option>
-              <option value="errors">Exceptions / Errors</option>
-              <option value="console_warn">Console Warnings</option>
-              <option value="failed_api">Failed API Calls (4xx+)</option>
-              <option value="slow_api">Slow API Calls (&gt;1s)</option>
-              <option value="ai_tokens">AI Tokens Consumed</option>
-              <option value="custom_event">Specific Custom Event</option>
-            </select>
-          </div>
+          {type !== 'client_targets' && (
+            <>
+              <div>
+                <label className="text-xs font-mono text-neutral-400 uppercase tracking-widest block mb-3">Metric</label>
+                <select value={metric} onChange={(e) => setMetric(e.target.value)} className="w-full bg-[#111] border border-white/10 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-white/30 transition-colors">
+                  <option value="sessions">Total Sessions</option>
+                  <option value="events">All DOM Events</option>
+                  <option value="network">Network Requests</option>
+                  <option value="rage_clicks">Rage Clicks</option>
+                  <option value="dead_clicks">Dead Clicks</option>
+                  <option value="u_turns">U-Turns</option>
+                  <option value="wild_scrolling">Wild Scrolling</option>
+                  <option value="errors">Exceptions / Errors</option>
+                  <option value="console_warn">Console Warnings</option>
+                  <option value="failed_api">Failed API Calls (4xx+)</option>
+                  <option value="slow_api">Slow API Calls (&gt;1s)</option>
+                  <option value="ai_tokens">AI Tokens Consumed</option>
+                  <option value="custom_event">Specific Custom Event</option>
+                </select>
+              </div>
 
-          {metric === 'custom_event' && (
-            <div>
-              <label className="text-xs font-mono text-neutral-400 uppercase tracking-widest block mb-3">Event Name</label>
-              <input 
-                type="text" 
-                required 
-                placeholder="e.g. Started Trial" 
-                value={eventName} 
-                onChange={(e) => setEventName(e.target.value)} 
-                list="event-tags-list"
-                className="w-full bg-[#111] border border-white/10 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-white/30 transition-colors"
-              />
-              <datalist id="event-tags-list">
-                {tags.map(t => <option key={t} value={t} />)}
-              </datalist>
-            </div>
+              {metric === 'custom_event' && (
+                <div>
+                  <label className="text-xs font-mono text-neutral-400 uppercase tracking-widest block mb-3">Event Name</label>
+                  <input 
+                    type="text" 
+                    required 
+                    placeholder="e.g. Started Trial" 
+                    value={eventName} 
+                    onChange={(e) => setEventName(e.target.value)} 
+                    list="event-tags-list"
+                    className="w-full bg-[#111] border border-white/10 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-white/30 transition-colors"
+                  />
+                  <datalist id="event-tags-list">
+                    {tags.map(t => <option key={t} value={t} />)}
+                  </datalist>
+                </div>
+              )}
+
+              <div>
+                <label className="text-xs font-mono text-neutral-400 uppercase tracking-widest block mb-3">Accent Color</label>
+                <div className="flex gap-3">
+                  {['#a3e635', '#60a5fa', '#f87171', '#c084fc', '#fbbf24', '#ffffff'].map(c => (
+                    <button
+                      key={c}
+                      type="button"
+                      onClick={() => setColor(c)}
+                      className={`w-8 h-8 rounded-full border-2 transition-transform ${color === c ? 'scale-110 border-white' : 'border-transparent'}`}
+                      style={{ backgroundColor: c }}
+                    />
+                  ))}
+                </div>
+              </div>
+            </>
           )}
-
-          <div>
-            <label className="text-xs font-mono text-neutral-400 uppercase tracking-widest block mb-3">Accent Color</label>
-            <div className="flex gap-3">
-              {['#a3e635', '#60a5fa', '#f87171', '#c084fc', '#fbbf24', '#ffffff'].map(c => (
-                <button
-                  key={c}
-                  type="button"
-                  onClick={() => setColor(c)}
-                  className={`w-8 h-8 rounded-full border-2 transition-transform ${color === c ? 'scale-110 border-white' : 'border-transparent'}`}
-                  style={{ backgroundColor: c }}
-                />
-              ))}
-            </div>
-          </div>
 
           {error && (
             <div className="p-3 rounded-xl bg-red-500/10 border border-red-500/20 flex items-start gap-2">

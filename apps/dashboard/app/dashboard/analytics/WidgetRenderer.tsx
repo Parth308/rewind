@@ -5,11 +5,50 @@ import AnalyticsCharts from './AnalyticsCharts';
 import { StatCard } from './StatCard';
 import { X, GripHorizontal } from 'lucide-react';
 
-export function WidgetRenderer({ widget, projectId, onDelete, isEditMode }: { widget: any, projectId: string, onDelete: (id: string) => void, isEditMode?: boolean }) {
+export function WidgetRenderer({ widget, projectId, onDelete, isEditMode, onResizePreview, onResizeEnd }: { 
+  widget: any, 
+  projectId: string, 
+  onDelete: (id: string) => void, 
+  isEditMode?: boolean, 
+  onResizePreview?: (id: string, newColSpan: number, newRowSpan: number) => void,
+  onResizeEnd?: (id: string) => void
+}) {
   const [data, setData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
   const [isConfirmingDelete, setIsConfirmingDelete] = useState(false);
+
+  const handleResizeStart = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    const startX = e.clientX;
+    const startY = e.clientY;
+    const startColSpan = widget.config?.colSpan || (widget.type === 'stat_card' ? 1 : 6);
+    const startRowSpan = widget.config?.rowSpan || (widget.type === 'stat_card' ? 1 : 3);
+
+    const handleMouseMove = (moveEvent: MouseEvent) => {
+      const dx = moveEvent.clientX - startX;
+      const dy = moveEvent.clientY - startY;
+      
+      const colDelta = Math.round(dx / 150);
+      const rowDelta = Math.round(dy / 140);
+      
+      const newColSpan = Math.max(1, Math.min(6, startColSpan + colDelta));
+      const newRowSpan = Math.max(1, Math.min(12, startRowSpan + rowDelta));
+      
+      if (onResizePreview) onResizePreview(widget.id, newColSpan, newRowSpan);
+    };
+
+    const handleMouseUp = (upEvent: MouseEvent) => {
+      window.removeEventListener('mousemove', handleMouseMove);
+      window.removeEventListener('mouseup', handleMouseUp);
+      if (onResizeEnd) onResizeEnd(widget.id);
+    };
+
+    window.addEventListener('mousemove', handleMouseMove);
+    window.addEventListener('mouseup', handleMouseUp);
+  };
 
   useEffect(() => {
     if (!isConfirmingDelete) return;
@@ -85,6 +124,15 @@ export function WidgetRenderer({ widget, projectId, onDelete, isEditMode }: { wi
             <button onClick={() => setIsConfirmingDelete(true)} className="absolute top-2 right-2 z-20 p-1.5 bg-red-500/20 text-red-400 rounded-lg border border-red-500/30 hover:bg-red-500/40 transition-all">
               <X className="w-3 h-3" />
             </button>
+            <div 
+              className="absolute bottom-1 right-1 z-20 p-2 cursor-se-resize text-neutral-500 hover:text-white transition-colors"
+              onMouseDown={handleResizeStart}
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <polyline points="21 13 21 21 13 21"></polyline>
+                <line x1="21" y1="21" x2="13" y2="13"></line>
+              </svg>
+            </div>
           </>
         )}
         {loading ? (
@@ -106,9 +154,86 @@ export function WidgetRenderer({ widget, projectId, onDelete, isEditMode }: { wi
     );
   }
 
+  if (widget.type === 'client_targets') {
+    const browserStats = data?.data?.browserStats || [];
+    const avgMs = data?.data?.avgMs ?? null;
+    const totalBrowserCount = browserStats.reduce((sum: number, b: any) => sum + parseInt(b.count), 0);
+
+    return (
+      <div className={`bg-[#0A0A0A] border ${isEditMode ? 'border-white/30 ring-2 ring-white/10' : 'border-[var(--color-border-dark)]'} rounded-2xl p-6 sm:p-8 flex flex-col relative overflow-hidden h-full w-full group`}>
+        {confirmModal}
+        <div className="absolute top-0 right-0 -mt-16 -mr-16 w-64 h-64 bg-indigo-500 opacity-5 blur-[100px] rounded-full pointer-events-none" />
+        
+        {isEditMode && (
+          <>
+            <div className="absolute top-6 left-6 z-20 text-neutral-500 cursor-grab active:cursor-grabbing">
+              <GripHorizontal className="w-5 h-5" />
+            </div>
+            <button onClick={() => setIsConfirmingDelete(true)} className="absolute top-4 right-4 z-20 p-2 bg-red-500/20 text-red-400 rounded-xl border border-red-500/30 hover:bg-red-500/40 transition-all">
+              <X className="w-4 h-4" />
+            </button>
+            <div 
+              className="absolute bottom-2 right-2 z-20 p-2 cursor-se-resize text-neutral-500 hover:text-white transition-colors"
+              onMouseDown={handleResizeStart}
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <polyline points="21 13 21 21 13 21"></polyline>
+                <line x1="21" y1="21" x2="13" y2="13"></line>
+              </svg>
+            </div>
+          </>
+        )}
+
+        <h3 className="font-serif text-xl sm:text-2xl font-bold text-white mb-1 sm:mb-2 relative z-10 text-center sm:text-left pt-6 sm:pt-0">Client Targets</h3>
+        <p className="text-xs sm:text-sm font-mono text-neutral-500 mb-6 sm:mb-8 relative z-10 text-center sm:text-left">TOP BROWSERS</p>
+
+        {loading ? (
+          <div className="flex-1 flex items-center justify-center animate-pulse">
+            <span className="text-xs font-mono text-neutral-600">LOADING...</span>
+          </div>
+        ) : error ? (
+          <div className="flex-1 flex items-center justify-center">
+            <span className="text-xs font-mono text-red-500">ERROR</span>
+          </div>
+        ) : (
+          <>
+            <div className="space-y-4 sm:space-y-6 relative z-10 flex-1">
+              {browserStats.length === 0 ? (
+                <div className="text-sm font-mono text-neutral-600">No browser data yet...</div>
+              ) : browserStats.map((b: any, i: number) => {
+                const pct = Math.round((parseInt(b.count) / totalBrowserCount) * 100);
+                const colors = ['bg-[var(--color-accent-green)]', 'bg-indigo-400', 'bg-purple-400', 'bg-rose-400', 'bg-amber-400'];
+                return (
+                  <div key={b.browser} className="group">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-xs sm:text-sm text-neutral-300 font-medium group-hover:text-white transition-colors truncate mr-2">{b.browser}</span>
+                      <span className="text-xs font-mono text-neutral-500 shrink-0">{pct}%</span>
+                    </div>
+                    <div className="h-1 rounded-full bg-white/5 overflow-hidden">
+                      <div className={`h-full rounded-full ${colors[i % colors.length]}`} style={{ width: `${pct}%`, opacity: 0.8 }} />
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+
+            {avgMs !== null && (
+              <div className="mt-6 sm:mt-8 pt-6 sm:pt-8 border-t border-[var(--color-border-dark)] relative z-10">
+                <div className="text-[10px] font-mono text-neutral-500 uppercase tracking-[0.2em] mb-2 text-center sm:text-left">Avg Session Duration</div>
+                <div className="text-2xl sm:text-3xl font-mono font-bold text-white flex items-baseline justify-center sm:justify-start gap-1">
+                  {avgMs}<span className="text-sm text-neutral-600 font-normal">s</span>
+                </div>
+              </div>
+            )}
+          </>
+        )}
+      </div>
+    );
+  }
+
   // default to line_chart
   return (
-    <div className={`bg-[#0A0A0A] border ${isEditMode ? 'border-white/30 ring-2 ring-white/10' : 'border-[var(--color-border-dark)]'} rounded-2xl p-6 sm:p-8 relative overflow-hidden flex flex-col min-h-[360px] sm:min-h-[400px] group`}>
+    <div className={`bg-[#0A0A0A] border ${isEditMode ? 'border-white/30 ring-2 ring-white/10' : 'border-[var(--color-border-dark)]'} rounded-2xl p-6 sm:p-8 relative overflow-hidden flex flex-col h-full group`}>
       {confirmModal}
       <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.03)_1px,transparent_1px)] bg-[size:24px_24px] [mask-image:radial-gradient(ellipse_80%_80%_at_50%_50%,#000_20%,transparent_100%)] opacity-50" />
       
@@ -120,16 +245,25 @@ export function WidgetRenderer({ widget, projectId, onDelete, isEditMode }: { wi
           <button onClick={() => setIsConfirmingDelete(true)} className="absolute top-4 right-4 z-20 p-2 bg-red-500/20 text-red-400 rounded-xl border border-red-500/30 hover:bg-red-500/40 transition-all">
             <X className="w-4 h-4" />
           </button>
+          <div 
+            className="absolute bottom-2 right-2 z-20 p-2 cursor-se-resize text-neutral-500 hover:text-white transition-colors"
+            onMouseDown={handleResizeStart}
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <polyline points="21 13 21 21 13 21"></polyline>
+              <line x1="21" y1="21" x2="13" y2="13"></line>
+            </svg>
+          </div>
         </>
       )}
 
       <div className="flex items-center justify-between mb-6 sm:mb-8 relative z-10">
-        <div>
+        <div className="pt-6 sm:pt-0">
           <h3 className="font-serif text-xl sm:text-2xl font-bold text-white capitalize">{title}</h3>
           <p className="text-xs sm:text-sm font-mono text-neutral-500 mt-1 sm:mt-2">14-DAY TRAILING COUNT • {subtitle}</p>
         </div>
         {!loading && !error && (
-          <div className="text-right mr-10">
+          <div className="text-right mr-10 hidden sm:block">
             <div className="text-2xl font-bold font-mono text-white">{data?.total?.toLocaleString() || 0}</div>
             <div className="text-[10px] uppercase font-mono text-neutral-500">Total</div>
           </div>

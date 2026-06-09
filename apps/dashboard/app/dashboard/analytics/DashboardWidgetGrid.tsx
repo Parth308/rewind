@@ -26,6 +26,15 @@ export function DashboardWidgetGrid({ initialWidgets, projectId }: { initialWidg
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
+  useEffect(() => {
+    if (!isDropdownOpen) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setIsDropdownOpen(false);
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isDropdownOpen]);
+
   const handleAdd = (newWidget: any) => {
     setWidgets([...widgets, newWidget]);
     setModalOpen(false);
@@ -82,9 +91,6 @@ export function DashboardWidgetGrid({ initialWidgets, projectId }: { initialWidg
     setDraggedId(null);
   };
 
-  const statCards = widgets.filter(w => w.type === 'stat_card');
-  const lineCharts = widgets.filter(w => w.type === 'line_chart');
-
   const headerActionsNode = mounted ? document.getElementById('dashboard-header-actions') : null;
 
   const actionsMenu = (
@@ -131,44 +137,80 @@ export function DashboardWidgetGrid({ initialWidgets, projectId }: { initialWidg
     </div>
   );
 
+  const getColSpanClass = (w: any) => {
+    const defaultSpan = w.type === 'stat_card' ? 1 : 6;
+    const span = w.config?.colSpan || defaultSpan;
+    if (span <= 1) return 'col-span-1';
+    if (span === 2) return 'col-span-2';
+    if (span === 3) return 'col-span-2 md:col-span-3';
+    if (span === 4) return 'col-span-2 md:col-span-4';
+    if (span === 5) return 'col-span-2 md:col-span-4 lg:col-span-5';
+    return 'col-span-2 md:col-span-4 lg:col-span-5 xl:col-span-6';
+  };
+
+  const getRowSpanClass = (w: any) => {
+    const defaultSpan = w.type === 'stat_card' ? 1 : 3;
+    const span = w.config?.rowSpan || defaultSpan;
+    if (span <= 1) return 'row-span-1';
+    if (span === 2) return 'row-span-2';
+    if (span === 3) return 'row-span-3';
+    if (span === 4) return 'row-span-4';
+    if (span === 5) return 'row-span-5';
+    return `row-span-${Math.min(span, 12)}`; // Tailwind goes up to 12
+  };
+
+  const handleResizePreview = (id: string, newColSpan: number, newRowSpan: number) => {
+    const wIndex = widgets.findIndex(w => w.id === id);
+    if (wIndex === -1) return;
+    
+    const newWidgets = [...widgets];
+    newWidgets[wIndex] = {
+      ...newWidgets[wIndex],
+      config: { ...newWidgets[wIndex].config, colSpan: newColSpan, rowSpan: newRowSpan }
+    };
+    setWidgets(newWidgets);
+  };
+
+  const handleResizeEnd = async (id: string) => {
+    const w = widgets.find(w => w.id === id);
+    if (!w) return;
+
+    try {
+      await fetch(`/api/projects/${projectId}/widgets/${id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ config: { colSpan: w.config?.colSpan, rowSpan: w.config?.rowSpan } })
+      });
+    } catch (e) {
+      console.error('Failed to save widget size', e);
+    }
+  };
+
   return (
     <div className="flex flex-col gap-4 sm:gap-6 w-full">
       {headerActionsNode && createPortal(actionsMenu, headerActionsNode)}
 
-      {/* Stat Cards */}
-      {statCards.length > 0 && (
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-          {statCards.map((w: any) => (
-            <div
-              key={w.id}
-              draggable={isEditMode}
-              onDragStart={(e) => handleDragStart(e, w.id)}
-              onDragOver={handleDragOver}
-              onDrop={(e) => handleDrop(e, w.id)}
-            >
-              <WidgetRenderer widget={w} projectId={projectId} onDelete={handleDelete} isEditMode={isEditMode} />
-            </div>
-          ))}
-        </div>
-      )}
-
-      {/* Line Charts */}
-      {lineCharts.length > 0 && (
-        <div className="flex flex-col gap-4 sm:gap-6 w-full">
-          {lineCharts.map((w: any) => (
-            <div
-              key={w.id}
-              className="w-full"
-              draggable={isEditMode}
-              onDragStart={(e) => handleDragStart(e, w.id)}
-              onDragOver={handleDragOver}
-              onDrop={(e) => handleDrop(e, w.id)}
-            >
-              <WidgetRenderer widget={w} projectId={projectId} onDelete={handleDelete} isEditMode={isEditMode} />
-            </div>
-          ))}
-        </div>
-      )}
+      <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 sm:gap-4 grid-flow-row-dense auto-rows-[120px] sm:auto-rows-[140px]">
+        {widgets.map((w: any) => (
+          <div
+            key={w.id}
+            className={`${getColSpanClass(w)} ${getRowSpanClass(w)} h-full w-full`}
+            draggable={isEditMode}
+            onDragStart={(e) => handleDragStart(e, w.id)}
+            onDragOver={handleDragOver}
+            onDrop={(e) => handleDrop(e, w.id)}
+          >
+            <WidgetRenderer 
+              widget={w} 
+              projectId={projectId} 
+              onDelete={handleDelete} 
+              isEditMode={isEditMode} 
+              onResizePreview={handleResizePreview}
+              onResizeEnd={handleResizeEnd}
+            />
+          </div>
+        ))}
+      </div>
 
       <AddWidgetModal
         isOpen={modalOpen}
