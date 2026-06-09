@@ -76,6 +76,16 @@ export default function RootLayout({ children }) {
   success: true
 });`} />
 
+      <h2 id="conversion-funnels">Conversion Funnels</h2>
+      <p>
+        Rewind features a powerful visual funnel builder to help you identify exactly where users drop off in your product flows. You can chain together URL visits and Custom Events to construct sequential funnels.
+      </p>
+      <ul>
+        <li><strong>Step-by-step Analytics:</strong> See the exact conversion rate and drop-off count at every step in a multi-step workflow.</li>
+        <li><strong>Drop-off Replay Correlation:</strong> With one click, instantly launch a filtered list of session replays for users who abandoned the flow at a specific step, allowing you to see <em>why</em> they left.</li>
+        <li><strong>Saved Funnels:</strong> Save complex, multi-step queries to your project to quickly monitor your core metrics on a recurring basis.</li>
+      </ul>
+
       <h2 id="hybrid-search">Intelligent Hybrid Search</h2>
       <p>
         Rewind features a state-of-the-art hybrid search engine that allows you to query your databank using natural language to uncover complex user behaviors. 

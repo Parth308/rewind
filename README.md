@@ -71,6 +71,7 @@ A lightweight JavaScript snippet (the **Tracker**) is embedded on any web page. 
 | 🔐 **Auth** | JWT-based API authentication for dashboard users |
 | 🎬 **Replay** | `rrweb-player` with synchronized network + console side-panel |
 | 📊 **System** | Live system metrics page (DB size, Redis memory, BullMQ queue counts, host info) |
+| 📉 **Funnels** | Sequential conversion analysis with true replay correlation |
 | 👥 **User Profiles** | Dedicated CRM-style pages aggregating user lifetime stats, attributes, and session history |
 | 🧠 **AI Summaries** | Vercel AI SDK streams detailed Customer Support Briefs based on a user's entire history |
 | 🔍 **Hybrid Search** | AI Semantic vector search + Smart Routing for lightning-fast exact keyword matching |
@@ -412,6 +413,16 @@ window.Rewind.track('Purchase Completed', {
 ```
 
 These custom properties are stored as `jsonb` payloads and can be used to add valuable context to user sessions.
+
+---
+
+## Conversion Funnels
+
+Rewind features a powerful visual funnel builder to help you identify exactly where users drop off in your product flows. You can chain together URL visits and Custom Events to construct sequential funnels.
+
+- **Step-by-step Analytics:** See the exact conversion rate and drop-off count at every step in a multi-step workflow.
+- **Drop-off Replay Correlation:** With one click, instantly launch a filtered list of session replays for users who abandoned the flow at a specific step, allowing you to see *why* they left.
+- **Saved Funnels:** Save complex, multi-step queries to your project to quickly monitor your core metrics on a recurring basis.
 
 ---
 

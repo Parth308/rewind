@@ -11,6 +11,7 @@ const nav = [
   { name: 'Sessions', href: '/dashboard', exact: true },
   { name: 'Analytics', href: '/dashboard/analytics', exact: false },
   { name: 'Search', href: '/dashboard/search', exact: false },
+  { name: 'Funnels', href: '/dashboard/funnels', exact: false },
   { name: 'Projects', href: '/dashboard/projects', exact: false },
   { name: 'System', href: '/dashboard/system', exact: false },
   { name: 'Settings', href: '/dashboard/settings', exact: false },

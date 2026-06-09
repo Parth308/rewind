@@ -47,12 +47,14 @@ export const docsSearchIndex = [
   {
     title: "Core Features",
     href: "/docs/features",
-    description: "Tracker mechanics, session replay fidelity, and custom events.",
-    keywords: ["features", "tracker", "replay", "custom events", "telemetry"],
+    description: "Tracker mechanics, session replay fidelity, custom events, and funnels.",
+    keywords: ["features", "tracker", "replay", "custom events", "telemetry", "funnels", "conversion"],
     headings: [
       { name: "The Tracker Mechanism", href: "/docs/features#embedding-the-tracker" },
       { name: "High-Fidelity Session Replay", href: "/docs/features#session-replay" },
       { name: "Tracking Custom Events", href: "/docs/features#custom-events" },
+      { name: "Conversion Funnels", href: "/docs/features#conversion-funnels" },
+      { name: "Intelligent Hybrid Search", href: "/docs/features#hybrid-search" },
       { name: "Live System Telemetry", href: "/docs/features#system-metrics" }
     ]
   },

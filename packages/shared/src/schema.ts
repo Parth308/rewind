@@ -68,6 +68,21 @@ export const sessions = pgTable('sessions', {
   countryIdx: index('idx_sessions_country').on(table.projectId, table.country),
 }));
 
+// ─── FUNNELS ─────────────────────────────────────────────
+export const funnels = pgTable('funnels', {
+  id:            uuid('id').primaryKey().defaultRandom(),
+  projectId:     uuid('project_id').notNull().references(() => projects.id, { onDelete: 'cascade' }),
+  name:          varchar('name', { length: 255 }).notNull(),
+  description:   text('description'),
+  steps:         jsonb('steps').notNull(),
+  filters:       jsonb('filters').default({}),
+  timeWindowMs:  integer('time_window_ms').default(1800000), // 30 minutes
+  createdAt:     timestamp('created_at', { withTimezone: true }).defaultNow(),
+  updatedAt:     timestamp('updated_at', { withTimezone: true }).defaultNow(),
+}, (table) => ({
+  projectIdIdx: index('idx_funnels_project_id').on(table.projectId),
+}));
+
 // ─── SESSION EMBEDDINGS (pgvector) ────────────────────────
 export const aiUsageLogs = pgTable('ai_usage_logs', {
   id:               uuid('id').primaryKey().defaultRandom(),
