@@ -65,6 +65,17 @@ export default function RootLayout({ children }) {
         <li><strong>Console Synchronization:</strong> We proxy <code>console.log</code>, <code>console.warn</code>, and <code>console.error</code>. If a JavaScript exception is thrown, you can pause the session and view the exact stack trace within the dashboard's side panel.</li>
       </ul>
 
+      <h2 id="custom-events">Tracking Custom Events</h2>
+      <p>
+        You can track business-specific custom events natively within the session replay timeline. These events are synchronized precisely with the recorded DOM mutations and appear as distinct markers on the session scrubber, as well as in the dedicated Events tab.
+      </p>
+      <CodeBlock language="javascript" code={`window.Rewind.track('Purchase Completed', {
+  orderId: '12345',
+  amount: 99.99,
+  currency: 'USD',
+  success: true
+});`} />
+
       <h2 id="system-metrics">Live System Telemetry</h2>
       <p>
         Managing a self-hosted infrastructure can be daunting. Rewind provides a built-in <code>/dashboard/system</code> route that acts as a mission control center. This pulls live metrics directly from your infrastructure:

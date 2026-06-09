@@ -46,14 +46,26 @@ export async function POST(req: NextRequest) {
       .select({
         session: sessions,
         narrative: sessionEmbeddings.narrative,
-        distance: sql<number>`${sessionEmbeddings.embedding} <=> ${vectorString}::vector`.as('distance'),
+        distance: sql<number>`
+          (${sessionEmbeddings.embedding} <=> ${vectorString}::vector)
+          - CASE 
+              WHEN ${sessions.customEvents}::text ILIKE ${'%' + query + '%'} THEN 0.2 
+              ELSE 0 
+            END
+        `.as('distance'),
         projectName: projects.name,
       })
       .from(sessionEmbeddings)
       .innerJoin(sessions, eq(sessions.id, sessionEmbeddings.sessionId))
       .leftJoin(projects, eq(projects.id, sessions.projectId))
       .where(projectId !== 'all' ? eq(sessions.projectId, projectId) : undefined)
-      .orderBy(sql`${sessionEmbeddings.embedding} <=> ${vectorString}::vector`)
+      .orderBy(sql`
+        (${sessionEmbeddings.embedding} <=> ${vectorString}::vector)
+        - CASE 
+            WHEN ${sessions.customEvents}::text ILIKE ${'%' + query + '%'} THEN 0.2 
+            ELSE 0 
+          END
+      `)
       .limit(limit);
 
     return NextResponse.json({ success: true, results });

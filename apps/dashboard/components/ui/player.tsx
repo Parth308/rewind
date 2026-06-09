@@ -5,7 +5,7 @@ import { useEffect, useRef, useCallback, useState } from 'react';
 
 type FrustrationDot = {
   offsetMs: number;
-  type: 'rage' | 'dead' | 'uturn' | 'scroll';
+  type: 'rage' | 'dead' | 'uturn' | 'scroll' | 'custom';
   label: string;
 };
 
@@ -14,6 +14,7 @@ const DOT_CFG: Record<FrustrationDot['type'], { color: string; glow: string }> =
   dead: { color: '#facc15', glow: 'rgba(250,204,21,0.5)' },
   uturn: { color: '#60a5fa', glow: 'rgba(96,165,250,0.5)' },
   scroll: { color: '#c084fc', glow: 'rgba(192,132,252,0.5)' },
+  custom: { color: '#a3e635', glow: 'rgba(163,230,53,0.5)' },
 };
 
 // rrweb control bar is 80px; .rr-timeline (flex-col, space-around, row 1 of 2)

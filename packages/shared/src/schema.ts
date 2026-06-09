@@ -54,6 +54,7 @@ export const sessions = pgTable('sessions', {
   hasWildScrolling: boolean('has_wild_scrolling').default(false),
   thumbnailUrl:  text('thumbnail_url'),
   status:        varchar('status', { length: 20 }).default('active'),
+  customEvents:  jsonb('custom_events').default([]),
   createdAt:     timestamp('created_at', { withTimezone: true }).defaultNow(),
   updatedAt:     timestamp('updated_at', { withTimezone: true }).defaultNow(),
 }, (table) => ({

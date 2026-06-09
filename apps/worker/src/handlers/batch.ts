@@ -41,6 +41,14 @@ export async function handleBatch(projectId: string, payload: any) {
     (e: any) => typeof e.type === 'number' || !String(e.type).startsWith('custom_')
   );
 
+  // Extract new Custom Events
+  const newCustomEvents = new Set<string>();
+  for (const ev of rrwebEvents) {
+    if (ev.type === 5 && ev.data && ev.data.tag && ev.data.tag !== 'navigation') {
+      newCustomEvents.add(ev.data.tag);
+    }
+  }
+
   if (rrwebEvents.length > 0) {
     await db.insert(events).values(
       rrwebEvents.map((e: any) => ({
@@ -79,6 +87,15 @@ export async function handleBatch(projectId: string, payload: any) {
   if (flags.hasDeadClicks)   updateData.hasDeadClicks   = true;
   if (flags.hasUTurns)       updateData.hasUTurns       = true;
   if (flags.hasWildScrolling) updateData.hasWildScrolling = true;
+
+  // Merge Custom Events
+  if (newCustomEvents.size > 0) {
+    const existingEvents: string[] = Array.isArray(existingSession[0]?.customEvents) 
+      ? existingSession[0].customEvents as string[] 
+      : [];
+    const mergedEvents = Array.from(new Set([...existingEvents, ...Array.from(newCustomEvents)]));
+    updateData.customEvents = mergedEvents;
+  }
 
   await db.update(sessions).set(updateData).where(eq(sessions.id, sessionId));
 

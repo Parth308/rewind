@@ -398,6 +398,23 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 
 ---
 
+## Tracking Custom Events
+
+You can track business-specific custom events natively within the session replay timeline. These events are synchronized precisely with the recorded DOM mutations and appear as green markers on the session scrubber, as well as in the dedicated Events tab.
+
+```javascript
+window.Rewind.track('Purchase Completed', {
+  orderId: '12345',
+  amount: 99.99,
+  currency: 'USD',
+  success: true
+});
+```
+
+These custom properties are stored as `jsonb` payloads and can be used to add valuable context to user sessions.
+
+---
+
 ## Database Management
 
 All schema changes live in `packages/shared/src/schema.ts`.

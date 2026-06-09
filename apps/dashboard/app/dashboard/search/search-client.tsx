@@ -346,6 +346,16 @@ export default function SearchClient({ projectId }: { projectId: string | null }
                                       <ChevronsUpDown className="w-3 h-3" /> SCROLL
                                     </div>
                                   )}
+
+                                  {Array.isArray(session.customEvents) && session.customEvents.length > 0 && (
+                                    <>
+                                      {(session.customEvents as string[]).map((eventName, idx) => (
+                                        <div key={idx} className="text-[10px] lg:text-xs text-[var(--color-accent-green)] font-mono bg-[var(--color-accent-green)]/10 px-2 py-0.5 rounded border border-[var(--color-accent-green)]/20 shadow-[0_0_10px_rgba(163,230,53,0.1)] truncate max-w-[200px]">
+                                          {eventName}
+                                        </div>
+                                      ))}
+                                    </>
+                                  )}
                                 </div>
 
                                 <div className="flex flex-wrap items-center gap-6 text-sm text-neutral-400 font-mono mb-5">

@@ -1,6 +1,7 @@
 import { getConfig, RewindConfig } from './config';
 import { Transport } from './transport';
 import { Recorder } from './recorder';
+import { record } from 'rrweb';
 import { setupConsoleCapture } from './capture/console';
 import { setupNetworkCapture } from './capture/network';
 
@@ -135,10 +136,29 @@ function identify(userId: string, metadata?: Record<string, any>) {
   console.info(`[Rewind] Identified user: ${userId}`);
 }
 
+/**
+ * Tracks a custom business event on the session timeline.
+ */
+function track(eventName: string, payload?: Record<string, any>) {
+  if (!globalTransport) {
+    console.warn('[Rewind] Tracker not initialized. Call Rewind.init() first.');
+    return;
+  }
+  
+  try {
+    // Inject the custom event natively into the rrweb stream.
+    // rrweb handles the timestamp synchronization perfectly.
+    record.addCustomEvent(eventName, payload || {});
+  } catch (err) {
+    console.warn(`[Rewind] Failed to record custom event: ${eventName}`, err);
+  }
+}
+
 // Expose the API globally as documented
 (window as any).Rewind = {
   init,
-  identify
+  identify,
+  track
 };
 
 // Try to auto-start if window.__rewind is already present

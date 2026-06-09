@@ -165,7 +165,18 @@ export default async function UserProfilePage({ params }: { params: Promise<{ us
                         </div>
                       </div>
                     </div>
-                    <div className="font-mono text-sm text-neutral-300 truncate mb-5 group-hover:text-white transition-colors">{session.id}</div>
+                    <div className="font-mono text-sm text-neutral-300 truncate mb-3 group-hover:text-white transition-colors">{session.id}</div>
+                    
+                    {Array.isArray(session.customEvents) && session.customEvents.length > 0 && (
+                      <div className="flex flex-wrap gap-2 mb-5">
+                        {(session.customEvents as string[]).map((eventName, idx) => (
+                          <div key={idx} className="text-[10px] text-[var(--color-accent-green)] font-mono bg-[var(--color-accent-green)]/10 px-2 py-0.5 rounded border border-[var(--color-accent-green)]/20 shadow-[0_0_10px_rgba(163,230,53,0.1)] truncate max-w-[200px]">
+                            {eventName}
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                    
                     <div className="flex flex-wrap gap-4 text-xs text-neutral-500 font-mono items-center">
                        <span className="flex items-center gap-2"><Globe className="w-3.5 h-3.5" /> {session.browser}</span>
                        <span className="flex items-center gap-2"><Monitor className="w-3.5 h-3.5" /> {session.os}</span>

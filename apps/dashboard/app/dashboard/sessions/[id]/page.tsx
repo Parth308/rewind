@@ -10,7 +10,7 @@ import { ArrowLeft, Flame, MousePointerClick, CornerUpLeft, ChevronsUpDown } fro
 type FrustrationDot = {
   offsetMs: number;
   label: string;
-  type: 'rage' | 'dead' | 'uturn' | 'scroll';
+  type: 'rage' | 'dead' | 'uturn' | 'scroll' | 'custom';
 };
 
 export const dynamic = 'force-dynamic';
@@ -27,8 +27,9 @@ export default async function SessionReplay(props: { params: Promise<{ id: strin
   const logs    = await db.select().from(consoleLogs).where(eq(consoleLogs.sessionId, params.id)).orderBy(consoleLogs.timestamp);
   const network = await db.select().from(networkRequests).where(eq(networkRequests.sessionId, params.id)).orderBy(networkRequests.timestamp);
 
-  // Compute frustration dot positions from rrweb events
+  // Compute frustration dot positions and custom events from rrweb events
   const frustrationDots: FrustrationDot[] = [];
+  const customEvents: any[] = [];
 
   if (rrwebEvents.length > 0) {
     const startTime = rrwebEvents[0].timestamp;
@@ -80,6 +81,24 @@ export default async function SessionReplay(props: { params: Promise<{ id: strin
             frustrationDots.push({ offsetMs: nextEv.timestamp - startTime, label: 'U-Turn', type: 'uturn' });
             break;
           }
+        }
+      }
+      
+      // Parse Custom Events (type: 5)
+      if (ev.type === 5 && ev.data && ev.data.tag) {
+        // Skip 'navigation' custom events as they are internal metrics for U-Turns
+        if (ev.data.tag !== 'navigation') {
+          customEvents.push({
+            id: `custom-${ev.timestamp}-${i}`,
+            timestamp: ev.timestamp,
+            name: ev.data.tag,
+            payload: ev.data.payload || {}
+          });
+          frustrationDots.push({
+            offsetMs: ev.timestamp - startTime,
+            label: ev.data.tag,
+            type: 'custom'
+          });
         }
       }
     }
@@ -159,6 +178,7 @@ export default async function SessionReplay(props: { params: Promise<{ id: strin
           sessionStartTime={sessionStartTime}
           logs={logs}
           network={network}
+          customEvents={customEvents}
         />
       </FadeUp>
     </div>
