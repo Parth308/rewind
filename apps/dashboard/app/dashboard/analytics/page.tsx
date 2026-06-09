@@ -1,83 +1,34 @@
 import { db } from '@/lib/db';
 import { sessions, events, networkRequests, errors } from '@rewind/shared';
-import { count, sql, eq } from 'drizzle-orm';
-import AnalyticsCharts from './AnalyticsCharts';
+import { count, sql, eq, asc, isNull } from 'drizzle-orm';
+import { dashboardWidgets } from '@rewind/shared';
 import { FadeUp } from '@/components/ui/fade-up';
 import { AiUsageCard } from './AiUsageCard';
+import { DashboardWidgetGrid } from './DashboardWidgetGrid';
 import { cookies } from 'next/headers';
 
 export const dynamic = 'force-dynamic';
-
-function StatCard({ label, value, color, glowClass }: {
-  label: string; value: string | number; color: string; glowClass: string;
-}) {
-  return (
-    <div className="relative overflow-hidden rounded-2xl border border-[var(--color-border-dark)] bg-[#0A0A0A] p-3 sm:p-5 group transition-all duration-500 hover:border-white/20">
-      <div className={`absolute top-0 right-0 -mt-12 -mr-12 w-40 h-40 opacity-10 blur-[50px] transition-opacity duration-500 group-hover:opacity-20 rounded-full ${glowClass}`} />
-      <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.03)_1px,transparent_1px)] bg-[size:12px_12px] opacity-20" />
-      <div className="relative z-10 flex flex-col h-full justify-between">
-        <div className="font-mono text-[10px] uppercase tracking-[0.2em] text-neutral-500 mb-3 sm:mb-6">{label}</div>
-        <div className={`font-mono text-2xl sm:text-4xl font-bold tabular-nums tracking-tight ${color}`}>{value}</div>
-      </div>
-      <div className="absolute bottom-0 left-0 h-[2px] w-full bg-gradient-to-r from-transparent via-white/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700 ease-out" />
-    </div>
-  );
-}
 
 export default async function DashboardAnalytics() {
   const cookieStore = await cookies();
   const projectId = cookieStore.get('rewind_active_project')?.value || 'all';
 
-  const [totalSessions] = await db.select({ value: count() })
-    .from(sessions)
-    .where(projectId !== 'all' ? eq(sessions.projectId, projectId) : undefined);
+  let widgets: any[] = [];
+  const targetProjectId = projectId === 'all' ? null : projectId;
+  
+  widgets = await db.select().from(dashboardWidgets)
+    .where(targetProjectId === null ? isNull(dashboardWidgets.projectId) : eq(dashboardWidgets.projectId, targetProjectId))
+    .orderBy(asc(dashboardWidgets.position));
 
-  const [totalEvents] = await db.select({ value: count() })
-    .from(events)
-    .innerJoin(sessions, eq(events.sessionId, sessions.id))
-    .where(projectId !== 'all' ? eq(sessions.projectId, projectId) : undefined);
-
-  const [totalErrors] = await db.select({ value: count() })
-    .from(errors)
-    .innerJoin(sessions, eq(errors.sessionId, sessions.id))
-    .where(projectId !== 'all' ? eq(sessions.projectId, projectId) : undefined);
-
-  const [totalNetwork] = await db.select({ value: count() })
-    .from(networkRequests)
-    .innerJoin(sessions, eq(networkRequests.sessionId, sessions.id))
-    .where(projectId !== 'all' ? eq(sessions.projectId, projectId) : undefined);
-
-  const avgDurationRaw = await db.execute(sql`
-    SELECT AVG(duration_ms) as avg_ms FROM sessions WHERE duration_ms IS NOT NULL
-    ${projectId !== 'all' ? sql`AND project_id = ${projectId}` : sql``}
-  `);
-  const avgMs = avgDurationRaw.rows[0]?.avg_ms
-    ? Math.round(Number(avgDurationRaw.rows[0].avg_ms) / 1000)
-    : null;
-
-  const sessionsByDayRaw = await db.execute(sql`
-    SELECT date_trunc('day', started_at) as date, count(*) as count
-    FROM sessions 
-    ${projectId !== 'all' ? sql`WHERE project_id = ${projectId}` : sql``}
-    GROUP BY 1 ORDER BY 1 DESC LIMIT 14
-  `);
-
-  const countsByDate = new Map();
-  sessionsByDayRaw.rows.forEach((row: any) => {
-    const d = new Date(row.date);
-    const label = d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-    countsByDate.set(label, (countsByDate.get(label) || 0) + parseInt(row.count, 10));
-  });
-
-  const formattedChartData = [];
-  for (let i = 13; i >= 0; i--) {
-    const d = new Date();
-    d.setDate(d.getDate() - i);
-    const label = d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-    formattedChartData.push({
-      date: label,
-      sessions: countsByDate.get(label) || 0,
-    });
+  if (widgets.length === 0) {
+    // Seed default widgets
+    widgets = await db.insert(dashboardWidgets).values([
+      { projectId: targetProjectId, type: 'stat_card', metric: 'sessions', position: 0, config: { title: 'Total Sessions', color: '#ffffff' } },
+      { projectId: targetProjectId, type: 'stat_card', metric: 'events', position: 1, config: { title: 'DOM Events', color: '#a3e635' } },
+      { projectId: targetProjectId, type: 'stat_card', metric: 'network', position: 2, config: { title: 'Network Reqs', color: '#818cf8' } },
+      { projectId: targetProjectId, type: 'stat_card', metric: 'errors', position: 3, config: { title: 'Exceptions', color: '#f87171' } },
+      { projectId: targetProjectId, type: 'line_chart', metric: 'sessions', position: 4, config: { title: 'Session Velocity', color: '#a3e635' } },
+    ] as any).returning();
   }
 
   const browserStatsRaw = await db.execute(sql`
@@ -89,53 +40,37 @@ export default async function DashboardAnalytics() {
   const browserStats = browserStatsRaw.rows as { browser: string; count: string }[];
   const totalBrowserCount = browserStats.reduce((sum, b) => sum + parseInt(b.count), 0);
 
+  const avgDurationRaw = await db.execute(sql`
+    SELECT AVG(duration_ms) as avg_ms FROM sessions WHERE duration_ms IS NOT NULL
+    ${projectId !== 'all' ? sql`AND project_id = ${projectId}` : sql``}
+  `);
+  const avgMs = avgDurationRaw.rows[0]?.avg_ms
+    ? Math.round(Number(avgDurationRaw.rows[0].avg_ms) / 1000)
+    : null;
+
   return (
     <div className="flex flex-col gap-8 sm:gap-10">
       {/* Header */}
       <FadeUp>
-        <div>
-          <h1 className="font-serif text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight text-white mb-2 sm:mb-3">
-            Analytics matrix.
-          </h1>
-          <p className="text-base sm:text-lg text-white/[0.618] max-w-2xl">
-            High-level telemetry across your entire infrastructure. Monitor events, performance, and exceptions in real-time.
-          </p>
+        <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
+          <div>
+            <h1 className="font-serif text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight text-white mb-2 sm:mb-3">
+              Analytics matrix.
+            </h1>
+            <p className="text-base sm:text-lg text-white/[0.618] max-w-2xl">
+              High-level telemetry across your entire infrastructure. Monitor events, performance, and exceptions in real-time.
+            </p>
+          </div>
+          <div id="dashboard-header-actions" className="flex items-center gap-2 sm:mt-2 shrink-0 z-50 relative"></div>
         </div>
       </FadeUp>
-
-      {/* Stat Cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-        <FadeUp delay={0.1}>
-          <StatCard label="Total Sessions" value={totalSessions.value.toLocaleString()} color="text-white" glowClass="bg-white" />
-        </FadeUp>
-        <FadeUp delay={0.2}>
-          <StatCard label="DOM Events" value={totalEvents.value.toLocaleString()} color="text-[var(--color-accent-green)]" glowClass="bg-[var(--color-accent-green)]" />
-        </FadeUp>
-        <FadeUp delay={0.3}>
-          <StatCard label="Network Reqs" value={totalNetwork.value.toLocaleString()} color="text-indigo-400" glowClass="bg-indigo-500" />
-        </FadeUp>
-        <FadeUp delay={0.4}>
-          <StatCard label="Exceptions" value={totalErrors.value.toLocaleString()} color="text-red-400" glowClass="bg-red-500" />
-        </FadeUp>
-      </div>
 
       {/* Charts + Browser breakdown */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
 
-        {/* Sessions over time */}
-        <FadeUp delay={0.5} className="lg:col-span-2">
-          <div className="bg-[#0A0A0A] border border-[var(--color-border-dark)] rounded-2xl p-6 sm:p-8 relative overflow-hidden flex flex-col min-h-[360px] sm:min-h-[400px]">
-            <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.03)_1px,transparent_1px)] bg-[size:24px_24px] [mask-image:radial-gradient(ellipse_80%_80%_at_50%_50%,#000_20%,transparent_100%)] opacity-50" />
-            <div className="flex items-center justify-between mb-6 sm:mb-8 relative z-10">
-              <div>
-                <h3 className="font-serif text-xl sm:text-2xl font-bold text-white">Session Velocity</h3>
-                <p className="text-xs sm:text-sm font-mono text-neutral-500 mt-1 sm:mt-2">14-DAY TRAILING COUNT</p>
-              </div>
-            </div>
-            <div className="flex-1 w-full relative z-10 min-h-[220px]">
-              <AnalyticsCharts data={formattedChartData} />
-            </div>
-          </div>
+        {/* Dynamic Widgets Area */}
+        <FadeUp delay={0.1} className="lg:col-span-2">
+          <DashboardWidgetGrid initialWidgets={widgets} projectId={projectId} />
         </FadeUp>
 
         {/* Browser breakdown & Avg Duration */}

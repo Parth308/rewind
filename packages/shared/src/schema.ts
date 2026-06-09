@@ -83,6 +83,20 @@ export const funnels = pgTable('funnels', {
   projectIdIdx: index('idx_funnels_project_id').on(table.projectId),
 }));
 
+// ─── DASHBOARD WIDGETS ────────────────────────────────────
+export const dashboardWidgets = pgTable('dashboard_widgets', {
+  id:            uuid('id').primaryKey().defaultRandom(),
+  projectId:     uuid('project_id').references(() => projects.id, { onDelete: 'cascade' }),
+  type:          varchar('type', { length: 50 }).notNull(), // 'line_chart', 'stat_card', etc.
+  metric:        varchar('metric', { length: 50 }).notNull(), // 'sessions', 'custom_event', 'rage_clicks', 'errors'
+  config:        jsonb('config').default({}), // e.g. { eventName: "Checkout", color: "#a3e635" }
+  position:      integer('position').default(0),
+  createdAt:     timestamp('created_at', { withTimezone: true }).defaultNow(),
+  updatedAt:     timestamp('updated_at', { withTimezone: true }).defaultNow(),
+}, (table) => ({
+  projectIdIdx: index('idx_widgets_project_id').on(table.projectId),
+}));
+
 // ─── SESSION EMBEDDINGS (pgvector) ────────────────────────
 export const aiUsageLogs = pgTable('ai_usage_logs', {
   id:               uuid('id').primaryKey().defaultRandom(),

@@ -23,7 +23,7 @@ const CustomTooltip = ({ active, payload, label }: any) => {
   return null;
 };
 
-export default function AnalyticsCharts({ data }: { data: any[] }) {
+export default function AnalyticsCharts({ data, color = '#a3e635' }: { data: any[], color?: string }) {
   if (!data || data.length === 0) {
     return (
       <div className="flex h-full w-full flex-col items-center justify-center gap-3">
@@ -40,9 +40,9 @@ export default function AnalyticsCharts({ data }: { data: any[] }) {
     <ResponsiveContainer width="100%" height={250}>
       <AreaChart data={data} margin={{ top: 5, right: 10, left: -20, bottom: 5 }}>
         <defs>
-          <linearGradient id="colorSessions" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="5%" stopColor="#a3e635" stopOpacity={0.15} />
-            <stop offset="95%" stopColor="#a3e635" stopOpacity={0} />
+          <linearGradient id={`color-${color.replace('#','')}`} x1="0" y1="0" x2="0" y2="1">
+            <stop offset="5%" stopColor={color} stopOpacity={0.15} />
+            <stop offset="95%" stopColor={color} stopOpacity={0} />
           </linearGradient>
         </defs>
         <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)" vertical={false} />
@@ -66,12 +66,12 @@ export default function AnalyticsCharts({ data }: { data: any[] }) {
         <Tooltip content={<CustomTooltip />} cursor={{ stroke: 'rgba(255,255,255,0.08)', strokeWidth: 1 }} />
         <Area
           type="monotone"
-          dataKey="sessions"
-          stroke="#a3e635"
+          dataKey="value"
+          stroke={color}
           strokeWidth={2}
-          fill="url(#colorSessions)"
-          dot={{ fill: '#a3e635', strokeWidth: 0, r: 3 }}
-          activeDot={{ fill: '#a3e635', strokeWidth: 0, r: 5 }}
+          fill={`url(#color-${color.replace('#','')})`}
+          dot={{ fill: color, strokeWidth: 0, r: 3 }}
+          activeDot={{ fill: color, strokeWidth: 0, r: 5 }}
         />
       </AreaChart>
     </ResponsiveContainer>
