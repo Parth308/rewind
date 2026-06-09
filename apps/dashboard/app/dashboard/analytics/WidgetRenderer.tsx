@@ -9,6 +9,21 @@ export function WidgetRenderer({ widget, projectId, onDelete, isEditMode }: { wi
   const [data, setData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
+  const [isConfirmingDelete, setIsConfirmingDelete] = useState(false);
+
+  useEffect(() => {
+    if (!isConfirmingDelete) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Enter') {
+        setIsConfirmingDelete(false);
+        handleDelete();
+      } else if (e.key === 'Escape') {
+        setIsConfirmingDelete(false);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isConfirmingDelete]);
 
   useEffect(() => {
     let isMounted = true;
@@ -32,7 +47,6 @@ export function WidgetRenderer({ widget, projectId, onDelete, isEditMode }: { wi
   }, [projectId, widget.id]);
 
   const handleDelete = async () => {
-    if (!confirm('Remove widget?')) return;
     try {
       await fetch(`/api/projects/${projectId}/widgets/${widget.id}`, { method: 'DELETE' });
       onDelete(widget.id);
@@ -45,15 +59,30 @@ export function WidgetRenderer({ widget, projectId, onDelete, isEditMode }: { wi
   const subtitle = widget.metric === 'custom_event' ? 'CUSTOM EVENT' : widget.metric.toUpperCase();
   const color = widget.config?.color || '#a3e635';
 
+  const confirmModal = isConfirmingDelete ? (
+    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+      <div className="absolute inset-0 bg-black/80 backdrop-blur-sm" onClick={() => setIsConfirmingDelete(false)} />
+      <div className="relative bg-[#0A0A0A] border border-[var(--color-border-dark)] rounded-2xl w-full max-w-sm overflow-hidden flex flex-col p-6 shadow-2xl">
+        <h2 className="text-lg font-serif font-bold text-white mb-2">Remove Widget?</h2>
+        <p className="text-sm text-neutral-400 font-mono mb-6">Are you sure you want to remove "{title}" from your dashboard?</p>
+        <div className="flex gap-3 justify-end">
+          <button onClick={() => setIsConfirmingDelete(false)} className="px-4 py-2 text-xs font-mono text-white/70 hover:text-white transition-colors">Cancel</button>
+          <button autoFocus onClick={() => { setIsConfirmingDelete(false); handleDelete(); }} className="px-4 py-2 bg-red-500/20 text-red-400 border border-red-500/30 rounded-lg text-xs font-mono font-bold hover:bg-red-500/40 transition-colors focus:ring-2 focus:ring-red-500/50 outline-none">Remove</button>
+        </div>
+      </div>
+    </div>
+  ) : null;
+
   if (widget.type === 'stat_card') {
     return (
       <div className={`relative group h-full ${isEditMode ? 'ring-2 ring-white/10 rounded-2xl' : ''}`}>
+        {confirmModal}
         {isEditMode && (
           <>
             <div className="absolute top-3 left-3 z-20 text-neutral-500 cursor-grab active:cursor-grabbing">
               <GripHorizontal className="w-4 h-4" />
             </div>
-            <button onClick={handleDelete} className="absolute top-2 right-2 z-20 p-1.5 bg-red-500/20 text-red-400 rounded-lg border border-red-500/30 hover:bg-red-500/40 transition-all">
+            <button onClick={() => setIsConfirmingDelete(true)} className="absolute top-2 right-2 z-20 p-1.5 bg-red-500/20 text-red-400 rounded-lg border border-red-500/30 hover:bg-red-500/40 transition-all">
               <X className="w-3 h-3" />
             </button>
           </>
@@ -80,6 +109,7 @@ export function WidgetRenderer({ widget, projectId, onDelete, isEditMode }: { wi
   // default to line_chart
   return (
     <div className={`bg-[#0A0A0A] border ${isEditMode ? 'border-white/30 ring-2 ring-white/10' : 'border-[var(--color-border-dark)]'} rounded-2xl p-6 sm:p-8 relative overflow-hidden flex flex-col min-h-[360px] sm:min-h-[400px] group`}>
+      {confirmModal}
       <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.03)_1px,transparent_1px)] bg-[size:24px_24px] [mask-image:radial-gradient(ellipse_80%_80%_at_50%_50%,#000_20%,transparent_100%)] opacity-50" />
       
       {isEditMode && (
@@ -87,7 +117,7 @@ export function WidgetRenderer({ widget, projectId, onDelete, isEditMode }: { wi
           <div className="absolute top-6 left-6 z-20 text-neutral-500 cursor-grab active:cursor-grabbing">
             <GripHorizontal className="w-5 h-5" />
           </div>
-          <button onClick={handleDelete} className="absolute top-4 right-4 z-20 p-2 bg-red-500/20 text-red-400 rounded-xl border border-red-500/30 hover:bg-red-500/40 transition-all">
+          <button onClick={() => setIsConfirmingDelete(true)} className="absolute top-4 right-4 z-20 p-2 bg-red-500/20 text-red-400 rounded-xl border border-red-500/30 hover:bg-red-500/40 transition-all">
             <X className="w-4 h-4" />
           </button>
         </>
