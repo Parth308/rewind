@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "dotenv -e .env -- tsx watch src/index.ts",
-    "start": "dotenv -e .env -- tsx src/index.ts",
+    "start": "node dist/index.js",
     "build": "tsc"
   },
   "dependencies": {
