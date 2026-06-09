@@ -82,7 +82,7 @@ export async function summarizeSession(
   networkJson: string, 
   consoleJson: string,
   config?: AIConfig
-) {
+): Promise<{ text: string; usage: any; provider: Provider; modelUsed: string; }> {
   const model = getLanguageModel(config);
   
   const systemPrompt = `
@@ -119,7 +119,7 @@ export async function summarizeSession(
   return { text, usage, provider: getProviderConfig(config).provider, modelUsed: getProviderConfig(config).languageModel! };
 }
 
-export async function generateSessionEmbedding(narrative: string, config?: AIConfig) {
+export async function generateSessionEmbedding(narrative: string, config?: AIConfig): Promise<{ embedding: number[]; usage: any; provider: Provider; modelUsed: string; }> {
   const model = getEmbeddingModel(config);
   const { embedding, usage } = await embed({
     model,

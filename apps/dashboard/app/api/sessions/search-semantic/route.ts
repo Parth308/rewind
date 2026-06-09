@@ -1,7 +1,25 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { sessions, sessionEmbeddings, projects, aiUsageLogs, generateSessionEmbedding } from '@rewind/shared';
-import { desc, sql, eq } from 'drizzle-orm';
+import { desc, sql, eq, or, ilike, and } from 'drizzle-orm';
+
+function shouldSkipLLM(query: string): boolean {
+  const trimmed = query.trim();
+  // 1. Wrapped in quotes
+  if (trimmed.startsWith('"') && trimmed.endsWith('"')) return true;
+  // 2. URL or Path
+  if (trimmed.startsWith('http://') || trimmed.startsWith('https://') || trimmed.startsWith('/')) return true;
+  // 3. UUID
+  const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+  if (uuidRegex.test(trimmed)) return true;
+  // 4. Email
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (emailRegex.test(trimmed)) return true;
+  // 5. Short acronym (single word, no spaces, length <= 5)
+  if (!trimmed.includes(' ') && trimmed.length <= 5) return true;
+
+  return false;
+}
 
 export async function POST(req: NextRequest) {
   try {
@@ -21,56 +39,95 @@ export async function POST(req: NextRequest) {
       projectConfig = projectRecords.length > 0 ? (projectRecords[0].settings as any)?.ai : undefined;
     }
 
-    // 1. Generate an embedding for the user's natural language query
-    console.log(`[Search] Vectorizing query: "${query}"`);
-    const { embedding: queryEmbedding, usage, provider, modelUsed } = await generateSessionEmbedding(query, projectConfig);
+    const isExactQuery = shouldSkipLLM(query);
+    const cleanQuery = query.trim().replace(/^"|"$/g, ''); // strip quotes for the search
+    const searchQuery = `%${cleanQuery}%`;
 
-    // Log embedding usage
-    if (projectId !== 'all') {
-      await db.insert(aiUsageLogs).values({
-        projectId: projectId,
-        action: 'semantic_search',
-        provider: provider,
-        model: modelUsed,
-        promptTokens: usage?.tokens || 0,
-        completionTokens: 0,
-        totalTokens: usage?.tokens || 0,
-      });
-    }
+    let results: any[] = [];
+    let searchType = 'ai';
 
-    // 2. Perform Hybrid Search (Vector Similarity + SQL Filters)
-    const vectorString = JSON.stringify(queryEmbedding);
+    if (isExactQuery) {
+      searchType = 'direct';
+      console.log(`[Search] Skipping LLM for exact query: "${cleanQuery}"`);
+      
+      results = await db
+        .select({
+          session: sessions,
+          narrative: sessionEmbeddings.narrative,
+          distance: sql<number>`0`.as('distance'), // 0 distance = 100% match
+          projectName: projects.name,
+        })
+        .from(sessionEmbeddings)
+        .innerJoin(sessions, eq(sessions.id, sessionEmbeddings.sessionId))
+        .leftJoin(projects, eq(projects.id, sessions.projectId))
+        .where(
+          and(
+            projectId !== 'all' ? eq(sessions.projectId, projectId) : undefined,
+            or(
+              sql`cast(${sessions.customEvents} as text) ILIKE ${searchQuery}`,
+              ilike(sessions.entryUrl, searchQuery),
+              ilike(sessions.userId, searchQuery),
+              ilike(sessionEmbeddings.narrative, searchQuery)
+            )
+          )
+        )
+        .limit(limit);
+    } else {
+      searchType = 'ai';
+      // 1. Generate an embedding for the user's natural language query
+      console.log(`[Search] Vectorizing query: "${cleanQuery}"`);
+      const { embedding: queryEmbedding, usage, provider, modelUsed } = await generateSessionEmbedding(cleanQuery, projectConfig);
 
-    console.log(`[Search] Executing pgvector lookup...`);
-    const results = await db
-      .select({
-        session: sessions,
-        narrative: sessionEmbeddings.narrative,
-        distance: sql<number>`
-          (${sessionEmbeddings.embedding} <=> ${vectorString}::vector)
+      // Log embedding usage
+      if (projectId !== 'all') {
+        await db.insert(aiUsageLogs).values({
+          projectId: projectId,
+          action: 'semantic_search',
+          provider: provider,
+          model: modelUsed,
+          promptTokens: usage?.tokens || 0,
+          completionTokens: 0,
+          totalTokens: usage?.tokens || 0,
+        });
+      }
+
+      // 2. Perform Hybrid Search (Vector Similarity + SQL Filters)
+      const vectorString = JSON.stringify(queryEmbedding);
+
+      console.log(`[Search] Executing pgvector lookup...`);
+      const hybridResults = await db
+        .select({
+          session: sessions,
+          narrative: sessionEmbeddings.narrative,
+          distance: sql<number>`
+            (${sessionEmbeddings.embedding} <=> cast(${vectorString} as vector))
+            - CASE 
+                WHEN cast(${sessions.customEvents} as text) ILIKE ${searchQuery} THEN 0.2 
+                ELSE 0 
+              END
+          `.as('distance'),
+          projectName: projects.name,
+        })
+        .from(sessionEmbeddings)
+        .innerJoin(sessions, eq(sessions.id, sessionEmbeddings.sessionId))
+        .leftJoin(projects, eq(projects.id, sessions.projectId))
+        .where(projectId !== 'all' ? eq(sessions.projectId, projectId) : undefined)
+        .orderBy(sql`
+          (${sessionEmbeddings.embedding} <=> cast(${vectorString} as vector))
           - CASE 
-              WHEN ${sessions.customEvents}::text ILIKE ${'%' + query + '%'} THEN 0.2 
+              WHEN cast(${sessions.customEvents} as text) ILIKE ${searchQuery} THEN 0.2 
               ELSE 0 
             END
-        `.as('distance'),
-        projectName: projects.name,
-      })
-      .from(sessionEmbeddings)
-      .innerJoin(sessions, eq(sessions.id, sessionEmbeddings.sessionId))
-      .leftJoin(projects, eq(projects.id, sessions.projectId))
-      .where(projectId !== 'all' ? eq(sessions.projectId, projectId) : undefined)
-      .orderBy(sql`
-        (${sessionEmbeddings.embedding} <=> ${vectorString}::vector)
-        - CASE 
-            WHEN ${sessions.customEvents}::text ILIKE ${'%' + query + '%'} THEN 0.2 
-            ELSE 0 
-          END
-      `)
-      .limit(limit);
+        `)
+        .limit(limit);
 
-    return NextResponse.json({ success: true, results });
+      // Smart Thresholding: Only return results with a >= 65% semantic match
+      results = hybridResults.filter(r => (1 - r.distance) >= 0.65);
+    }
+
+    return NextResponse.json({ success: true, results, searchType });
   } catch (error) {
-    console.error('[Search] Error executing semantic search:', error);
+    console.error('[Search] Error executing search:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

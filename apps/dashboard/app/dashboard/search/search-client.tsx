@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Search, Sparkles, Clock, ArrowRight, Monitor, MousePointerClick, AlertTriangle, ChevronRight, CornerUpLeft, ChevronsUpDown, Flame, Globe, User, Folder } from 'lucide-react';
+import { Search, Sparkles, Clock, ArrowRight, Monitor, MousePointerClick, AlertTriangle, ChevronRight, CornerUpLeft, ChevronsUpDown, Flame, Globe, User, Folder, Info, Zap } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { FadeUp } from '@/components/ui/fade-up';
@@ -13,6 +13,7 @@ export default function SearchClient({ projectId }: { projectId: string | null }
   const [isSearching, setIsSearching] = useState(false);
   const [results, setResults] = useState<any[]>([]);
   const [hasSearched, setHasSearched] = useState(false);
+  const [searchType, setSearchType] = useState<'ai' | 'direct' | null>(null);
   const [recentSearches, setRecentSearches] = useState<string[]>([]);
   const [autocompleteResults, setAutocompleteResults] = useState<string[]>([]);
   const [showAutocomplete, setShowAutocomplete] = useState(false);
@@ -57,6 +58,7 @@ export default function SearchClient({ projectId }: { projectId: string | null }
     setIsSearching(true);
     setHasSearched(true);
     setResults([]);
+    setSearchType(null);
 
     try {
       const res = await fetch('/api/sessions/search-semantic', {
@@ -67,6 +69,7 @@ export default function SearchClient({ projectId }: { projectId: string | null }
       const data = await res.json();
       if (data.success) {
         setResults(data.results);
+        setSearchType(data.searchType || 'ai');
       } else {
         console.error('Search failed:', data.error);
       }
@@ -149,6 +152,10 @@ export default function SearchClient({ projectId }: { projectId: string | null }
             )}
           </AnimatePresence>
         </div>
+        <div className="mt-3 flex items-center gap-2 text-xs text-neutral-500 font-mono pl-4">
+          <Info className="w-3.5 h-3.5" />
+          <span>Wrap your query in quotes like <span className="text-white">"checkout error"</span> to force a lightning-fast exact text match.</span>
+        </div>
       </FadeUp>
 
       {/* Recent Searches */}
@@ -213,8 +220,19 @@ export default function SearchClient({ projectId }: { projectId: string | null }
                 <div className="px-8 py-6 border-b border-[var(--color-border-dark)] bg-black/40 relative z-10 backdrop-blur-md flex justify-between items-center">
                   <span className="text-xs font-mono uppercase tracking-[0.2em] text-[var(--color-accent-green)] font-bold flex items-center gap-2">
                     <div className="w-2 h-2 rounded-full bg-[var(--color-accent-green)] shadow-[0_0_8px_var(--color-accent-green)] animate-pulse" />
-                    {results.length} Semantically Matched Sessions
+                    {results.length} {searchType === 'direct' ? 'Exact Matched' : 'Semantically Matched'} Sessions
                   </span>
+                  
+                  {searchType === 'ai' && (
+                    <div className="flex items-center gap-1.5 text-[10px] uppercase tracking-widest font-mono font-bold px-3 py-1 rounded-full bg-purple-500/10 text-purple-400 border border-purple-500/20 shadow-[0_0_10px_rgba(168,85,247,0.1)]">
+                      <Sparkles className="w-3 h-3" /> AI Result
+                    </div>
+                  )}
+                  {searchType === 'direct' && (
+                    <div className="flex items-center gap-1.5 text-[10px] uppercase tracking-widest font-mono font-bold px-3 py-1 rounded-full bg-blue-500/10 text-blue-400 border border-blue-500/20 shadow-[0_0_10px_rgba(59,130,246,0.1)]">
+                      <Zap className="w-3 h-3" /> Exact Match
+                    </div>
+                  )}
                 </div>
 
                 {(() => {
