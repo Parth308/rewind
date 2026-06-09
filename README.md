@@ -73,7 +73,7 @@ A lightweight JavaScript snippet (the **Tracker**) is embedded on any web page. 
 | 📊 **System** | Live system metrics page (DB size, Redis memory, BullMQ queue counts, host info) |
 | 👥 **User Profiles** | Dedicated CRM-style pages aggregating user lifetime stats, attributes, and session history |
 | 🧠 **AI Summaries** | Vercel AI SDK streams detailed Customer Support Briefs based on a user's entire history |
-| 🔍 **Vector Search** | `pgvector` embeddings to search sessions by intent rather than keywords |
+| 🔍 **Hybrid Search** | AI Semantic vector search + Smart Routing for lightning-fast exact keyword matching |
 | 🐳 **Deploy** | Multi-stage Dockerfile with `pnpm prune --prod` for lean production images |
 
 ---

@@ -76,6 +76,16 @@ export default function RootLayout({ children }) {
   success: true
 });`} />
 
+      <h2 id="hybrid-search">Intelligent Hybrid Search</h2>
+      <p>
+        Rewind features a state-of-the-art hybrid search engine that allows you to query your databank using natural language to uncover complex user behaviors. 
+      </p>
+      <ul>
+        <li><strong>True Semantic Search:</strong> Powered by AI embeddings and <code>pgvector</code>, you can search for concepts like <em>"users who rage clicked on checkout"</em>. The engine understands the intent and finds mathematically similar session narratives.</li>
+        <li><strong>Smart Query Routing:</strong> To save latency and API costs, Rewind analyzes every query. If you search for an exact identifier (like a UUID, an email, a URL path, or a short acronym), the engine intelligently bypasses the LLM and executes a lightning-fast PostgreSQL text match instead.</li>
+        <li><strong>Forced Exact Match:</strong> You can explicitly force a high-speed direct text search at any time by wrapping your query in quotes, e.g., <code>"checkout failed"</code>.</li>
+      </ul>
+
       <h2 id="system-metrics">Live System Telemetry</h2>
       <p>
         Managing a self-hosted infrastructure can be daunting. Rewind provides a built-in <code>/dashboard/system</code> route that acts as a mission control center. This pulls live metrics directly from your infrastructure:
