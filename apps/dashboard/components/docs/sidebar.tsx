@@ -5,7 +5,8 @@ import { usePathname } from 'next/navigation';
 import { clsx } from 'clsx';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useState, useEffect } from 'react';
-import { Menu, X } from 'lucide-react';
+import { Menu, X, Search } from 'lucide-react';
+import { DocsSearch } from './search';
 
 const nav = [
   { name: 'Overview', href: '/docs', exact: true },
@@ -23,10 +24,22 @@ const nav = [
 export function DocsSidebar() {
   const pathname = usePathname();
   const [isOpen, setIsOpen] = useState(false);
+  const [searchOpen, setSearchOpen] = useState(false);
 
   useEffect(() => {
     setIsOpen(false);
   }, [pathname]);
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+        e.preventDefault();
+        setSearchOpen(true);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
 
   const isActive = (href: string, exact: boolean) =>
     exact ? pathname === href : pathname === href || pathname.startsWith(href + '/');
@@ -94,6 +107,21 @@ export function DocsSidebar() {
 
         {/* Nav */}
         <nav className="flex-1 overflow-y-auto py-6 px-4 relative z-10">
+          
+          <button 
+            onClick={() => setSearchOpen(true)}
+            className="w-full flex items-center justify-between px-3 py-2.5 mb-8 rounded-xl border border-[var(--color-border-dark)] bg-white/[0.02] hover:bg-white/[0.06] transition-colors group"
+          >
+            <div className="flex items-center gap-3">
+              <Search className="w-4 h-4 text-neutral-500 group-hover:text-[var(--color-accent-green)] transition-colors" />
+              <span className="text-sm font-mono text-neutral-400 group-hover:text-neutral-300">Search docs...</span>
+            </div>
+            <div className="flex items-center gap-1">
+              <kbd className="hidden lg:flex items-center justify-center h-5 px-1.5 rounded border border-white/10 bg-black/50 text-[10px] font-mono text-neutral-500 shadow-inner">Ctrl</kbd>
+              <kbd className="hidden lg:flex items-center justify-center h-5 px-1.5 rounded border border-white/10 bg-black/50 text-[10px] font-mono text-neutral-500 shadow-inner">K</kbd>
+            </div>
+          </button>
+
           <div className="text-xs font-mono tracking-[0.2em] text-neutral-600 mb-6 px-3 uppercase font-bold">Contents</div>
           <div className="space-y-2 relative">
             {nav.map((item) => {
@@ -133,6 +161,9 @@ export function DocsSidebar() {
           </Link>
         </div>
       </aside>
+
+      {/* Global Search Modal */}
+      <DocsSearch isOpen={searchOpen} onClose={() => setSearchOpen(false)} />
     </>
   );
 }
