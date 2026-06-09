@@ -11,7 +11,7 @@ export function WidgetRenderer({ widget, projectId, onDelete, isEditMode, onResi
   onDelete: (id: string) => void, 
   isEditMode?: boolean, 
   onResizePreview?: (id: string, newColSpan: number, newRowSpan: number) => void,
-  onResizeEnd?: (id: string) => void
+  onResizeEnd?: (id: string, newColSpan: number, newRowSpan: number) => void
 }) {
   const [data, setData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
@@ -43,7 +43,15 @@ export function WidgetRenderer({ widget, projectId, onDelete, isEditMode, onResi
     const handleMouseUp = (upEvent: MouseEvent) => {
       window.removeEventListener('mousemove', handleMouseMove);
       window.removeEventListener('mouseup', handleMouseUp);
-      if (onResizeEnd) onResizeEnd(widget.id);
+      
+      const dx = upEvent.clientX - startX;
+      const dy = upEvent.clientY - startY;
+      const colDelta = Math.round(dx / 150);
+      const rowDelta = Math.round(dy / 140);
+      const finalColSpan = Math.max(1, Math.min(6, startColSpan + colDelta));
+      const finalRowSpan = Math.max(1, Math.min(12, startRowSpan + rowDelta));
+
+      if (onResizeEnd) onResizeEnd(widget.id, finalColSpan, finalRowSpan);
     };
 
     window.addEventListener('mousemove', handleMouseMove);
@@ -125,7 +133,7 @@ export function WidgetRenderer({ widget, projectId, onDelete, isEditMode, onResi
               <X className="w-3 h-3" />
             </button>
             <div 
-              className="absolute bottom-1 right-1 z-20 p-2 cursor-se-resize text-neutral-500 hover:text-white transition-colors"
+              className="resize-handle absolute bottom-1 right-1 z-20 p-2 cursor-se-resize text-neutral-500 hover:text-white transition-colors"
               onMouseDown={handleResizeStart}
             >
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -173,7 +181,7 @@ export function WidgetRenderer({ widget, projectId, onDelete, isEditMode, onResi
               <X className="w-4 h-4" />
             </button>
             <div 
-              className="absolute bottom-2 right-2 z-20 p-2 cursor-se-resize text-neutral-500 hover:text-white transition-colors"
+              className="resize-handle absolute bottom-2 right-2 z-20 p-2 cursor-se-resize text-neutral-500 hover:text-white transition-colors"
               onMouseDown={handleResizeStart}
             >
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -246,7 +254,7 @@ export function WidgetRenderer({ widget, projectId, onDelete, isEditMode, onResi
             <X className="w-4 h-4" />
           </button>
           <div 
-            className="absolute bottom-2 right-2 z-20 p-2 cursor-se-resize text-neutral-500 hover:text-white transition-colors"
+            className="resize-handle absolute bottom-2 right-2 z-20 p-2 cursor-se-resize text-neutral-500 hover:text-white transition-colors"
             onMouseDown={handleResizeStart}
           >
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">

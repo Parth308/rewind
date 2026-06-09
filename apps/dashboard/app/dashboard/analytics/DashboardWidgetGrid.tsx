@@ -61,6 +61,10 @@ export function DashboardWidgetGrid({ initialWidgets, projectId }: { initialWidg
   };
 
   const handleDragStart = (e: React.DragEvent, id: string) => {
+    if ((e.target as HTMLElement).closest('.resize-handle')) {
+      e.preventDefault();
+      return;
+    }
     if (!isEditMode) {
       e.preventDefault();
       return;
@@ -85,7 +89,6 @@ export function DashboardWidgetGrid({ initialWidgets, projectId }: { initialWidg
     const [removed] = newWidgets.splice(draggedIndex, 1);
     newWidgets.splice(targetIndex, 0, removed);
 
-    // Update local positions
     newWidgets.forEach((w, i) => w.position = i);
     setWidgets(newWidgets);
     setDraggedId(null);
@@ -171,15 +174,12 @@ export function DashboardWidgetGrid({ initialWidgets, projectId }: { initialWidg
     setWidgets(newWidgets);
   };
 
-  const handleResizeEnd = async (id: string) => {
-    const w = widgets.find(w => w.id === id);
-    if (!w) return;
-
+  const handleResizeEnd = async (id: string, finalColSpan: number, finalRowSpan: number) => {
     try {
       await fetch(`/api/projects/${projectId}/widgets/${id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ config: { colSpan: w.config?.colSpan, rowSpan: w.config?.rowSpan } })
+        body: JSON.stringify({ config: { colSpan: finalColSpan, rowSpan: finalRowSpan } })
       });
     } catch (e) {
       console.error('Failed to save widget size', e);
