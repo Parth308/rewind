@@ -337,12 +337,13 @@ The multi-stage **Dockerfile** uses `pnpm fetch` + `pnpm install --offline` for 
 
 ## Embedding the Tracker
 
-After building the Tracker (`pnpm run build` inside `apps/tracker`), the bundle is automatically served by the Ingestor at `GET /tracker.js`.
+After building the Tracker (`pnpm run build` inside `apps/tracker`), the bundle is automatically served by the Ingestor at `GET /tracker/tracker.js`, while the privacy configuration is served at `GET /config/[TOKEN].js`.
 
 ### Plain HTML
 
 ```html
-<script src="http://localhost:3001/tracker.js"></script>
+<script src="http://localhost:3001/config/your-project-token.js"></script>
+<script src="http://localhost:3001/tracker/tracker.js"></script>
 <script>
   window.Rewind.init({
     projectToken: 'your-project-token',
@@ -358,15 +359,24 @@ After building the Tracker (`pnpm run build` inside `apps/tracker`), the bundle 
 import { useEffect } from 'react';
 
 useEffect(() => {
-  const script = document.createElement('script');
-  script.src = 'http://localhost:3001/tracker.js';
-  script.onload = () => {
-    (window as any).Rewind.init({
-      projectToken: 'your-project-token',
-      ingestorUrl:  'ws://localhost:3001',
-    });
+  // Load configuration first
+  const configScript = document.createElement('script');
+  configScript.src = 'http://localhost:3001/config/your-project-token.js';
+  
+  configScript.onload = () => {
+    // Then load the tracker
+    const trackerScript = document.createElement('script');
+    trackerScript.src = 'http://localhost:3001/tracker/tracker.js';
+    trackerScript.onload = () => {
+      (window as any).Rewind.init({
+        projectToken: 'your-project-token',
+        ingestorUrl:  'ws://localhost:3001',
+      });
+    };
+    document.head.appendChild(trackerScript);
   };
-  document.head.appendChild(script);
+  
+  document.head.appendChild(configScript);
 }, []);
 ```
 
@@ -381,7 +391,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html>
       <body>
         {children}
-        <Script src="http://localhost:3001/tracker.js" strategy="afterInteractive"
+        <Script src="http://localhost:3001/config/your-project-token.js" strategy="beforeInteractive" />
+        <Script src="http://localhost:3001/tracker/tracker.js" strategy="afterInteractive"
           onLoad={() => {
             (window as any).Rewind.init({
               projectToken: 'your-project-token',

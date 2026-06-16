@@ -25,7 +25,8 @@ export default function FeaturesPage() {
       </p>
 
       <h3 id="plain-html">Implementation in HTML</h3>
-      <CodeBlock language="html" code={`<script src="http://localhost:3001/tracker.js"></script>
+      <CodeBlock language="html" code={`<script src="https://ingest.yourdomain.com/config/YOUR_SECURE_PROJECT_TOKEN.js"></script>
+<script src="https://ingest.yourdomain.com/tracker/tracker.js"></script>
 <script>
   window.Rewind.init({
     projectToken: 'YOUR_SECURE_PROJECT_TOKEN',
@@ -34,7 +35,7 @@ export default function FeaturesPage() {
 </script>`} />
 
       <h3 id="react-nextjs">Implementation in Next.js (App Router)</h3>
-      <p>For modern React frameworks like Next.js, we recommend utilizing the framework's native Script component with the <code>afterInteractive</code> strategy so your main thread is never blocked during Initial Page Load.</p>
+      <p>For modern React frameworks like Next.js, we recommend utilizing the framework's native Script component with the <code>beforeInteractive</code> strategy for the config, and <code>afterInteractive</code> for the tracker, so your main thread is never blocked during Initial Page Load.</p>
       <CodeBlock language="tsx" code={`import Script from 'next/script';
 
 export default function RootLayout({ children }) {
@@ -42,7 +43,8 @@ export default function RootLayout({ children }) {
     <html>
       <body>
         {children}
-        <Script src="https://ingest.yourdomain.com/tracker.js" strategy="afterInteractive"
+        <Script src="https://ingest.yourdomain.com/config/YOUR_SECURE_PROJECT_TOKEN.js" strategy="beforeInteractive" />
+        <Script src="https://ingest.yourdomain.com/tracker/tracker.js" strategy="afterInteractive"
           onLoad={() => {
             window.Rewind.init({
               projectToken: 'YOUR_SECURE_PROJECT_TOKEN',

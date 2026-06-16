@@ -30,6 +30,8 @@ app.get('/health', async (req, res) => {
   }
 });
 
+import fs from 'fs';
+
 // Serve the built tracker.js bundle so any HTML page can load it
 const trackerBuildPath = path.resolve(__dirname, '../../tracker/dist');
 app.use('/tracker', express.static(trackerBuildPath));
@@ -39,6 +41,48 @@ if (!existsSync(trackerBuildPath)) {
 } else {
   console.log('Serving tracker from', trackerBuildPath);
 }
+
+// Serve pre-built static configuration
+app.get('/config/:token.js', async (req, res) => {
+  const { token } = req.params;
+  
+  res.setHeader('Content-Type', 'application/javascript');
+  res.setHeader('Cache-Control', 'public, max-age=60'); // 1 minute max-age
+
+  try {
+    // Fast path: Read pre-built script directly from Redis
+    const cachedScript = await redis.get(`tracker:config:${token}`);
+    if (cachedScript) {
+      return res.send(cachedScript);
+    }
+
+    // Cache miss: Fallback to DB, generate it, and save to Redis forever
+    const projectList = await db.select().from(projects).where(eq(projects.token, token));
+    if (projectList.length === 0) {
+      return res.status(401).send('console.error("Rewind tracker: Invalid token");');
+    }
+
+    const project = projectList[0];
+    const settings = (project.settings as any) || {};
+
+    const remoteConfig = {
+      maskInputs: settings.maskInputs !== undefined ? settings.maskInputs : true,
+      maskSelectors: settings.maskSelectors || [],
+      blockSelectors: settings.blockSelectors || [],
+      ignoreUrls: settings.ignoreUrls || []
+    };
+
+    const configScript = `window.__rewind_remote = ${JSON.stringify(remoteConfig)};\n`;
+    
+    // Save back to Redis
+    await redis.set(`tracker:config:${token}`, configScript);
+    
+    return res.send(configScript);
+  } catch (err) {
+    console.error('Failed to serve config', err);
+    res.status(500).send('console.error("Rewind tracker: internal error");');
+  }
+});
 
 const PORT = process.env.PORT || 3001;
 const REDIS_URL = process.env.REDIS_URL || 'redis://localhost:6379';

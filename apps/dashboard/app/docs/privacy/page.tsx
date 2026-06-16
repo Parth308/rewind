@@ -13,26 +13,28 @@ export default function PrivacyPage() {
         One of the primary benefits of self-hosting Rewind is that session data never leaves your VPC. However, you still need to ensure sensitive PII (Personally Identifiable Information) isn't recorded from the client's browser.
       </p>
 
-      <h2 id="default-masking">Default Input Masking</h2>
+      <h2 id="dashboard-configuration">Privacy & Masking Dashboard</h2>
       <p>
-        By default, the Rewind Tracker is configured to be incredibly conservative with user input. 
+        Rewind provides a centralized <strong>Privacy & Masking</strong> module within your project configuration. You no longer need to hardcode privacy rules into your client application. From the dashboard, you can define:
       </p>
       <ul>
-        <li>All <code>&lt;input type="password"&gt;</code> fields are automatically ignored.</li>
-        <li>Credit card fields are obfuscated.</li>
-        <li>The values typed into these fields are never transmitted over the WebSocket.</li>
+        <li><strong>Mask Input Fields:</strong> A global toggle to automatically scramble all input and textarea fields into asterisks.</li>
+        <li><strong>Mask Selectors:</strong> A comma-separated list of CSS selectors (e.g., <code>.private-text, #user-balance</code>). Any text inside these elements will be scrambled, but the layout is preserved.</li>
+        <li><strong>Block Selectors:</strong> A comma-separated list of CSS selectors (e.g., <code>.sensitive-image, #checkout-iframe</code>). These elements and all their children are completely hidden from the recording and replaced by a placeholder block.</li>
+        <li><strong>Ignore URLs:</strong> A comma-separated list of URL paths or wildcards (e.g., <code>/checkout/*, /admin</code>). If a user navigates to an ignored URL, the tracker instantly pauses recording.</li>
       </ul>
 
-      <h2 id="blocking-elements">Blocking Specific Elements</h2>
+      <h2 id="local-overrides">Local Code Overrides</h2>
       <p>
-        If you have specific elements on your page that contain highly sensitive data (e.g., medical records, social security numbers, or internal financial data), you can completely block the tracker from recording those DOM nodes.
+        If you have highly dynamic pages where selectors aren't sufficient, you can still apply privacy rules directly in your HTML using standard rrweb classes:
       </p>
-      <p>
-        Simply add the <code>rr-block</code> class to any HTML element. Rewind will replace the element with a solid grey placeholder block in the replay, and none of its text or child elements will be transmitted.
-      </p>
+      <ul>
+        <li>Add the <code>rr-block</code> class to completely redact a DOM node.</li>
+        <li>Add the <code>rr-mask</code> class to scramble text inside a specific DOM node.</li>
+        <li>Add the <code>rr-ignore</code> class to ignore input changes in specific form fields.</li>
+      </ul>
 
-      <CodeBlock language="html" code={`<!-- This text will be recorded normally -->
-<div>
+      <CodeBlock language="html" code={`<div>
   Welcome back, user!
 </div>
 
@@ -41,23 +43,6 @@ export default function PrivacyPage() {
   <p>Account Balance: $1,450,000.00</p>
   <p>Routing Number: 123456789</p>
 </div>`} />
-
-      <h2 id="masking-text">Masking All Text (Strict Mode)</h2>
-      <p>
-        If you are operating in a highly regulated environment (like HIPAA compliance in healthcare), you may want to mask <strong>all</strong> text on the page by default, only revealing the structural layout of the application.
-      </p>
-      <p>
-        You can pass the <code>maskAllInputs</code> and <code>maskTextFn</code> configurations when initializing the tracker:
-      </p>
-
-      <CodeBlock language="javascript" code={`window.Rewind.init({
-  projectToken: 'YOUR_SECURE_PROJECT_TOKEN',
-  ingestorUrl: 'wss://ingest.yourdomain.com',
-  // Scramble all text characters into asterisks
-  maskTextFn: (text) => text.replace(/[a-z0-9]/gi, '*'),
-  // Ensure all form inputs are scrambled
-  maskAllInputs: true
-});`} />
 
       <h2 id="network-redaction">Network Payload Redaction</h2>
       <p>

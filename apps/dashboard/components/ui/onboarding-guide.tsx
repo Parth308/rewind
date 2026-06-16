@@ -97,7 +97,8 @@ export function OnboardingGuide({ hasProject, projectToken, projectName, isGloba
   };
 </script>
 
-<!-- Step 2: Inject the tracker script (auto-initializes) -->
+<!-- Step 2: Inject the configuration and tracker script -->
+<script src="${ingestUrl}/config/${projectToken ?? 'YOUR_PROJECT_TOKEN'}.js"></script>
 <script src="${ingestUrl}/tracker/tracker.js"></script>`;
 
   const reactSnippet = `// Main entry point (e.g. main.tsx or App.tsx)
@@ -108,13 +109,20 @@ export function App() {
     if (typeof window !== 'undefined' && !window.__rewind) {
       window.__rewind = {
         token: '${projectToken ?? 'YOUR_PROJECT_TOKEN'}',
-        endpoint: 'http://localhost:3001/ingest',
+        endpoint: '${ingestUrl}/ingest',
       };
       
-      const script = document.createElement('script');
-      script.src = 'http://localhost:3001/tracker/tracker.js';
-      script.async = true;
-      document.head.appendChild(script);
+      const configScript = document.createElement('script');
+      configScript.src = '${ingestUrl}/config/${projectToken ?? 'YOUR_PROJECT_TOKEN'}.js';
+      
+      configScript.onload = () => {
+        const script = document.createElement('script');
+        script.src = '${ingestUrl}/tracker/tracker.js';
+        script.async = true;
+        document.head.appendChild(script);
+      };
+      
+      document.head.appendChild(configScript);
     }
   }, []);
 
@@ -131,11 +139,15 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <Script id="rewind-config" strategy="beforeInteractive">
           {\`window.__rewind = {
             token: '${projectToken ?? 'YOUR_PROJECT_TOKEN'}',
-            endpoint: 'http://localhost:3001/ingest',
+            endpoint: '${ingestUrl}/ingest',
           };\`}
         </Script>
         <Script 
-          src="http://localhost:3001/tracker/tracker.js" 
+          src="${ingestUrl}/config/${projectToken ?? 'YOUR_PROJECT_TOKEN'}.js" 
+          strategy="beforeInteractive" 
+        />
+        <Script 
+          src="${ingestUrl}/tracker/tracker.js" 
           strategy="afterInteractive" 
         />
       </head>
@@ -154,10 +166,17 @@ if (typeof window !== 'undefined' && !window.__rewind) {
     endpoint: '${ingestUrl}/ingest',
   };
   
-  const script = document.createElement('script');
-  script.src = '${ingestUrl}/tracker/tracker.js';
-  script.async = true;
-  document.head.appendChild(script);
+  const configScript = document.createElement('script');
+  configScript.src = '${ingestUrl}/config/${projectToken ?? 'YOUR_PROJECT_TOKEN'}.js';
+  
+  configScript.onload = () => {
+    const script = document.createElement('script');
+    script.src = '${ingestUrl}/tracker/tracker.js';
+    script.async = true;
+    document.head.appendChild(script);
+  };
+  
+  document.head.appendChild(configScript);
 }
 
 createApp(App).mount('#app')`;
@@ -170,6 +189,7 @@ createApp(App).mount('#app')`;
       endpoint: '${ingestUrl}/ingest',
     };
   </script>
+  <script src="${ingestUrl}/config/${projectToken ?? 'YOUR_PROJECT_TOKEN'}.js"></script>
   <script src="${ingestUrl}/tracker/tracker.js" async></script>
   %svelte.head%
 </head>`;
