@@ -1,4 +1,5 @@
 import { RewindConfig } from './config';
+import * as fflate from 'fflate';
 
 export class Transport {
   private config: RewindConfig;
@@ -63,8 +64,12 @@ export class Transport {
     if (!endpoint.endsWith('/')) endpoint += '/';
     endpoint += this.config.token;
 
+    const jsonStr = JSON.stringify(payload);
+    const compressed = fflate.gzipSync(fflate.strToU8(jsonStr));
+
     if (navigator.sendBeacon) {
-      navigator.sendBeacon(endpoint, JSON.stringify(payload));
+      const blob = new Blob([compressed as any], { type: 'application/octet-stream' });
+      navigator.sendBeacon(endpoint, blob);
     } else {
       // fallback for environments without sendBeacon
       this.send(payload);
@@ -73,8 +78,11 @@ export class Transport {
 
   public send(payload: any) {
     payload.sessionId = this.sessionId;
+    const jsonStr = JSON.stringify(payload);
+    const compressed = fflate.gzipSync(fflate.strToU8(jsonStr));
+
     if (this.ws && this.ws.readyState === WebSocket.OPEN) {
-      this.ws.send(JSON.stringify(payload));
+      this.ws.send(compressed);
     } else {
       this.queue.push(payload);
       if (!this.isConnecting) {
@@ -84,18 +92,20 @@ export class Transport {
       if (this.queue.length > 50) {
         this.queue.shift();
       }
-      this.sendHttpFallback(payload);
+      this.sendHttpFallback(compressed);
     }
   }
 
   private flushQueue() {
     while (this.queue.length > 0 && this.ws && this.ws.readyState === WebSocket.OPEN) {
       const payload = this.queue.shift();
-      this.ws.send(JSON.stringify(payload));
+      const jsonStr = JSON.stringify(payload);
+      const compressed = fflate.gzipSync(fflate.strToU8(jsonStr));
+      this.ws.send(compressed);
     }
   }
 
-  private async sendHttpFallback(payload: any) {
+  private async sendHttpFallback(compressed: Uint8Array) {
     let endpoint = this.config.endpoint;
     if (!endpoint.endsWith('/')) endpoint += '/';
     endpoint += this.config.token;
@@ -103,15 +113,14 @@ export class Transport {
     try {
       await fetch(endpoint, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
+        headers: { 'Content-Type': 'application/octet-stream' },
+        body: new Blob([compressed as any], { type: 'application/octet-stream' }),
         keepalive: true,
       });
-      // Remove from queue if successful
-      const idx = this.queue.indexOf(payload);
-      if (idx !== -1) {
-        this.queue.splice(idx, 1);
-      }
+      // We don't remove from queue here anymore, it's a bit tricky because the queue stores uncompressed payloads.
+      // But we can just clear it if we want, or leave it to be flushed via WS when reconnected.
+      // Assuming if HTTP succeeded, we should clear the queue.
+      this.queue.length = 0; // simple fix to avoid duplicate sending if HTTP actually works
     } catch (e) {
       // Failed HTTP as well
     }

@@ -1,4 +1,5 @@
 import express from 'express';
+import zlib from 'zlib';
 import cors from 'cors';
 import { WebSocketServer } from 'ws';
 import { createServer } from 'http';
@@ -16,7 +17,9 @@ const app = express();
 app.use(cors({ origin: '*' }));
 app.use(express.json());
 // sendBeacon sends text/plain — parse that too
-app.use(express.text({ type: 'text/plain' }));
+app.use(express.text({ type: 'text/plain', limit: '50mb' }));
+// fallback beacon and fetch sending compressed blobs
+app.use(express.raw({ type: 'application/octet-stream', limit: '50mb' }));
 
 app.get('/health', async (req, res) => {
   try {
@@ -67,9 +70,15 @@ wss.on('connection', async (ws, req) => {
   }
   const project = projectList[0];
 
-  ws.on('message', async (message) => {
+  ws.on('message', async (message: Buffer, isBinary: boolean) => {
     try {
-      const payload = JSON.parse(message.toString());
+      let payloadStr: string;
+      if (isBinary) {
+        payloadStr = zlib.gunzipSync(message).toString('utf-8');
+      } else {
+        payloadStr = message.toString();
+      }
+      const payload = JSON.parse(payloadStr);
       await eventsQueue.add('process_batch', {
         projectId: project.id,
         payload
@@ -91,10 +100,15 @@ app.post('/ingest/:token', async (req, res) =>
   const project = projectList[0];
 
   try {
-    // sendBeacon sends body as text/plain — parse if needed
-    let payload = req.body;
-    if (typeof payload === 'string') {
-      try { payload = JSON.parse(payload); } catch { /* leave as-is */ }
+    let payload;
+    if (Buffer.isBuffer(req.body)) {
+      const unzipped = zlib.gunzipSync(req.body).toString('utf-8');
+      payload = JSON.parse(unzipped);
+    } else {
+      payload = req.body;
+      if (typeof payload === 'string') {
+        try { payload = JSON.parse(payload); } catch { /* leave as-is */ }
+      }
     }
     
     if (payload?.isFinal) {
