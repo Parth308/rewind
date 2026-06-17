@@ -46,7 +46,10 @@ export default function PrivacyPage() {
 
       <h2 id="network-redaction">Network Payload Redaction</h2>
       <p>
-        The Rewind Tracker intercepts network requests (both <code>fetch</code> and <code>XHR</code>). While it captures headers and URLs, it <strong>does not</strong> capture the raw POST body payloads by default to prevent capturing API tokens or passwords submitted via forms. If you wish to capture network bodies for debugging, you must explicitly opt-in via the tracker configuration (coming soon).
+        The Rewind Tracker intercepts network requests. While it captures URLs, methods, and latency, it <strong>does not</strong> capture the raw API payloads (like POST bodies or response data) by default, preventing the accidental capture of API tokens or passwords submitted via forms.
+      </p>
+      <p>
+        You can explicitly opt-in to capture API request and response bodies from the <strong>Privacy & Masking</strong> dashboard using the <em>Capture API Payloads</em> toggle. When enabled, you can also define a list of <strong>Redacted JSON Keys</strong> (e.g., <code>password, token, credit_card</code>). The tracker will automatically scrub these specific keys from any JSON payloads directly in the browser, replacing their values with <code>[REDACTED]</code> before they are ever transmitted to your server.
       </p>
 
       <h2 id="data-retention">Data Retention & Auto-Deletion</h2>

@@ -15,6 +15,8 @@ export async function handleNetwork(projectId: string, payload: any) {
     url: e.url,
     status: e.status,
     duration: e.duration,
+    requestBody: e.requestBody,
+    responseBody: e.responseBody,
     timestamp: e.timestamp
   })));
 }

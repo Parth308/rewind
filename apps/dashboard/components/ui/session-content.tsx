@@ -24,6 +24,8 @@ type NetworkEntry = {
   url: string | null;
   status: number | null;
   duration: number | null;
+  requestBody?: string | null;
+  responseBody?: string | null;
 };
 
 type CustomEventEntry = {
@@ -52,6 +54,7 @@ export function SessionContent({
 }) {
   const [currentTimeMs, setCurrentTimeMs] = useState(0);
   const [activeTab, setActiveTab] = useState<'events' | 'console' | 'network'>('events');
+  const [expandedNetwork, setExpandedNetwork] = useState<Record<string, boolean>>({});
   const isPlayingRef = useRef(false);
 
   // Refs to the scroll containers
@@ -260,35 +263,69 @@ export function SessionContent({
             >
               {network.length === 0 ? (
                 <div className="text-neutral-700 text-center py-10 uppercase tracking-widest text-[10px]">No Network Traffic</div>
-              ) : network.map((req) => {
-                const status  = req.status || 200;
-                const isErr   = status >= 400;
-                const isPast  = req.timestamp <= wallTime;
-                return (
-                  <div
-                    key={req.id}
-                    data-ts={req.timestamp}
-                    className={`flex items-center gap-3 py-1.5 px-2 rounded hover:bg-white/[0.03] transition-all group ${isPast ? '' : 'opacity-25'}`}
-                    title={req.url ?? ''}
-                  >
-                    <span
-                      className="shrink-0 font-bold tracking-wider px-1.5 py-0.5 rounded uppercase"
-                      style={{
-                        background: isErr ? 'rgba(239,68,68,0.1)' : 'rgba(163,230,53,0.1)',
-                        color: isErr ? '#f87171' : '#a3e635',
-                        border: `1px solid ${isErr ? 'rgba(239,68,68,0.2)' : 'rgba(163,230,53,0.2)'}`,
-                      }}
-                    >
-                      {req.method}
-                    </span>
-                    <span className="shrink-0 tabular-nums" style={{ color: isErr ? '#f87171' : '#6b7280' }}>{status}</span>
-                    <span className="truncate text-neutral-500 group-hover:text-neutral-300 transition-colors flex-1">{req.url}</span>
-                    {req.duration != null && (
-                      <span className="shrink-0 text-neutral-600 tabular-nums group-hover:text-neutral-400">{req.duration}ms</span>
-                    )}
+              ) : (
+                <>
+                  <div className="mb-4 p-3 rounded-lg border border-[var(--color-border-dark)] bg-white/[0.02] text-neutral-400">
+                    <div className="flex items-start gap-2">
+                      <Terminal className="w-4 h-4 text-blue-400 mt-0.5 shrink-0" />
+                      <div>
+                        <p className="mb-1 text-[10px] uppercase tracking-widest text-white">API Payloads</p>
+                        <p className="leading-relaxed">API request and response bodies are hidden by default for maximum privacy. You can explicitly opt-in to record them in your project's <a href="/dashboard/settings" className="text-[var(--color-accent-green)] hover:underline">Privacy Settings</a>.</p>
+                      </div>
+                    </div>
                   </div>
-                );
-              })}
+                  {network.map((req) => {
+                    const status  = req.status || 200;
+                    const isErr   = status >= 400;
+                    const isPast  = req.timestamp <= wallTime;
+                    const isExpanded = !!expandedNetwork[req.id];
+                    const hasPayload = req.requestBody || req.responseBody;
+                    return (
+                      <div
+                        key={req.id}
+                        data-ts={req.timestamp}
+                        className={`flex flex-col gap-2 py-2 px-2 rounded hover:bg-white/[0.03] transition-all group border border-transparent ${hasPayload ? 'cursor-pointer hover:border-white/10' : ''} ${isPast ? '' : 'opacity-25'}`}
+                        onClick={() => hasPayload && setExpandedNetwork(prev => ({ ...prev, [req.id]: !prev[req.id] }))}
+                      >
+                        <div className="flex items-center gap-3" title={req.url ?? ''}>
+                          <span
+                            className="shrink-0 font-bold tracking-wider px-1.5 py-0.5 rounded uppercase"
+                            style={{
+                              background: isErr ? 'rgba(239,68,68,0.1)' : 'rgba(59,130,246,0.1)',
+                              color: isErr ? '#f87171' : '#60a5fa',
+                              border: `1px solid ${isErr ? 'rgba(239,68,68,0.2)' : 'rgba(59,130,246,0.2)'}`,
+                            }}
+                          >
+                            {req.method}
+                          </span>
+                          <span className="shrink-0 tabular-nums" style={{ color: isErr ? '#f87171' : '#6b7280' }}>{status}</span>
+                          <span className="truncate text-neutral-500 group-hover:text-neutral-300 transition-colors flex-1">{req.url}</span>
+                          {req.duration != null && (
+                            <span className="shrink-0 text-neutral-600 tabular-nums group-hover:text-neutral-400">{req.duration}ms</span>
+                          )}
+                        </div>
+                        
+                        {isExpanded && hasPayload && (
+                          <div className="mt-2 space-y-3 bg-black/40 p-3 rounded border border-white/5 cursor-text" onClick={e => e.stopPropagation()}>
+                            {req.requestBody && (
+                              <div>
+                                <div className="text-[10px] text-neutral-500 uppercase tracking-widest mb-1">Request Payload</div>
+                                <div className="text-neutral-300 overflow-x-auto whitespace-pre font-mono text-[10px]">{req.requestBody}</div>
+                              </div>
+                            )}
+                            {req.responseBody && (
+                              <div>
+                                <div className="text-[10px] text-neutral-500 uppercase tracking-widest mb-1">Response Body</div>
+                                <div className="text-neutral-300 overflow-x-auto whitespace-pre font-mono text-[10px]">{req.responseBody}</div>
+                              </div>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </>
+              )}
             </div>
           </div>
         </div>

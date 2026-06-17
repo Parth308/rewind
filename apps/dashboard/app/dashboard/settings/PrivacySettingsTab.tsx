@@ -14,6 +14,8 @@ export function PrivacySettingsTab() {
     maskSelectors: '',
     blockSelectors: '',
     ignoreUrls: '',
+    captureNetworkBodies: false,
+    networkBodyMaskKeys: '',
   });
 
   useEffect(() => {
@@ -22,10 +24,12 @@ export function PrivacySettingsTab() {
       .then(data => {
         if (data.success) {
           setSettings({
-            maskInputs: data.settings.maskInputs,
+            maskInputs: data.settings.maskInputs !== undefined ? data.settings.maskInputs : true,
             maskSelectors: (data.settings.maskSelectors || []).join(', '),
             blockSelectors: (data.settings.blockSelectors || []).join(', '),
             ignoreUrls: (data.settings.ignoreUrls || []).join(', '),
+            captureNetworkBodies: data.settings.captureNetworkBodies || false,
+            networkBodyMaskKeys: (data.settings.networkBodyMaskKeys || []).join(', '),
           });
         }
       })
@@ -45,6 +49,8 @@ export function PrivacySettingsTab() {
           maskSelectors: settings.maskSelectors.split(',').map(s => s.trim()).filter(Boolean),
           blockSelectors: settings.blockSelectors.split(',').map(s => s.trim()).filter(Boolean),
           ignoreUrls: settings.ignoreUrls.split(',').map(s => s.trim()).filter(Boolean),
+          captureNetworkBodies: settings.captureNetworkBodies,
+          networkBodyMaskKeys: settings.networkBodyMaskKeys.split(',').map(s => s.trim()).filter(Boolean),
         }),
       });
       setSaveStatus(res.ok ? 'success' : 'error');
@@ -145,6 +151,44 @@ export function PrivacySettingsTab() {
               className="w-full bg-[#111] border border-[var(--color-border-dark)] rounded-xl px-4 py-4 text-white font-mono text-sm focus:border-[var(--color-accent-green)] focus:outline-none transition-all shadow-inner h-24 resize-none"
             />
             <p className="text-[11px] font-mono text-neutral-600">Comma-separated URL patterns. Sessions will pause recording on these URLs.</p>
+          </div>
+        </div>
+
+        {/* Network Payload Redaction */}
+        <div className="space-y-6 p-6 border border-[var(--color-border-dark)] rounded-xl bg-white/[0.01]">
+          <div className="flex items-center justify-between">
+            <div>
+              <h4 className="text-sm font-bold text-white font-serif mb-1">Capture API Payloads</h4>
+              <p className="text-xs font-mono text-neutral-500">
+                Record the request and response body payloads of API calls. Disabled by default for maximum privacy.
+              </p>
+            </div>
+            <button
+              onClick={() => setSettings(s => ({ ...s, captureNetworkBodies: !s.captureNetworkBodies }))}
+              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-[var(--color-accent-green)] focus:ring-offset-2 focus:ring-offset-black ${
+                settings.captureNetworkBodies ? 'bg-[var(--color-accent-green)]' : 'bg-neutral-700'
+              }`}
+            >
+              <span
+                className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                  settings.captureNetworkBodies ? 'translate-x-6' : 'translate-x-1'
+                }`}
+              />
+            </button>
+          </div>
+
+          <div className="space-y-3">
+            <label className="text-[10px] font-mono tracking-[0.2em] text-neutral-500 uppercase">
+              Redacted JSON Keys
+            </label>
+            <textarea
+              value={settings.networkBodyMaskKeys}
+              onChange={e => setSettings({ ...settings, networkBodyMaskKeys: e.target.value })}
+              placeholder="password, token, secret, credit_card"
+              disabled={!settings.captureNetworkBodies}
+              className="w-full bg-[#111] border border-[var(--color-border-dark)] rounded-xl px-4 py-4 text-white font-mono text-sm focus:border-[var(--color-accent-green)] focus:outline-none transition-all shadow-inner h-24 resize-none disabled:opacity-50 disabled:cursor-not-allowed"
+            />
+            <p className="text-[11px] font-mono text-neutral-600">Comma-separated keys. Any matching keys in JSON payloads will have their values replaced with [REDACTED].</p>
           </div>
         </div>
 

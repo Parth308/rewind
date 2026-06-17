@@ -8,6 +8,8 @@ export interface RewindConfig {
   metadata: Record<string, unknown>;
   bufferSize: number;
   endpoint: string;
+  captureNetworkBodies: boolean;
+  networkBodyMaskKeys: string[];
 }
 
 const DEFAULT_ENDPOINT = 'http://localhost:3001/ingest';
@@ -28,9 +30,14 @@ export function getConfig(overrideRaw?: any): RewindConfig | null {
     ? localRaw.maskInputs 
     : (remoteRaw.maskInputs !== undefined ? remoteRaw.maskInputs : true);
 
+  const captureNetworkBodies = localRaw.captureNetworkBodies !== undefined
+    ? localRaw.captureNetworkBodies
+    : (remoteRaw.captureNetworkBodies !== undefined ? remoteRaw.captureNetworkBodies : false);
+
   const maskSelectors = [...new Set([...(remoteRaw.maskSelectors || []), ...(localRaw.maskSelectors || [])])];
   const blockSelectors = [...new Set([...(remoteRaw.blockSelectors || []), ...(localRaw.blockSelectors || [])])];
   const ignoreUrls = [...new Set([...(remoteRaw.ignoreUrls || []), ...(localRaw.ignoreUrls || [])])];
+  const networkBodyMaskKeys = [...new Set([...(remoteRaw.networkBodyMaskKeys || []), ...(localRaw.networkBodyMaskKeys || [])])];
 
   return {
     token,
@@ -42,5 +49,7 @@ export function getConfig(overrideRaw?: any): RewindConfig | null {
     metadata: { ...(remoteRaw.metadata || {}), ...(localRaw.metadata || {}) },
     bufferSize: localRaw.bufferSize || remoteRaw.bufferSize || 50,
     endpoint: localRaw.endpoint || localRaw.ingestorUrl || remoteRaw.endpoint || remoteRaw.ingestorUrl || DEFAULT_ENDPOINT,
+    captureNetworkBodies,
+    networkBodyMaskKeys,
   };
 }

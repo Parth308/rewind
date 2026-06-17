@@ -69,7 +69,9 @@ app.get('/config/:token.js', async (req, res) => {
       maskInputs: settings.maskInputs !== undefined ? settings.maskInputs : true,
       maskSelectors: settings.maskSelectors || [],
       blockSelectors: settings.blockSelectors || [],
-      ignoreUrls: settings.ignoreUrls || []
+      ignoreUrls: settings.ignoreUrls || [],
+      captureNetworkBodies: settings.captureNetworkBodies || false,
+      networkBodyMaskKeys: settings.networkBodyMaskKeys || []
     };
 
     const configScript = `window.__rewind_remote = ${JSON.stringify(remoteConfig)};\n`;

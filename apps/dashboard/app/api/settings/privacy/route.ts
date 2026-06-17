@@ -27,6 +27,8 @@ export async function GET() {
         maskSelectors: settings.maskSelectors || [],
         blockSelectors: settings.blockSelectors || [],
         ignoreUrls: settings.ignoreUrls || [],
+        captureNetworkBodies: settings.captureNetworkBodies || false,
+        networkBodyMaskKeys: settings.networkBodyMaskKeys || [],
       }
     });
   } catch (error) {
@@ -38,7 +40,7 @@ export async function GET() {
 export async function PATCH(req: Request) {
   try {
     const body = await req.json();
-    const { maskInputs, maskSelectors, blockSelectors, ignoreUrls } = body;
+    const { maskInputs, maskSelectors, blockSelectors, ignoreUrls, captureNetworkBodies, networkBodyMaskKeys } = body;
 
     const cookieStore = await cookies();
     const projectId = cookieStore.get('rewind_active_project')?.value;
@@ -61,7 +63,9 @@ export async function PATCH(req: Request) {
           maskInputs,
           maskSelectors,
           blockSelectors,
-          ignoreUrls
+          ignoreUrls,
+          captureNetworkBodies,
+          networkBodyMaskKeys
         }
       })
       .where(eq(projects.id, projectId));
@@ -70,7 +74,7 @@ export async function PATCH(req: Request) {
     try {
       const Redis = require('ioredis');
       const redis = new Redis(process.env.REDIS_URL || 'redis://localhost:6379');
-      const remoteConfig = { maskInputs, maskSelectors, blockSelectors, ignoreUrls };
+      const remoteConfig = { maskInputs, maskSelectors, blockSelectors, ignoreUrls, captureNetworkBodies, networkBodyMaskKeys };
       const configScript = `window.__rewind_remote = ${JSON.stringify(remoteConfig)};\n`;
       await redis.set(`tracker:config:${activeProject[0].token}`, configScript);
       await redis.quit();
