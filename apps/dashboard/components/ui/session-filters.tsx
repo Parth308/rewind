@@ -2,6 +2,7 @@
 
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Filter, X, ChevronDown, Check } from 'lucide-react';
+import { useState, useEffect } from 'react';
 
 export function SessionFilters({
   browsers,
@@ -14,6 +15,12 @@ export function SessionFilters({
 }) {
   const router = useRouter();
   const searchParams = useSearchParams();
+
+  const [tagInput, setTagInput] = useState(searchParams.get('tag') || '');
+
+  useEffect(() => {
+    setTagInput(searchParams.get('tag') || '');
+  }, [searchParams]);
 
   const updateFilter = (key: string, value: string) => {
     const params = new URLSearchParams(searchParams.toString());
@@ -46,6 +53,16 @@ export function SessionFilters({
   const selectClasses = "appearance-none bg-[#111] border border-[var(--color-border-dark)] rounded-md pl-3 pr-8 py-1.5 text-xs font-mono text-neutral-300 focus:outline-none focus:border-[var(--color-accent-green)] hover:border-white/20 transition-all cursor-pointer shadow-inner";
 
   const isErrorsOnly = searchParams.get('hasErrors') === 'true';
+
+  // Debounce the local input to the router
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      if (tagInput !== (searchParams.get('tag') || '')) {
+        updateFilter('tag', tagInput);
+      }
+    }, 400);
+    return () => clearTimeout(handler);
+  }, [tagInput]);
 
   return (
     <div className="flex flex-wrap items-center gap-3 bg-white/[0.01] border border-[var(--color-border-dark)] p-3 rounded-xl mb-6 shadow-sm">
@@ -113,6 +130,14 @@ export function SessionFilters({
         />
         Errors Only
       </label>
+
+      <input
+        type="text"
+        placeholder="Filter by tag..."
+        value={tagInput}
+        onChange={(e) => setTagInput(e.target.value)}
+        className="bg-[#111] border border-[var(--color-border-dark)] rounded-md px-3 py-1.5 text-xs font-mono text-white placeholder-neutral-600 focus:outline-none focus:border-[var(--color-accent-green)] hover:border-white/20 transition-all shadow-inner w-36 ml-2"
+      />
 
       {hasFilters && (
         <button

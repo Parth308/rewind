@@ -55,6 +55,8 @@ export const sessions = pgTable('sessions', {
   thumbnailUrl:  text('thumbnail_url'),
   status:        varchar('status', { length: 20 }).default('active'),
   customEvents:  jsonb('custom_events').default([]),
+  tags:          jsonb('tags').default([]),
+  notes:         text('notes'),
   createdAt:     timestamp('created_at', { withTimezone: true }).defaultNow(),
   updatedAt:     timestamp('updated_at', { withTimezone: true }).defaultNow(),
 }, (table) => ({

@@ -172,6 +172,9 @@ export default async function SessionReplay(props: { params: Promise<{ id: strin
       {/* Main Content — client component handles player + time-synced sidebar */}
       <FadeUp delay={0.1} className="flex-1 min-h-0 overflow-hidden flex flex-col">
         <SessionContent
+          sessionId={session.id}
+          initialTags={(session.tags as string[]) || []}
+          initialNotes={session.notes || ''}
           rrwebEvents={rrwebEvents}
           frustrationDots={frustrationDots}
           totalMs={totalMs}

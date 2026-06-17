@@ -2,7 +2,8 @@
 
 import { useRef, useState, useCallback, useEffect } from 'react';
 import Player from '@/components/ui/player';
-import { Terminal, Activity } from 'lucide-react';
+import { Terminal, Activity, X } from 'lucide-react';
+import { updateSessionNotes } from '@/app/actions/session';
 
 type FrustrationDot = {
   offsetMs: number;
@@ -36,6 +37,9 @@ type CustomEventEntry = {
 };
 
 export function SessionContent({
+  sessionId,
+  initialTags = [],
+  initialNotes = '',
   rrwebEvents,
   frustrationDots,
   totalMs,
@@ -44,6 +48,9 @@ export function SessionContent({
   network,
   customEvents = [],
 }: {
+  sessionId: string;
+  initialTags?: string[];
+  initialNotes?: string;
   rrwebEvents: any[];
   frustrationDots: FrustrationDot[];
   totalMs: number;
@@ -53,9 +60,13 @@ export function SessionContent({
   customEvents: CustomEventEntry[];
 }) {
   const [currentTimeMs, setCurrentTimeMs] = useState(0);
-  const [activeTab, setActiveTab] = useState<'events' | 'console' | 'network'>('events');
+  const [activeTab, setActiveTab] = useState<'events' | 'console' | 'network' | 'notes'>('events');
   const [expandedNetwork, setExpandedNetwork] = useState<Record<string, boolean>>({});
   const isPlayingRef = useRef(false);
+
+  const [tags, setTags] = useState<string[]>(initialTags);
+  const [notes, setNotes] = useState<string>(initialNotes);
+  const [isSaving, setIsSaving] = useState(false);
 
   // Refs to the scroll containers
   const eventsRef = useRef<HTMLDivElement>(null);
@@ -66,6 +77,41 @@ export function SessionContent({
   const eventsManual = useRef(false);
   const consoleManual = useRef(false);
   const networkManual = useRef(false);
+
+  // Auto-save logic
+  const saveChanges = useCallback(async (newTags: string[], newNotes: string) => {
+    setIsSaving(true);
+    try {
+      await updateSessionNotes(sessionId, newTags, newNotes);
+    } catch (err) {
+      console.error('Failed to save notes:', err);
+    } finally {
+      setIsSaving(false);
+    }
+  }, [sessionId]);
+
+  const handleNotesBlur = () => {
+    saveChanges(tags, notes);
+  };
+
+  const addTag = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter' && e.currentTarget.value.trim()) {
+      e.preventDefault();
+      const newTag = e.currentTarget.value.trim().toLowerCase().replace(/[^a-z0-9_-]/g, '');
+      if (newTag && !tags.includes(newTag)) {
+        const newTags = [...tags, newTag];
+        setTags(newTags);
+        saveChanges(newTags, notes);
+      }
+      e.currentTarget.value = '';
+    }
+  };
+
+  const removeTag = (tagToRemove: string) => {
+    const newTags = tags.filter(t => t !== tagToRemove);
+    setTags(newTags);
+    saveChanges(newTags, notes);
+  };
 
   // Auto-scroll logic: called whenever currentTimeMs changes
   useEffect(() => {
@@ -181,11 +227,65 @@ export function SessionContent({
             {activeTab === 'network' && <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-blue-500 shadow-[0_0_8px_rgba(59,130,246,0.5)]" />}
             Network <span className="ml-1 opacity-50">({network.length})</span>
           </button>
+          <button
+            onClick={() => setActiveTab('notes')}
+            className={`px-4 py-3.5 text-[10px] font-mono tracking-widest uppercase transition-colors relative whitespace-nowrap ${
+              activeTab === 'notes' ? 'text-amber-400 font-bold' : 'text-neutral-500 hover:text-neutral-300'
+            }`}
+          >
+            {activeTab === 'notes' && <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-amber-500 shadow-[0_0_8px_rgba(245,158,11,0.5)]" />}
+            Notes {tags.length > 0 && <span className="ml-1 opacity-50">({tags.length})</span>}
+          </button>
         </div>
 
         {/* Tab Content */}
         <div className="flex-1 min-h-0 relative">
           
+          {/* Notes Tab */}
+          <div className={`absolute inset-0 flex flex-col ${activeTab === 'notes' ? 'z-10 opacity-100' : 'z-0 opacity-0 pointer-events-none'}`}>
+            <div className="absolute right-0 top-0 w-48 h-48 bg-amber-500/5 blur-[50px] rounded-full pointer-events-none" />
+            <div className="flex-1 overflow-y-auto p-6 flex flex-col gap-6 relative z-10">
+              
+              <div>
+                <div className="text-[10px] font-mono text-neutral-500 tracking-widest uppercase mb-3 flex items-center justify-between">
+                  <span>Session Tags</span>
+                  {isSaving && <span className="text-amber-400 animate-pulse">Saving...</span>}
+                </div>
+                {tags.length > 0 && (
+                  <div className="flex flex-wrap gap-2 mb-3">
+                    {tags.map(tag => (
+                      <span key={tag} className="flex items-center gap-1.5 px-2.5 py-1 rounded bg-white/[0.05] border border-white/10 text-neutral-300 font-mono text-xs">
+                        #{tag}
+                        <button onClick={() => removeTag(tag)} className="text-neutral-500 hover:text-red-400 transition-colors">
+                          <X className="w-3 h-3" />
+                        </button>
+                      </span>
+                    ))}
+                  </div>
+                )}
+                <input
+                  type="text"
+                  placeholder="Type a tag and press Enter..."
+                  onKeyDown={addTag}
+                  className="w-full bg-[#111] border border-[var(--color-border-dark)] rounded-md px-3 py-2 text-xs font-mono text-white placeholder-neutral-600 focus:outline-none focus:border-amber-500/50 transition-colors"
+                />
+              </div>
+
+              <div className="flex-1 flex flex-col min-h-[200px]">
+                <div className="text-[10px] font-mono text-neutral-500 tracking-widest uppercase mb-3">Session Notes</div>
+                <textarea
+                  value={notes}
+                  onChange={(e) => setNotes(e.target.value)}
+                  onBlur={handleNotesBlur}
+                  placeholder="Write observations, bugs, or notes about this session..."
+                  className="flex-1 w-full resize-none bg-[#111] border border-[var(--color-border-dark)] rounded-md p-4 text-sm font-sans text-neutral-300 placeholder-neutral-600 focus:outline-none focus:border-amber-500/50 transition-colors"
+                />
+                <div className="text-[10px] font-mono text-neutral-600 mt-2 text-right">Notes autosave when you click away</div>
+              </div>
+
+            </div>
+          </div>
+
           {/* Custom Events Tab */}
           <div className={`absolute inset-0 flex flex-col ${activeTab === 'events' ? 'z-10 opacity-100' : 'z-0 opacity-0 pointer-events-none'}`}>
             <div className="absolute right-0 top-0 w-48 h-48 bg-[var(--color-accent-green)]/5 blur-[50px] rounded-full pointer-events-none" />

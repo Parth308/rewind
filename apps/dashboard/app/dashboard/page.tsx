@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import { db } from '@/lib/db';
 import { sessions, projects } from '@rewind/shared';
-import { desc, count, eq, and, gt, isNotNull } from 'drizzle-orm';
+import { desc, count, eq, and, gt, isNotNull, sql } from 'drizzle-orm';
 import { cookies } from 'next/headers';
 import { formatDistanceToNow } from 'date-fns';
 import { OnboardingGuide } from '@/components/ui/onboarding-guide';
@@ -60,6 +60,7 @@ export default async function DashboardSessions({
   if (sp.frustration === 'dead') conditions.push(eq(sessions.hasDeadClicks, true));
   if (sp.frustration === 'uturn') conditions.push(eq(sessions.hasUTurns, true));
   if (sp.frustration === 'wild') conditions.push(eq(sessions.hasWildScrolling, true));
+  if (sp.tag) conditions.push(sql`${sessions.tags} @> ${JSON.stringify([sp.tag])}::jsonb`);
 
   const whereClause = conditions.length > 0 ? and(...conditions) : undefined;
 
@@ -219,6 +220,11 @@ export default async function DashboardSessions({
                               {projectName}
                             </div>
                           )}
+                          {((session.tags as string[]) || []).map(tag => (
+                            <div key={tag} className="flex items-center text-[10px] lg:text-xs text-neutral-300 font-mono bg-white/10 px-2 py-0.5 rounded border border-white/20">
+                              #{tag}
+                            </div>
+                          ))}
                         </div>
                       </div>
                     </div>
