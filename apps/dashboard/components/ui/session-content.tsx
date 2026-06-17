@@ -43,6 +43,8 @@ export function SessionContent({
   totalMs,
   logs,
   network,
+  eventsEndpoint,
+  isPublic = false,
 }: {
   sessionId: string;
   initialTags?: string[];
@@ -50,6 +52,8 @@ export function SessionContent({
   totalMs: number;
   logs: LogEntry[];
   network: NetworkEntry[];
+  eventsEndpoint?: string;
+  isPublic?: boolean;
 }) {
   const [currentTimeMs, setCurrentTimeMs] = useState(0);
   const [activeTab, setActiveTab] = useState<'events' | 'console' | 'network' | 'notes'>('events');
@@ -67,10 +71,16 @@ export function SessionContent({
   const [isSaving, setIsSaving] = useState(false);
 
   useEffect(() => {
-    fetch(`/api/sessions/${sessionId}/events`)
+    const url = eventsEndpoint || `/api/sessions/${sessionId}/events`;
+    fetch(url)
       .then(res => res.json())
       .then(data => {
-        const eventsArray = Array.isArray(data) ? data : [];
+        let eventsArray = Array.isArray(data) ? data : [];
+        if (eventsArray.length > 0) {
+          const firstTs = eventsArray[0].timestamp;
+          // Filter out extreme outliers (e.g. laptop wakes from sleep days later)
+          eventsArray = eventsArray.filter((e: any) => e.timestamp - firstTs <= 4 * 60 * 60 * 1000);
+        }
         setRrwebEvents(eventsArray);
         
         if (eventsArray.length > 0) {
@@ -271,7 +281,9 @@ export function SessionContent({
             <Player
               events={rrwebEvents}
               frustrationDots={frustrationDots}
-              totalMs={totalMs}
+              totalMs={rrwebEvents.length >= 2
+                ? rrwebEvents[rrwebEvents.length - 1].timestamp - rrwebEvents[0].timestamp
+                : totalMs}
               onTimeUpdate={handleTimeUpdate}
             />
           ) : (

@@ -76,7 +76,7 @@
    ═══════════════════════════════════════════════ */
 
 /* Layout */
-.rr-player {
+.rrweb-player-container .rr-player {
   width: 100% !important;
   height: 100% !important;
   box-shadow: none !important;
@@ -85,294 +85,71 @@
   flex-direction: column !important;
 }
 
-.rr-player .replayer-wrapper {
+.rrweb-player-container .replayer-wrapper {
   flex: 1 !important;
   overflow: hidden !important;
   background: transparent !important;
 }
 
-.rr-player .replayer-wrapper iframe {
-  background-color: transparent !important;
-  border: none !important;
+/* Hide rrweb's own browser-mock chrome since we have our own */
+.rrweb-player-container .replayer-wrapper > .replayer-mouse-tail {
+  pointer-events: none !important;
 }
 
 /* Controls bar */
-.rr-player .rr-controller {
-  background: #0a0a0a !important;
-  border-top: 1px solid rgba(255, 255, 255, 0.06) !important;
-  padding: 0 20px !important;
-  height: 60px !important;
-  display: flex !important;
-  align-items: center !important;
-  gap: 16px !important;
-  flex-wrap: nowrap !important;
-}
-
-/* Buttons */
-.rr-player .rr-controller .rr-controller__btns {
-  display: flex !important;
-  align-items: center !important;
-  gap: 6px !important;
-  flex-shrink: 0 !important;
-}
-
-.rr-player .rr-controller .rr-controller__btns button {
-  all: unset !important;
-  display: inline-flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-  padding: 5px 12px !important;
-  border-radius: 6px !important;
-  font-size: 11px !important;
-  font-family: ui-monospace, monospace !important;
-  font-weight: 600 !important;
-  letter-spacing: 0.04em !important;
-  color: #71717a !important;
-  background: rgba(255, 255, 255, 0.04) !important;
-  border: 1px solid rgba(255, 255, 255, 0.07) !important;
-  cursor: pointer !important;
-  transition: all 0.15s ease !important;
-  min-width: 32px !important;
-}
-
-.rr-player .rr-controller .rr-controller__btns button:hover {
-  color: #a3e635 !important;
-  background: rgba(163, 230, 53, 0.08) !important;
-  border-color: rgba(163, 230, 53, 0.25) !important;
-}
-
-.rr-player .rr-controller .rr-controller__btns button.active {
-  color: #0a0a0a !important;
-  background: #a3e635 !important;
-  border-color: #a3e635 !important;
-  box-shadow: 0 0 14px rgba(163, 230, 53, 0.35) !important;
-}
-
-.rr-player .rr-controller .rr-controller__btns button svg {
-  width: 14px !important;
-  height: 14px !important;
-  fill: currentColor !important;
-}
-
-/* Timeline — tall hit-area, slim visual bar */
-.rr-player .rr-timeline {
-  flex: 1 !important;
-  position: relative !important;
-  height: 20px !important;
-  display: flex !important;
-  align-items: center !important;
-  cursor: pointer !important;
-  background: transparent !important;
-  border-radius: 0 !important;
-}
-
-.rr-player .rr-timeline::before {
-  content: '' !important;
-  position: absolute !important;
-  left: 0 !important;
-  right: 0 !important;
-  height: 5px !important;
-  background: rgba(255, 255, 255, 0.1) !important;
-  border-radius: 9999px !important;
-  top: 50% !important;
-  transform: translateY(-50%) !important;
-  pointer-events: none !important;
-}
-
-.rr-player .rr-timeline .rr-timeline__progress {
-  position: absolute !important;
-  left: 0 !important;
-  top: 50% !important;
-  transform: translateY(-50%) !important;
-  height: 5px !important;
-  border-radius: 9999px !important;
-  background: #a3e635 !important;
-  box-shadow: 0 0 12px rgba(163, 230, 53, 0.7), 0 0 4px #a3e635 !important;
-  pointer-events: none !important;
-}
-
-/* Range input — remove native appearance, full height hit zone */
-.rr-player .rr-timeline input[type=range] {
-  position: absolute !important;
-  inset: 0 !important;
-  width: 100% !important;
-  height: 100% !important;
-  margin: 0 !important;
-  cursor: pointer !important;
-  -webkit-appearance: none !important;
-  appearance: none !important;
-  background: transparent !important;
-  accent-color: #a3e635 !important;
-}
-
-.rr-player .rr-timeline input[type=range]::-webkit-slider-runnable-track {
-  -webkit-appearance: none !important;
-  appearance: none !important;
-  background: transparent !important;
-  height: 5px !important;
-}
-
-.rr-player .rr-timeline input[type=range]::-webkit-slider-thumb {
-  -webkit-appearance: none !important;
-  appearance: none !important;
-  width: 16px !important;
-  height: 16px !important;
-  border-radius: 50% !important;
-  background: #a3e635 !important;
-  border: 2px solid #080808 !important;
-  box-shadow: 0 0 0 2px rgba(163, 230, 53, 0.5), 0 0 14px rgba(163, 230, 53, 0.6) !important;
-  cursor: pointer !important;
-  transition: box-shadow 0.15s, transform 0.15s !important;
-  margin-top: -6px !important;
-}
-
-.rr-player .rr-timeline input[type=range]::-webkit-slider-thumb:hover {
-  box-shadow: 0 0 0 4px rgba(163, 230, 53, 0.25), 0 0 20px rgba(163, 230, 53, 0.8) !important;
-  transform: scale(1.2) !important;
-}
-
-.rr-player .rr-timeline input[type=range]::-moz-range-track {
-  background: transparent !important;
-  height: 5px !important;
-}
-
-.rr-player .rr-timeline input[type=range]::-moz-range-thumb {
-  width: 16px !important;
-  height: 16px !important;
-  border-radius: 50% !important;
-  background: #a3e635 !important;
-  border: 2px solid #080808 !important;
-  box-shadow: 0 0 0 2px rgba(163, 230, 53, 0.5), 0 0 14px rgba(163, 230, 53, 0.6) !important;
-  cursor: pointer !important;
-}
-
-/* Timestamp — green */
-.rr-player .rr-controller__time {
-  color: #a3e635 !important;
-  background: transparent !important;
-  font-family: ui-monospace, monospace !important;
-  font-size: 12px !important;
-  font-weight: 600 !important;
-  letter-spacing: 0.06em !important;
-  white-space: nowrap !important;
-  flex-shrink: 0 !important;
-  padding: 0 !important;
-}
-
-.rr-player .rr-controller__time span {
-  color: rgba(163, 230, 53, 0.4) !important;
-  background: transparent !important;
-}
-
-/* Skip inactive label */
-.rr-player .rr-controller label {
-  color: #52525b !important;
-  font-size: 11px !important;
-  font-family: ui-monospace, monospace !important;
-  white-space: nowrap !important;
-  display: flex !important;
-  align-items: center !important;
-  gap: 6px !important;
-  cursor: pointer !important;
-  flex-shrink: 0 !important;
-}
-
-/* Toggle switch */
-.rr-player .switch {
-  display: inline-flex !important;
-  align-items: center !important;
-}
-
-.rr-player .switch input {
-  display: none !important;
-}
-
-.rr-player .switch .slider {
-  width: 32px !important;
-  height: 18px !important;
-  background: rgba(255, 255, 255, 0.08) !important;
-  border-radius: 9999px !important;
-  position: relative !important;
-  transition: all 0.2s ease !important;
-  border: 1px solid rgba(255, 255, 255, 0.08) !important;
-  flex-shrink: 0 !important;
-}
-
-.rr-player .switch .slider::before {
-  content: '' !important;
-  position: absolute !important;
-  width: 12px !important;
-  height: 12px !important;
-  border-radius: 9999px !important;
-  background: #52525b !important;
-  top: 2px !important;
-  left: 2px !important;
-  transition: all 0.2s ease !important;
-}
-
-.rr-player .switch input:checked+.slider {
-  background: rgba(163, 230, 53, 0.2) !important;
-  border-color: rgba(163, 230, 53, 0.35) !important;
-}
-
-.rr-player .switch input:checked+.slider::before {
-  background: #a3e635 !important;
-  transform: translateX(14px) !important;
-  box-shadow: 0 0 8px rgba(163, 230, 53, 0.8) !important;
-}
-
-/* ── rrweb-player overrides ── */
-
-/* Hide rrweb's own browser-mock chrome since we have our own */
-.rrweb-player-container .replayer-wrapper>.replayer-mouse-tail {
-  pointer-events: none;
-}
-
-/* Make rrweb root fill our wrapper */
-.rrweb-player-container .rr-player {
-  width: 100% !important;
-  background: transparent !important;
-}
-
-/* Replay canvas fills available space */
-.rrweb-player-container .rr-player__frame {
-  overflow: hidden;
-}
-
-/* Control bar — pin to bottom, styled dark */
 .rrweb-player-container .rr-controller {
-  width: 100% !important;
   background: rgba(10, 10, 10, 0.95) !important;
   border-top: 1px solid rgba(255, 255, 255, 0.06) !important;
   padding: 10px 16px !important;
-  box-sizing: border-box !important;
+  height: auto !important;
   display: flex !important;
   flex-direction: column !important;
-  gap: 8px !important;
+  gap: 12px !important;
 }
 
-/* Progress bar track */
+/* Timeline/Progress */
 .rrweb-player-container .rr-progress {
+  position: relative !important;
   background: rgba(255, 255, 255, 0.08) !important;
   border-radius: 999px !important;
-  height: 4px !important;
-  cursor: pointer;
+  height: 6px !important;
+  cursor: pointer !important;
+  margin-top: 4px !important;
 }
 
-/* Progress fill */
 .rrweb-player-container .rr-progress__step {
   background: #a3e635 !important;
   border-radius: 999px !important;
+  height: 100% !important;
 }
 
-/* Progress thumb */
+/* Scrubber Thumb */
 .rrweb-player-container .rr-progress__handler {
   background: #a3e635 !important;
-  border: 2px solid #0e0e0e !important;
-  width: 12px !important;
-  height: 12px !important;
+  border: 2px solid #080808 !important;
+  width: 14px !important;
+  height: 14px !important;
   border-radius: 50% !important;
-  box-shadow: 0 0 8px rgba(163, 230, 53, 0.5) !important;
+  box-shadow: 0 0 0 2px rgba(163, 230, 53, 0.3), 0 0 10px rgba(163, 230, 53, 0.6) !important;
+  transform: translate(-50%, -4px) !important; /* Center the thumb vertically */
+  z-index: 20 !important;
+}
+
+/* Time display in the scrubber */
+.rrweb-player-container .rr-timeline__time {
+  position: absolute !important;
+  bottom: calc(100% + 8px) !important;
+  left: 50% !important;
+  transform: translateX(-50%) !important;
+  background: rgba(0, 0, 0, 0.8) !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  padding: 4px 8px !important;
+  border-radius: 6px !important;
+  color: #a3e635 !important;
+  font-size: 11px !important;
+  font-family: monospace !important;
+  pointer-events: none !important;
+  z-index: 30 !important;
 }
 
 /* Bottom controls row */
@@ -384,48 +161,50 @@
 
 /* Buttons */
 .rrweb-player-container .rr-controller__btns button {
+  all: unset !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
   background: rgba(255, 255, 255, 0.05) !important;
   border: 1px solid rgba(255, 255, 255, 0.08) !important;
   color: #a1a1aa !important;
   border-radius: 6px !important;
-  padding: 3px 10px !important;
+  padding: 4px 12px !important;
   font-size: 11px !important;
   font-family: monospace !important;
+  font-weight: 600 !important;
   cursor: pointer !important;
   transition: all 0.15s ease !important;
 }
 
-.rrweb-player-container .rr-controller__btns button:hover,
-.rrweb-player-container .rr-controller__btns button.active {
-  background: rgba(163, 230, 53, 0.12) !important;
-  border-color: rgba(163, 230, 53, 0.3) !important;
+.rrweb-player-container .rr-controller__btns button:hover {
   color: #a3e635 !important;
+  background: rgba(163, 230, 53, 0.1) !important;
+  border-color: rgba(163, 230, 53, 0.25) !important;
 }
 
-/* Timestamp text */
-.rrweb-player-container .rr-timeline__time {
-  position: absolute !important;
-  bottom: calc(100% + 6px) !important;
-  /* float above track */
-  left: 50% !important;
-  transform: translateX(-50%) !important;
-  background: rgba(0, 0, 0, 0.7) !important;
-  padding: 2px 6px !important;
-  border-radius: 4px !important;
-  color: #71717a !important;
-  font-size: 10px !important;
-  font-family: monospace !important;
-  pointer-events: none !important;
+.rrweb-player-container .rr-controller__btns button.active {
+  color: #0a0a0a !important;
+  background: #a3e635 !important;
+  border-color: #a3e635 !important;
+  box-shadow: 0 0 14px rgba(163, 230, 53, 0.35) !important;
 }
 
-/* ensure track has position context */
-.rrweb-player-container .rr-progress {
-  position: relative !important;
+.rrweb-player-container .rr-controller__btns button svg {
+  width: 14px !important;
+  height: 14px !important;
+  fill: currentColor !important;
 }
 
-/* Skip inactive toggle */
+/* Hide native skip inactive UI */
+.rrweb-player-container .rr-controller label,
 .rrweb-player-container .switch {
-  accent-color: #a3e635 !important;
+  display: none !important;
+}
+
+/* Hide native time display on the right */
+.rrweb-player-container .rr-controller__time {
+  display: none !important;
 }
 
 /* Custom Scrollbar */
@@ -451,8 +230,8 @@
 .rr-player-tag {
   background-color: var(--color-accent-green) !important;
   border-radius: 50% !important;
-  width: 6px !important;
-  height: 6px !important;
+  width: 8px !important;
+  height: 8px !important;
   margin-top: -1px;
   cursor: pointer !important;
   box-shadow: 0 0 10px var(--color-accent-green) !important;

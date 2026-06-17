@@ -5,6 +5,7 @@ import { eq } from 'drizzle-orm';
 import { formatDistanceToNow } from 'date-fns';
 import { FadeUp } from '@/components/ui/fade-up';
 import { SessionContent } from '@/components/ui/session-content';
+import { ShareButton } from '@/components/ui/share-button';
 import { ArrowLeft, Flame, MousePointerClick, CornerUpLeft, ChevronsUpDown } from 'lucide-react';
 
 type FrustrationDot = {
@@ -79,12 +80,15 @@ export default async function SessionReplay(props: { params: Promise<{ id: strin
             </div>
           </div>
 
-          <div className="relative z-10 flex items-center gap-3 bg-[#111] border border-[var(--color-border-dark)] px-4 py-2 rounded-lg">
-            <div className="relative flex h-2 w-2">
-              <span className="animate-[ping_2s_cubic-bezier(0,0,0.2,1)_infinite] absolute inline-flex h-full w-full rounded-full bg-[var(--color-accent-green)] opacity-60" />
-              <span className="relative inline-flex rounded-full h-2 w-2 bg-[var(--color-accent-green)] shadow-[0_0_8px_var(--color-accent-green)]" />
+          <div className="relative z-10 flex items-center gap-4">
+            <ShareButton sessionId={session.id} />
+            <div className="flex items-center gap-3 bg-[#111] border border-[var(--color-border-dark)] px-4 py-2 rounded-lg">
+              <div className="relative flex h-2 w-2">
+                <span className="animate-[ping_2s_cubic-bezier(0,0,0.2,1)_infinite] absolute inline-flex h-full w-full rounded-full bg-[var(--color-accent-green)] opacity-60" />
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-[var(--color-accent-green)] shadow-[0_0_8px_var(--color-accent-green)]" />
+              </div>
+              <span className="text-[10px] font-mono tracking-[0.2em] text-[var(--color-accent-green)] font-bold uppercase">Captured</span>
             </div>
-            <span className="text-[10px] font-mono tracking-[0.2em] text-[var(--color-accent-green)] font-bold uppercase">Captured</span>
           </div>
         </div>
       </FadeUp>

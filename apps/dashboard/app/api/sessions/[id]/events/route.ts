@@ -3,8 +3,9 @@ import { db } from '@/lib/db';
 import { events } from '@rewind/shared';
 import { eq, asc } from 'drizzle-orm';
 
-export async function GET(request: Request, { params }: { params: { id: string } }) {
+export async function GET(request: Request, props: { params: Promise<{ id: string }> }) {
   try {
+    const params = await props.params;
     const sessionId = params.id;
     if (!sessionId) {
       return NextResponse.json({ error: 'Session ID is required' }, { status: 400 });

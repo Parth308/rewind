@@ -70,6 +70,17 @@ export const sessions = pgTable('sessions', {
   countryIdx: index('idx_sessions_country').on(table.projectId, table.country),
 }));
 
+// ─── SHARED SESSIONS ──────────────────────────────────────
+export const sharedSessions = pgTable('shared_sessions', {
+  id:            uuid('id').primaryKey().defaultRandom(),
+  sessionId:     uuid('session_id').notNull().references(() => sessions.id, { onDelete: 'cascade' }),
+  token:         varchar('token', { length: 64 }).notNull().unique(),
+  expiresAt:     timestamp('expires_at', { withTimezone: true }).notNull(),
+  createdAt:     timestamp('created_at', { withTimezone: true }).defaultNow(),
+}, (table) => ({
+  tokenIdx: index('idx_shared_sessions_token').on(table.token),
+}));
+
 // ─── FUNNELS ─────────────────────────────────────────────
 export const funnels = pgTable('funnels', {
   id:            uuid('id').primaryKey().defaultRandom(),
