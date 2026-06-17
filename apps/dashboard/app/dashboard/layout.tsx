@@ -1,7 +1,11 @@
 import { Sidebar } from '@/components/ui/sidebar';
 import { db } from '@/lib/db';
-import { projects } from '@rewind/shared';
+import { projects, users } from '@rewind/shared';
 import { cookies } from 'next/headers';
+import { redirect } from 'next/navigation';
+import { count } from 'drizzle-orm';
+
+export const dynamic = 'force-dynamic';
 
 async function checkIngestorHealth() {
   try {
@@ -14,6 +18,12 @@ async function checkIngestorHealth() {
 }
 
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
+  // First-run experience check
+  const userCountResult = await db.select({ count: count() }).from(users);
+  if (Number(userCountResult[0].count) === 0) {
+    redirect('/setup');
+  }
+
   const isLive = await checkIngestorHealth();
   
   const allProjects = await db.select().from(projects);

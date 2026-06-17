@@ -13,7 +13,21 @@ export const users = pgTable('users', {
   createdAt:     timestamp('created_at', { withTimezone: true }).defaultNow(),
   updatedAt:     timestamp('updated_at', { withTimezone: true }).defaultNow(),
   settings:      jsonb('settings').default({}),
+  role:          varchar('role', { length: 50 }).notNull().default('viewer'),
 });
+
+// ─── INVITES ──────────────────────────────────────────────
+export const invites = pgTable('invites', {
+  id:            uuid('id').primaryKey().defaultRandom(),
+  email:         varchar('email', { length: 255 }).notNull(),
+  token:         varchar('token', { length: 64 }).notNull().unique(),
+  role:          varchar('role', { length: 50 }).notNull().default('viewer'),
+  invitedBy:     uuid('invited_by').notNull().references(() => users.id, { onDelete: 'cascade' }),
+  expiresAt:     timestamp('expires_at', { withTimezone: true }).notNull(),
+  createdAt:     timestamp('created_at', { withTimezone: true }).defaultNow(),
+}, (table) => ({
+  tokenIdx: index('idx_invites_token').on(table.token),
+}));
 
 // ─── PROJECTS ─────────────────────────────────────────────
 export const projects = pgTable('projects', {
