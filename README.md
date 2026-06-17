@@ -76,6 +76,7 @@ It's self-hosted. Your data never leaves your servers. It costs you a $5 VPS.
 | 📊 **Analytics Dashboard** | Customisable widget grid — sessions, errors, rage clicks, custom events, and more |
 | 📉 **Conversion Funnels** | Sequential URL + custom-event funnel builder with one-click drop-off replay correlation |
 | 👥 **User Profiles** | CRM-style pages aggregating a user's lifetime stats, attributes, and full session history |
+| 🛡️ **Team Management** | Secure owner setup, role-based access control (Admin/Viewer), and cryptographic invite links |
 | 🧠 **AI Summaries** | Streaming AI support briefs for any user based on their entire recorded history |
 | 🔍 **Semantic Search** | pgvector hybrid search — find sessions by natural language query |
 | 🐳 **One-Command Deploy** | Multi-stage Dockerfile + `docker-compose.prod.yml` — full stack up in one command |

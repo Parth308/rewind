@@ -16,6 +16,7 @@ const nav = [
   { name: 'Features', href: '/docs/features', exact: false },
   { name: 'Architecture', href: '/docs/architecture', exact: false },
   { name: 'User Profiles', href: '/docs/user-profiles', exact: false },
+  { name: 'Authentication & Teams', href: '/docs/auth-teams', exact: false },
   { name: 'Data Privacy', href: '/docs/privacy', exact: false },
   { name: 'API Reference', href: '/docs/api-reference', exact: false },
   { name: 'Troubleshooting', href: '/docs/troubleshooting', exact: false },

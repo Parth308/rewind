@@ -84,6 +84,20 @@ export const docsSearchIndex = [
     ]
   },
   {
+    title: "Authentication & Teams",
+    href: "/docs/auth-teams",
+    description: "Owner initialization, team invites, roles, and cryptographic security.",
+    keywords: ["auth", "authentication", "teams", "invites", "roles", "admin", "viewer", "security"],
+    headings: [
+      { name: "The Initialization Phase", href: "/docs/auth-teams#the-initialization-phase" },
+      { name: "Team Invites & Roles", href: "/docs/auth-teams#team-invites--roles" },
+      { name: "Generating an Invite", href: "/docs/auth-teams#generating-an-invite" },
+      { name: "Accepting an Invite", href: "/docs/auth-teams#accepting-an-invite" },
+      { name: "Cryptographic Security", href: "/docs/auth-teams#cryptographic-security" },
+      { name: "Managing Active Users", href: "/docs/auth-teams#managing-active-users" }
+    ]
+  },
+  {
     title: "Data Privacy",
     href: "/docs/privacy",
     description: "GDPR compliance, input masking, blocking elements, and retention.",
