@@ -60,19 +60,14 @@ export async function handleBatch(projectId: string, payload: any) {
     );
   }
 
-  // ── Recompute duration from ALL stored events (pure client clock) ─────────
-  // We aggregate across ALL batches so each new batch extends duration correctly.
-  // Using SQL min/max avoids fetching every event row.
-  const [agg] = await db
-    .select({
-      earliest: min(events.timestamp),
-      latest:   max(events.timestamp),
-    })
-    .from(events)
-    .where(eq(events.sessionId, sessionId));
+  // ── Compute duration incrementally to avoid expensive DB aggregations ──────
+  // We use the existing session data instead of querying all rows in the events table
+  const sess = existingSession[0] as any;
+  const currentEarliest = sess.startedAt ? new Date(sess.startedAt).getTime() : firstClientTs;
+  const currentLatest = currentEarliest + (sess.durationMs || 0);
 
-  const earliest = Number(agg?.earliest ?? firstClientTs);
-  const latest   = Number(agg?.latest   ?? lastClientTs);
+  const earliest = Math.min(currentEarliest, firstClientTs);
+  const latest   = Math.max(currentLatest, lastClientTs);
   const durationMs = latest - earliest;
 
   // ── Detect frustration signals and write everything in one update ─────────

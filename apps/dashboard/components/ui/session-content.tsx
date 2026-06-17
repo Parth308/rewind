@@ -40,33 +40,116 @@ export function SessionContent({
   sessionId,
   initialTags = [],
   initialNotes = '',
-  rrwebEvents,
-  frustrationDots,
   totalMs,
-  sessionStartTime,
   logs,
   network,
-  customEvents = [],
 }: {
   sessionId: string;
   initialTags?: string[];
   initialNotes?: string;
-  rrwebEvents: any[];
-  frustrationDots: FrustrationDot[];
   totalMs: number;
-  sessionStartTime: number;
   logs: LogEntry[];
   network: NetworkEntry[];
-  customEvents: CustomEventEntry[];
 }) {
   const [currentTimeMs, setCurrentTimeMs] = useState(0);
   const [activeTab, setActiveTab] = useState<'events' | 'console' | 'network' | 'notes'>('events');
   const [expandedNetwork, setExpandedNetwork] = useState<Record<string, boolean>>({});
   const isPlayingRef = useRef(false);
 
+  const [rrwebEvents, setRrwebEvents] = useState<any[]>([]);
+  const [frustrationDots, setFrustrationDots] = useState<FrustrationDot[]>([]);
+  const [customEvents, setCustomEvents] = useState<CustomEventEntry[]>([]);
+  const [sessionStartTime, setSessionStartTime] = useState<number>(0);
+  const [isLoadingEvents, setIsLoadingEvents] = useState(true);
+
   const [tags, setTags] = useState<string[]>(initialTags);
   const [notes, setNotes] = useState<string>(initialNotes);
   const [isSaving, setIsSaving] = useState(false);
+
+  useEffect(() => {
+    fetch(`/api/sessions/${sessionId}/events`)
+      .then(res => res.json())
+      .then(data => {
+        const eventsArray = Array.isArray(data) ? data : [];
+        setRrwebEvents(eventsArray);
+        
+        if (eventsArray.length > 0) {
+          const startTime = eventsArray[0].timestamp;
+          setSessionStartTime(startTime);
+          
+          const fDots: FrustrationDot[] = [];
+          const cEvents: CustomEventEntry[] = [];
+          const clicks: any[] = [];
+          let scrollCount = 0;
+
+          for (let i = 0; i < eventsArray.length; i++) {
+            const ev = eventsArray[i];
+            if (ev.type === 3 && ev.data) {
+              if (ev.data.source === 2 && ev.data.type === 2) {
+                clicks.push(ev);
+                let isRage = false;
+                const recentClicks = clicks.filter((c: any) => ev.timestamp - c.timestamp < 1000);
+                if (recentClicks.length >= 3) {
+                  const xs = recentClicks.map((c: any) => c.data.x);
+                  const ys = recentClicks.map((c: any) => c.data.y);
+                  const maxDist = Math.max(Math.max(...xs) - Math.min(...xs), Math.max(...ys) - Math.min(...ys));
+                  if (maxDist < 50) {
+                    fDots.push({ offsetMs: ev.timestamp - startTime, label: 'Rage Click', type: 'rage' });
+                    clicks.length = 0;
+                    isRage = true;
+                  }
+                }
+                if (!isRage) {
+                  let hasMutation = false;
+                  for (let j = i + 1; j < eventsArray.length; j++) {
+                    const nextEv = eventsArray[j];
+                    if (nextEv.timestamp - ev.timestamp > 2000) break;
+                    if (nextEv.type === 3 && nextEv.data.source === 0) { hasMutation = true; break; }
+                  }
+                  if (!hasMutation) {
+                    fDots.push({ offsetMs: ev.timestamp - startTime, label: 'Dead Click', type: 'dead' });
+                  }
+                }
+              }
+              if (ev.data.source === 3) {
+                scrollCount++;
+                if (scrollCount === 21) {
+                  fDots.push({ offsetMs: ev.timestamp - startTime, label: 'Wild Scrolling', type: 'scroll' });
+                  scrollCount = 0;
+                }
+              }
+            }
+            if ((ev.type === 5 && ev.data?.tag === 'navigation') || ev.type === 4) {
+              for (let j = i + 1; j < eventsArray.length; j++) {
+                const nextEv = eventsArray[j];
+                if (nextEv.timestamp - ev.timestamp > 5000) break;
+                if ((nextEv.type === 5 && nextEv.data?.tag === 'navigation') || nextEv.type === 4) {
+                  fDots.push({ offsetMs: nextEv.timestamp - startTime, label: 'U-Turn', type: 'uturn' });
+                  break;
+                }
+              }
+            }
+            if (ev.type === 5 && ev.data && ev.data.tag && ev.data.tag !== 'navigation') {
+              cEvents.push({
+                id: `custom-${ev.timestamp}-${i}`,
+                timestamp: ev.timestamp,
+                name: ev.data.tag,
+                payload: ev.data.payload || {}
+              });
+              fDots.push({ offsetMs: ev.timestamp - startTime, label: ev.data.tag, type: 'custom' });
+            }
+          }
+          setFrustrationDots(fDots);
+          setCustomEvents(cEvents);
+        }
+
+        setIsLoadingEvents(false);
+      })
+      .catch(err => {
+        console.error('Failed to fetch events:', err);
+        setIsLoadingEvents(false);
+      });
+  }, [sessionId]);
 
   // Refs to the scroll containers
   const eventsRef = useRef<HTMLDivElement>(null);
@@ -177,7 +260,14 @@ export function SessionContent({
           <span className="text-xs font-mono text-neutral-400 uppercase tracking-widest">Viewport Reproduction</span>
         </div>
         <div className="flex-1 relative z-10 overflow-hidden">
-          {rrwebEvents.length > 0 ? (
+          {isLoadingEvents ? (
+            <div className="absolute inset-0 flex items-center justify-center flex-col gap-4 bg-[linear-gradient(rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:32px_32px]">
+               <div className="w-16 h-16 rounded-2xl border border-[var(--color-border-dark)] bg-[#111] flex items-center justify-center shadow-inner">
+                  <div className="w-6 h-6 border-2 border-[var(--color-accent-green)] border-t-transparent rounded-full animate-spin"></div>
+               </div>
+               <span className="font-mono text-xs tracking-widest uppercase text-neutral-500 animate-pulse">Loading DOM Events...</span>
+            </div>
+          ) : rrwebEvents.length > 0 ? (
             <Player
               events={rrwebEvents}
               frustrationDots={frustrationDots}

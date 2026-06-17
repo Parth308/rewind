@@ -96,6 +96,20 @@ const db = drizzle(pool);
 
 const eventsQueue = new Queue('events', { connection: redis as any });
 
+let megaBatch: Array<{ projectId: string, payload: any }> = [];
+
+setInterval(async () => {
+  if (megaBatch.length === 0) return;
+  const currentBatch = megaBatch;
+  megaBatch = [];
+  try {
+    await eventsQueue.add('process_mega_batch', { batches: currentBatch });
+  } catch (err) {
+    console.error('Failed to enqueue mega batch', err);
+    megaBatch.push(...currentBatch);
+  }
+}, 1000);
+
 const server = createServer(app);
 const wss = new WebSocketServer({ server });
 
@@ -125,7 +139,7 @@ wss.on('connection', async (ws, req) => {
         payloadStr = message.toString();
       }
       const payload = JSON.parse(payloadStr);
-      await eventsQueue.add('process_batch', {
+      megaBatch.push({
         projectId: project.id,
         payload
       });
@@ -161,7 +175,7 @@ app.post('/ingest/:token', async (req, res) =>
       console.log(`[Ingestor] isFinal=true received for session ${payload.sessionId} — will trigger embedding`);
     }
 
-    await eventsQueue.add('process_batch', {
+    megaBatch.push({
       projectId: project.id,
       payload,
     });
