@@ -104,6 +104,47 @@ The demo is pre-loaded with **80 realistic sessions** across 3 demo projects —
 
 ---
 
+## Rewind vs. The Alternatives
+
+> A fair comparison. Two paid SaaS tools, two open-source alternatives.
+
+| | **Rewind** | LogRocket 💰 | Hotjar 💰 | OpenReplay 🔓 | PostHog 🔓 |
+|:---|:---:|:---:|:---:|:---:|:---:|
+| **Pricing** | **Free** | $99–550/mo | $39–213/mo | Free (self-hosted) | Free (self-hosted) |
+| **Self-Hosted** | ✅ | ❌ | ❌ | ✅ | ✅ |
+| **Min. Server to Run** | **2 GB RAM** | SaaS | SaaS | 8 GB RAM | 4 GB RAM |
+| **Deploy complexity** | 1 command | SaaS | SaaS | Ansible/k8s | 15+ containers |
+| **Session Replays** | ✅ | ✅ | ✅ | ✅ | ✅ |
+| **Network + Console Logs** | ✅ | ✅ | ❌ | ✅ | ❌ |
+| **Rage / Dead Click Detection** | ✅ | ✅ | ✅ | ✅ | ❌ |
+| **Conversion Funnels** | ✅ | ❌ | ✅ | ✅ | ✅ |
+| **AI Session Summaries** | ✅ | ✅ | ❌ | ❌ | ❌ |
+| **Semantic Search (pgvector)** | ✅ | ❌ | ❌ | ❌ | ❌ |
+| **Backend Node.js SDK** | ✅ | ✅ | ❌ | ❌ | ✅ |
+| **Unlimited Sessions** | ✅ | ❌ | ❌ | ✅ | ✅ |
+| **No PII leaves your server** | ✅ | ❌ | ❌ | ✅ | ✅ |
+| **One-command Docker deploy** | ✅ | SaaS | SaaS | ❌ | ❌ |
+
+> Rewind is the only self-hosted session replay tool that combines AI summaries, semantic search, a Node.js backend SDK, and a one-command Docker deploy — all on a $6 server.
+
+---
+
+## Hardware Requirements
+
+Rewind is intentionally lean. The entire stack — Postgres, Redis, dashboard, ingestor, worker — runs comfortably on a single small server.
+
+| Tier | Specs | Estimated Cost | Use Case |
+|:---|:---|:---|:---|
+| **Minimal** | 1 vCPU · 2 GB RAM · 20 GB SSD | ~$6/mo (Hetzner CX11) | Personal projects, low traffic |
+| **Recommended** | 2 vCPU · 4 GB RAM · 40 GB SSD | ~$12/mo (Hetzner CX21) | Small teams, up to ~500 concurrent sessions |
+| **Production** | 4 vCPU · 8 GB RAM · 80 GB SSD | ~$24/mo (Hetzner CX31) | Larger teams, high-throughput ingestion |
+
+> **Memory breakdown** (approximate): PostgreSQL ~200MB · Redis ~30MB · Next.js ~150MB · Ingestor ~80MB · Worker ~80MB = **~540MB total**. A 2GB server has ~1.5GB headroom for your data and OS.
+
+> At scale, decouple by running Postgres on [Neon](https://neon.tech) (free tier) or [Supabase](https://supabase.com) and hosting the app containers on any cheap VPS.
+
+---
+
 ## Tech Stack
 
 ```
