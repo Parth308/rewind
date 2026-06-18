@@ -46,6 +46,7 @@ export async function demoLogin() {
   }
   
   // Set a dummy admin session cookie for the demo viewer
-  await createSessionCookie('demo-user-123', 'admin');
+  // Use a valid UUID format to prevent Postgres syntax errors when querying the users table
+  await createSessionCookie('00000000-0000-0000-0000-000000000000', 'admin');
   redirect('/dashboard');
 }

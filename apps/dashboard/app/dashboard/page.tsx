@@ -21,21 +21,20 @@ export default async function DashboardSessions({
   const projectId = cookieStore.get('rewind_active_project')?.value || 'all';
   const sp = await searchParams;
 
-  // 1. Check if there are ANY sessions at all (for onboarding)
-  const [{ value: totalProjectSessions }] = await db
-    .select({ value: count() })
-    .from(sessions)
-    .where(projectId !== 'all' ? eq(sessions.projectId, projectId) : undefined);
+  // 1. Parallelize initial onboarding checks
+  const [
+    [{ value: totalProjectSessions }],
+    [{ value: projectCount }],
+    activeProjectRecords
+  ] = await Promise.all([
+    db.select({ value: count() }).from(sessions).where(projectId !== 'all' ? eq(sessions.projectId, projectId) : undefined),
+    db.select({ value: count() }).from(projects),
+    projectId !== 'all' 
+      ? db.select().from(projects).where(eq(projects.id, projectId))
+      : db.select().from(projects).limit(1)
+  ]);
 
-  const [{ value: projectCount }] = await db.select({ value: count() }).from(projects);
-
-  let activeProject = null;
-  if (projectId !== 'all') {
-    const records = await db.select().from(projects).where(eq(projects.id, projectId));
-    activeProject = records.length > 0 ? records[0] : null;
-  } else if (projectCount > 0) {
-    activeProject = (await db.select().from(projects).limit(1))[0];
-  }
+  const activeProject = activeProjectRecords.length > 0 ? activeProjectRecords[0] : null;
 
   if (totalProjectSessions === 0) {
     return (
@@ -64,12 +63,10 @@ export default async function DashboardSessions({
 
   const whereClause = conditions.length > 0 ? and(...conditions) : undefined;
 
-  // 3. Execute Filtered Count
+  // 3. Prepare queries for parallel execution
   let sessionCountQuery = db.select({ value: count() }).from(sessions);
   if (whereClause) sessionCountQuery = sessionCountQuery.where(whereClause) as any;
-  const [{ value: filteredCount }] = await sessionCountQuery;
 
-  // 4. Execute Paginated Data Fetch
   const page = Number(sp.page) || 1;
   const pageSize = 50;
   const offset = (page - 1) * pageSize;
@@ -85,22 +82,24 @@ export default async function DashboardSessions({
     sessionsQuery = sessionsQuery.where(whereClause) as any;
   }
 
-  const allSessionsData = await sessionsQuery
-    .orderBy(desc(sessions.startedAt))
-    .limit(pageSize)
-    .offset(offset);
+  const baseWhere = projectId !== 'all' ? eq(sessions.projectId, projectId) : undefined;
+
+  // 4. Execute all main queries concurrently
+  const [
+    [{ value: filteredCount }],
+    allSessionsData,
+    browsersRes,
+    osesRes,
+    countriesRes
+  ] = await Promise.all([
+    sessionCountQuery,
+    sessionsQuery.orderBy(desc(sessions.startedAt)).limit(pageSize).offset(offset),
+    db.selectDistinct({ browser: sessions.browser }).from(sessions).where(and(baseWhere, isNotNull(sessions.browser))),
+    db.selectDistinct({ os: sessions.os }).from(sessions).where(and(baseWhere, isNotNull(sessions.os))),
+    db.selectDistinct({ country: sessions.country }).from(sessions).where(and(baseWhere, isNotNull(sessions.country)))
+  ]);
 
   const maxDuration = allSessionsData.reduce((m, {session: s}) => Math.max(m, s.durationMs ?? 0), 0) || 1;
-
-  // 5. Fetch distinct options for filter dropdowns
-  const baseWhere = projectId !== 'all' ? eq(sessions.projectId, projectId) : undefined;
-  
-  const browsersRes = await db.selectDistinct({ browser: sessions.browser })
-    .from(sessions).where(and(baseWhere, isNotNull(sessions.browser)));
-  const osesRes = await db.selectDistinct({ os: sessions.os })
-    .from(sessions).where(and(baseWhere, isNotNull(sessions.os)));
-  const countriesRes = await db.selectDistinct({ country: sessions.country })
-    .from(sessions).where(and(baseWhere, isNotNull(sessions.country)));
 
   const browsers = browsersRes.map(r => r.browser as string).filter(Boolean).sort();
   const oses = osesRes.map(r => r.os as string).filter(Boolean).sort();
