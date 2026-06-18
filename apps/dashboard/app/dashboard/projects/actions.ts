@@ -9,6 +9,7 @@ import { randomBytes } from 'crypto';
 import { getSession } from '@/lib/auth';
 
 export async function createProject(formData: FormData) {
+  if (process.env.NEXT_PUBLIC_DEMO_MODE === 'true') throw new Error('Action disabled in Demo Mode.');
   const name = (formData.get('name') as string)?.trim();
   if (!name || name.length < 2) return;
 
@@ -22,6 +23,7 @@ export async function createProject(formData: FormData) {
 }
 
 export async function deleteProject(projectId: string) {
+  if (process.env.NEXT_PUBLIC_DEMO_MODE === 'true') return;
   await db.delete(projects).where(eq(projects.id, projectId));
   revalidatePath('/dashboard/projects');
 }

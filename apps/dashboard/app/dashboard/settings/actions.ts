@@ -8,6 +8,10 @@ import { randomBytes } from 'crypto';
 import { revalidatePath } from 'next/cache';
 
 export async function createInvite(prevState: any, formData: FormData) {
+  if (process.env.NEXT_PUBLIC_DEMO_MODE === 'true') {
+    return { error: 'Action disabled in Demo Mode.' };
+  }
+
   const session = await getSession();
   if (!session) {
     return { error: 'Unauthorized.' };
@@ -55,6 +59,7 @@ export async function createInvite(prevState: any, formData: FormData) {
 }
 
 export async function deleteInvite(inviteId: string) {
+  if (process.env.NEXT_PUBLIC_DEMO_MODE === 'true') return;
   const session = await getSession();
   if (!session || (session.role !== 'owner' && session.role !== 'admin')) return;
 
@@ -63,6 +68,7 @@ export async function deleteInvite(inviteId: string) {
 }
 
 export async function removeUser(userId: string) {
+  if (process.env.NEXT_PUBLIC_DEMO_MODE === 'true') return;
   const session = await getSession();
   if (!session || session.role !== 'owner') return; // Only owner can remove active users
 

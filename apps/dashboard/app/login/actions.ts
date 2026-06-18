@@ -7,6 +7,10 @@ import { verifyPassword, createSessionCookie } from '@/lib/auth';
 import { redirect } from 'next/navigation';
 
 export async function loginUser(prevState: any, formData: FormData) {
+  if (process.env.NEXT_PUBLIC_DEMO_MODE === 'true') {
+    return { error: 'Standard login is disabled in Demo Mode.' };
+  }
+
   const email = formData.get('email') as string;
   const password = formData.get('password') as string;
 
@@ -33,5 +37,15 @@ export async function loginUser(prevState: any, formData: FormData) {
     return { error: 'An unexpected error occurred. Please try again.' };
   }
 
+  redirect('/dashboard');
+}
+
+export async function demoLogin() {
+  if (process.env.NEXT_PUBLIC_DEMO_MODE !== 'true') {
+    return { error: 'Demo mode is not enabled on this environment.' };
+  }
+  
+  // Set a dummy admin session cookie for the demo viewer
+  await createSessionCookie('demo-user-123', 'admin');
   redirect('/dashboard');
 }

@@ -86,6 +86,24 @@ export function LoginForm() {
           <div className="absolute top-0 -inset-full h-full w-1/2 z-0 block transform -skew-x-12 bg-gradient-to-r from-transparent to-white opacity-20 group-hover:animate-shine" />
         </motion.button>
       </form>
+
+      {process.env.NEXT_PUBLIC_DEMO_MODE === 'true' && (
+        <motion.form 
+          variants={itemVariants}
+          action={async () => {
+            const { demoLogin } = await import('@/app/login/actions');
+            await demoLogin();
+          }}
+          className="mt-4"
+        >
+          <button
+            type="submit"
+            className="w-full bg-blue-500/10 text-blue-400 border border-blue-500/20 font-semibold py-4 rounded-xl hover:bg-blue-500/20 transition-colors"
+          >
+            Explore Live Demo (Read-Only)
+          </button>
+        </motion.form>
+      )}
     </motion.div>
   );
 }
