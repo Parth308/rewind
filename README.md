@@ -399,13 +399,22 @@ window.Rewind.track('Export Triggered', { format: 'csv', rows: 4200 });
 
 ### 2. Backend Tracking (Node.js SDK)
 
-Session replay is strictly visual, but many critical failures happen purely on the backend. You can use the `@rewind/node` SDK to push backend context, errors, and user identities directly into the active user's session timeline!
+## 🧩 SDKs & Integrations
+
+- **Frontend Tracker:** `@rewind/tracker`
+- **Node.js SDK:** `rewind-node`
+
+```bash
+npm install rewind-node
+```
+
+Session replay is strictly visual, but many critical failures happen purely on the backend. You can use the `rewind-node` SDK to push backend context, errors, and user identities directly into the active user's session timeline!
 
 1. Pass `window.Rewind.sessionId` from your frontend to your backend (e.g., via an `x-rewind-session-id` HTTP header).
 2. Initialize the SDK in your API and push the events:
 
 ```typescript
-import { Rewind, expressMiddleware } from '@rewind/node';
+import { Rewind, expressMiddleware } from 'rewind-node';
 import express from 'express';
 
 const rewind = new Rewind({

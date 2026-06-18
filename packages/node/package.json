@@ -1,7 +1,23 @@
 {
-  "name": "@rewind/node",
+  "name": "rewind-node",
   "version": "1.0.0",
-  "private": true,
+  "description": "Backend telemetry and session injection SDK for Rewind",
+  "author": "Parth308",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Parth308/rewind.git",
+    "directory": "packages/node"
+  },
+  "homepage": "https://github.com/Parth308/rewind/tree/master/packages/node#readme",
+  "keywords": [
+    "rewind",
+    "analytics",
+    "telemetry",
+    "session-replay",
+    "express",
+    "middleware"
+  ],
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {

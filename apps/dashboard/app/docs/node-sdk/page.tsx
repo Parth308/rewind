@@ -11,13 +11,13 @@ export default function NodeSdkPage() {
     <>
       <h1 id="node-sdk">Node.js SDK</h1>
       <p className="text-xl text-neutral-300 mb-8">
-        Session replay is strictly visual, but many critical failures happen purely on the backend. You can use the <code>@rewind/node</code> SDK to push backend context, errors, and user identities directly into the active user's session timeline!
+        Session replay is strictly visual, but many critical failures happen purely on the backend. You can use the <code>rewind-node</code> SDK to push backend context, errors, and user identities directly into the active user's session timeline!
       </p>
 
       <h2 id="installation">Installation</h2>
       <p>Install the SDK using your preferred package manager:</p>
       
-      <PackageManagerTabs packageName="@rewind/node" />
+      <PackageManagerTabs packageName="rewind-node" />
 
       <h2 id="usage">Usage</h2>
       <p>
@@ -29,7 +29,7 @@ export default function NodeSdkPage() {
         The easiest way to integrate the SDK in an Express application is using our built-in middleware. This automatically extracts the <code>x-rewind-session-id</code> header and injects <code>req.rewind</code> into all your endpoints.
       </p>
 
-      <CodeBlock language="typescript" code={`import { Rewind } from '@rewind/node';
+      <CodeBlock language="typescript" code={`import { Rewind } from 'rewind-node';
 import express from 'express';
 
 const rewind = new Rewind({
@@ -63,7 +63,7 @@ app.post('/checkout', async (req, res) => {
         If you aren't using Express, you can manually orchestrate these calls by instantiating the client and passing the <code>sessionId</code> directly to the methods:
       </p>
 
-      <CodeBlock language="typescript" code={`import { Rewind } from '@rewind/node';
+      <CodeBlock language="typescript" code={`import { Rewind } from 'rewind-node';
 
 const rewind = new Rewind({ projectToken: 'YOUR_PROJECT_TOKEN' });
 
