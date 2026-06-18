@@ -12,7 +12,7 @@
  *   - DATABASE_URL set in your environment (or .env file in project root)
  */
 
-import 'dotenv/config';
+
 import pg from 'pg';
 import { randomUUID, randomBytes } from 'crypto';
 import bcrypt from 'bcryptjs';
