@@ -53,12 +53,12 @@ export async function POST(req: NextRequest) {
       results = await db
         .select({
           session: sessions,
-          narrative: sessionEmbeddings.narrative,
+          narrative: sql`COALESCE(${sessionEmbeddings.narrative}, ${sessions.notes})`.as('narrative'),
           distance: sql<number>`0`.as('distance'), // 0 distance = 100% match
           projectName: projects.name,
         })
-        .from(sessionEmbeddings)
-        .innerJoin(sessions, eq(sessions.id, sessionEmbeddings.sessionId))
+        .from(sessions)
+        .leftJoin(sessionEmbeddings, eq(sessions.id, sessionEmbeddings.sessionId))
         .leftJoin(projects, eq(projects.id, sessions.projectId))
         .where(
           and(
@@ -67,7 +67,8 @@ export async function POST(req: NextRequest) {
               sql`cast(${sessions.customEvents} as text) ILIKE ${searchQuery}`,
               ilike(sessions.entryUrl, searchQuery),
               ilike(sessions.userId, searchQuery),
-              ilike(sessionEmbeddings.narrative, searchQuery)
+              ilike(sessionEmbeddings.narrative, searchQuery),
+              ilike(sessions.notes, searchQuery)
             )
           )
         )
@@ -98,9 +99,11 @@ export async function POST(req: NextRequest) {
       const hybridResults = await db
         .select({
           session: sessions,
-          narrative: sessionEmbeddings.narrative,
+          narrative: sql`COALESCE(${sessionEmbeddings.narrative}, ${sessions.notes})`.as('narrative'),
           distance: sql<number>`
-            (${sessionEmbeddings.embedding} <=> cast(${vectorString} as vector))
+            COALESCE((${sessionEmbeddings.embedding} <=> cast(${vectorString} as vector)), 
+              CASE WHEN cast(${sessions.notes} as text) ILIKE ${searchQuery} THEN 0.2 ELSE 1.0 END
+            )
             - CASE 
                 WHEN cast(${sessions.customEvents} as text) ILIKE ${searchQuery} THEN 0.2 
                 ELSE 0 
@@ -108,12 +111,14 @@ export async function POST(req: NextRequest) {
           `.as('distance'),
           projectName: projects.name,
         })
-        .from(sessionEmbeddings)
-        .innerJoin(sessions, eq(sessions.id, sessionEmbeddings.sessionId))
+        .from(sessions)
+        .leftJoin(sessionEmbeddings, eq(sessions.id, sessionEmbeddings.sessionId))
         .leftJoin(projects, eq(projects.id, sessions.projectId))
         .where(projectId !== 'all' ? eq(sessions.projectId, projectId) : undefined)
         .orderBy(sql`
-          (${sessionEmbeddings.embedding} <=> cast(${vectorString} as vector))
+            COALESCE((${sessionEmbeddings.embedding} <=> cast(${vectorString} as vector)), 
+              CASE WHEN cast(${sessions.notes} as text) ILIKE ${searchQuery} THEN 0.2 ELSE 1.0 END
+            )
           - CASE 
               WHEN cast(${sessions.customEvents} as text) ILIKE ${searchQuery} THEN 0.2 
               ELSE 0 
