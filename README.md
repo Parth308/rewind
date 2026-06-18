@@ -383,6 +383,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 
 Instrument your product with named events that appear as **green markers on the session scrubber** — precisely synchronized with the DOM replay.
 
+### 1. Frontend Tracking (Client-Side)
+
 ```javascript
 // Track a checkout completion
 window.Rewind.track('Purchase Completed', {
@@ -395,7 +397,64 @@ window.Rewind.track('Purchase Completed', {
 window.Rewind.track('Export Triggered', { format: 'csv', rows: 4200 });
 ```
 
-Custom events are stored as `jsonb` payloads. They power the funnel builder and appear in the session's Events tab, enriching every replay with your business context.
+### 2. Backend Tracking (Node.js SDK)
+
+Session replay is strictly visual, but many critical failures happen purely on the backend. You can use the `@rewind/node` SDK to push backend context, errors, and user identities directly into the active user's session timeline!
+
+1. Pass `window.Rewind.sessionId` from your frontend to your backend (e.g., via an `x-rewind-session-id` HTTP header).
+2. Initialize the SDK in your API and push the events:
+
+```typescript
+import { Rewind, expressMiddleware } from '@rewind/node';
+import express from 'express';
+
+const rewind = new Rewind({
+  projectToken: 'YOUR_PROJECT_TOKEN',
+  ingestorUrl: 'https://ingest.yourdomain.com' // Omit for local development
+});
+
+const app = express();
+
+// 1. Using the Express Middleware (Easiest!)
+// This automatically extracts the x-rewind-session-id header 
+// and injects `req.rewind` into all your endpoints.
+app.use(rewind.expressMiddleware());
+
+app.post('/checkout', async (req, res) => {
+  try {
+    // Identify the user on the session
+    await req.rewind.identify('user-123', { plan: 'pro' });
+
+    // Track custom business events
+    await req.rewind.track('Payment Succeeded', { amount: 99 });
+    
+    res.json({ success: true });
+  } catch (error) {
+    // 2. Capturing Backend Exceptions
+    // This pushes the raw error to the frontend session replay as a console.error!
+    await req.rewind.captureException(error, { route: '/checkout' });
+    
+    res.status(500).send('Error');
+  }
+});
+```
+
+#### Manual Usage
+
+If you aren't using Express, you can manually orchestrate these calls by passing the `sessionId`:
+
+```typescript
+// Track a custom event
+await rewind.track(sessionId, 'Order Shipped', { orderId: '123' });
+
+// Identify the session
+await rewind.identify(sessionId, 'user-123', { email: 'user@test.com' });
+
+// Capture a server-side exception
+await rewind.captureException(sessionId, new Error('Database timeout'), { query: 'SELECT *' });
+```
+
+Custom events are stored as `jsonb` payloads. They power the funnel builder and appear in the session's Events tab, enriching every replay with your backend business context. Exceptions captured via `captureException` will appear seamlessly alongside the frontend browser logs in the session replay.
 
 ---
 
