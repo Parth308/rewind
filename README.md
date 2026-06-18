@@ -41,6 +41,20 @@ It's self-hosted. Your data never leaves your servers. It costs you a $5 VPS.
 
 ---
 
+<p align="center">
+  <a href="#features">Features</a> •
+  <a href="#system-architecture">Architecture</a> •
+  <a href="https://rewind-parth308.vercel.app/docs">Documentation</a> •
+  <a href="#one-click-deploy--production">Deployment</a>
+</p>
+
+## 📖 Live Documentation & Demo
+
+The complete, interactive documentation and a preview of the dashboard is available live here:
+**👉 [https://rewind-parth308.vercel.app/docs](https://rewind-parth308.vercel.app/docs)**
+
+---
+
 ## Table of Contents
 
 1. [Features](#features)

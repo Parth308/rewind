@@ -66,4 +66,4 @@ rewind.captureException(sessionId, new Error("Database timeout"));
 
 ## Documentation
 
-For full documentation, architecture details, and Docker deployment guides, visit the [main Rewind repository](https://github.com/Parth308/rewind).
+For full documentation, architecture details, and Docker deployment guides, visit the [official documentation](https://rewind-parth308.vercel.app/docs/node-sdk).
