@@ -26,12 +26,25 @@ export async function GET() {
       userSettings = allUsers[0].settings || {};
     }
 
+    const isDemoMode = process.env.NEXT_PUBLIC_DEMO_MODE === 'true';
+
+    // Mask database keys in Demo mode
+    if (isDemoMode) {
+      if ((userSettings as any)?.ai?.googleApiKey) (userSettings as any).ai.googleApiKey = 'AIzaSy...[HIDDEN_IN_DEMO]';
+      if ((userSettings as any)?.ai?.openaiApiKey) (userSettings as any).ai.openaiApiKey = 'sk-...[HIDDEN_IN_DEMO]';
+      if ((userSettings as any)?.ai?.anthropicApiKey) (userSettings as any).ai.anthropicApiKey = 'sk-ant-...[HIDDEN_IN_DEMO]';
+      
+      if ((projectSettings as any)?.ai?.googleApiKey) (projectSettings as any).ai.googleApiKey = 'AIzaSy...[HIDDEN_IN_DEMO]';
+      if ((projectSettings as any)?.ai?.openaiApiKey) (projectSettings as any).ai.openaiApiKey = 'sk-...[HIDDEN_IN_DEMO]';
+      if ((projectSettings as any)?.ai?.anthropicApiKey) (projectSettings as any).ai.anthropicApiKey = 'sk-ant-...[HIDDEN_IN_DEMO]';
+    }
+
     // Merge strategy: Project settings override User settings override process.env
     const envSettings = {
       provider: process.env.AI_PROVIDER || 'google',
-      googleApiKey: process.env.GOOGLE_GENERATIVE_AI_API_KEY || '',
-      openaiApiKey: process.env.OPENAI_API_KEY || '',
-      anthropicApiKey: process.env.ANTHROPIC_API_KEY || '',
+      googleApiKey: '', // NEVER send process.env keys to the client
+      openaiApiKey: '',
+      anthropicApiKey: '',
       languageModel: process.env.AI_PROVIDER === 'openai' ? 'gpt-4o-mini' : process.env.AI_PROVIDER === 'anthropic' ? 'claude-3-5-sonnet-20240620' : 'gemini-2.5-flash',
       embeddingModel: process.env.AI_PROVIDER === 'openai' ? 'text-embedding-3-small' : 'gemini-embedding-001',
     };
@@ -57,6 +70,10 @@ export async function GET() {
 
 export async function PATCH(req: Request) {
   try {
+    if (process.env.NEXT_PUBLIC_DEMO_MODE === 'true') {
+      return NextResponse.json({ error: 'Cannot modify settings in demo mode' }, { status: 403 });
+    }
+
     const body = await req.json();
     const { provider, googleApiKey, openaiApiKey, anthropicApiKey, languageModel, embeddingModel, scope } = body;
 

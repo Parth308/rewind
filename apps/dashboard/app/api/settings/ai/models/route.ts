@@ -86,12 +86,24 @@ export async function GET(req: Request) {
   try {
     let models: ModelInfo[] = [];
 
+    // Safely substitute environment keys so the frontend never handles them
+    let actualApiKey = apiKey;
+    if (apiKey === '__env__') {
+      if (provider === 'google') actualApiKey = process.env.GOOGLE_GENERATIVE_AI_API_KEY || '';
+      else if (provider === 'openai') actualApiKey = process.env.OPENAI_API_KEY || '';
+      else if (provider === 'anthropic') actualApiKey = process.env.ANTHROPIC_API_KEY || '';
+    }
+
+    if (!actualApiKey) {
+      return NextResponse.json({ error: 'API key is missing' }, { status: 400 });
+    }
+
     if (provider === 'google') {
-      models = await fetchGoogleModels(apiKey);
+      models = await fetchGoogleModels(actualApiKey);
     } else if (provider === 'openai') {
-      models = await fetchOpenAIModels(apiKey);
+      models = await fetchOpenAIModels(actualApiKey);
     } else if (provider === 'anthropic') {
-      models = await fetchAnthropicModels(apiKey);
+      models = await fetchAnthropicModels(actualApiKey);
     } else {
       return NextResponse.json({ error: 'Unknown provider' }, { status: 400 });
     }
