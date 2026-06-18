@@ -57,11 +57,25 @@ export default function PrivacyPage() {
         To comply with GDPR "Right to be Forgotten" and data minimization principles, you should not store session replays indefinitely.
       </p>
       <p>
-        Because Rewind stores telemetry natively in PostgreSQL, you can easily implement a rolling deletion policy. We recommend setting up a simple database trigger or a cron job (using the <code>pg_cron</code> extension) to automatically purge sessions older than 30 days:
+        Because Rewind stores telemetry natively in PostgreSQL, you can easily implement a rolling deletion policy. We recommend setting up a cron job (using the <code>pg_cron</code> extension) directly inside your database to automatically purge sessions older than 30 days.
       </p>
-      <CodeBlock language="sql" code={`-- Delete sessions older than 30 days to comply with data minimization
-DELETE FROM "Session" 
-WHERE "createdAt" < NOW() - INTERVAL '30 days';`} />
+      
+      <h3>Setting up the Automated Cleanup Job</h3>
+      <p>You can execute the following SQL script using any database GUI (like DBeaver or DataGrip), or by connecting to your production Postgres Docker container via the terminal:</p>
+      
+      <CodeBlock language="bash" code={`# Connect to the running Postgres container
+docker exec -it rewind-postgres psql -U postgres -d rewind`} />
+
+      <p className="mt-4">Once connected, run the following SQL to schedule a daily cleanup job at midnight:</p>
+
+      <CodeBlock language="sql" code={`-- 1. Enable the pg_cron extension if not already enabled
+CREATE EXTENSION IF NOT EXISTS pg_cron;
+
+-- 2. Schedule a daily job to delete sessions older than 30 days
+SELECT cron.schedule('daily-session-cleanup', '0 0 * * *', $$
+  DELETE FROM "sessions" 
+  WHERE "created_at" < NOW() - INTERVAL '30 days';
+$$);`} />
 
       <h2 id="sample-privacy-policy">Sample Privacy Policy Snippet</h2>
       <p>

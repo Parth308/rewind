@@ -11,15 +11,15 @@ import { DocsSearch } from './search';
 const nav = [
   { name: 'Overview', href: '/docs', exact: true },
   { name: 'Installation', href: '/docs/installation', exact: false },
-  { name: 'AI Setup', href: '/docs/ai-setup', exact: false },
-  { name: 'Hardware & Scaling', href: '/docs/scaling', exact: false },
-  { name: 'Features', href: '/docs/features', exact: false },
   { name: 'Architecture', href: '/docs/architecture', exact: false },
+  { name: 'Features', href: '/docs/features', exact: false },
   { name: 'User Profiles', href: '/docs/user-profiles', exact: false },
   { name: 'Authentication & Teams', href: '/docs/auth-teams', exact: false },
+  { name: 'AI Setup', href: '/docs/ai-setup', exact: false },
+  { name: 'Hardware & Scaling', href: '/docs/scaling', exact: false },
   { name: 'Data Privacy', href: '/docs/privacy', exact: false },
-  { name: 'API Reference', href: '/docs/api-reference', exact: false },
   { name: 'Node.js SDK', href: '/docs/node-sdk', exact: false },
+  { name: 'API Reference', href: '/docs/api-reference', exact: false },
   { name: 'Troubleshooting', href: '/docs/troubleshooting', exact: false },
 ];
 

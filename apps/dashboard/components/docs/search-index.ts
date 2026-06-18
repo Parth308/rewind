@@ -111,6 +111,19 @@ export const docsSearchIndex = [
     ]
   },
   {
+    title: "Node.js SDK",
+    href: "/docs/node-sdk",
+    description: "Backend tracking, custom events, and error capturing via the Node.js SDK.",
+    keywords: ["node", "sdk", "backend", "express", "middleware", "capture exception", "identify", "track"],
+    headings: [
+      { name: "Installation", href: "/docs/node-sdk#installation" },
+      { name: "Usage", href: "/docs/node-sdk#usage" },
+      { name: "Express Middleware", href: "/docs/node-sdk#express-middleware" },
+      { name: "Manual Usage", href: "/docs/node-sdk#manual-usage" },
+      { name: "Features", href: "/docs/node-sdk#features" }
+    ]
+  },
+  {
     title: "API Reference",
     href: "/docs/api-reference",
     description: "REST API endpoints for authentication, projects, and sessions.",
