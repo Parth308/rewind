@@ -8,7 +8,8 @@
     "lint": "turbo run lint",
     "format": "prettier --write \"**/*.{ts,tsx,md}\"",
     "db:push": "dotenv -e .env -- pnpm -F @rewind/shared run db:push",
-    "db:generate": "dotenv -e .env -- pnpm -F @rewind/shared run db:generate"
+    "db:generate": "dotenv -e .env -- pnpm -F @rewind/shared run db:generate",
+    "seed:demo": "dotenv -e .env -- node --experimental-vm-modules scripts/seed-demo.js"
   },
   "devDependencies": {
     "dotenv-cli": "^11.0.0",
