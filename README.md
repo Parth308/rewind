@@ -18,6 +18,7 @@
 [![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16-4169E1?logo=postgresql&logoColor=white)](#)
 [![Redis](https://img.shields.io/badge/Redis-7-DC382D?logo=redis&logoColor=white)](#)
 [![License](https://img.shields.io/badge/license-MIT-a3e635)](#)
+[![Live Demo](https://img.shields.io/badge/Live%20Demo-▶%20Try%20Now-a3e635?style=flat)](https://rewind-parth308.vercel.app)
 
 <br/>
 
@@ -48,10 +49,16 @@ It's self-hosted. Your data never leaves your servers. It costs you a $5 VPS.
   <a href="#one-click-deploy--production">Deployment</a>
 </p>
 
-## 📖 Live Documentation & Demo
+## 🚀 Live Demo
 
-The complete, interactive documentation and a preview of the dashboard is available live here:
-**👉 [https://rewind-parth308.vercel.app/docs](https://rewind-parth308.vercel.app/docs)**
+Explore the fully-loaded dashboard right now — no sign-up, no credit card.
+
+| Link | Description |
+|:---|:---|
+| **[▶ Try the Live Demo](https://rewind-parth308.vercel.app)** | Click "Explore Live Demo" on the login page — enters instantly as a read-only demo user |
+| **[📖 Documentation](https://rewind-parth308.vercel.app/docs)** | Installation, SDK reference, architecture deep-dives |
+
+The demo is pre-loaded with **80 realistic sessions** across 3 demo projects — featuring session replays, rage clicks, network errors, console logs, and AI summaries.
 
 ---
 
@@ -521,6 +528,9 @@ pnpm run db:push
 # Generate versioned SQL migration files (for audit trails)
 pnpm run db:generate
 
+# Seed the database with realistic demo data (80 sessions, errors, logs, network requests)
+pnpm run seed:demo
+
 # Open Drizzle Studio — visual DB browser
 cd packages/shared && npx drizzle-kit studio
 ```
@@ -543,6 +553,7 @@ cd packages/shared && npx drizzle-kit studio
 | `GOOGLE_GENERATIVE_AI_API_KEY` | — | — | For Gemini-powered AI features |
 | `OPENAI_API_KEY` | — | — | For GPT-4 / text-embedding-3 |
 | `ANTHROPIC_API_KEY` | — | — | For Claude 3 |
+| `NEXT_PUBLIC_DEMO_MODE` | `false` | — | Set to `true` to enable read-only demo login button on the dashboard |
 
 > **Local dev:** Use `localhost` hostnames. **Production Docker:** Use service names — `postgres`, `redis`, `api`.
 

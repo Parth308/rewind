@@ -55,15 +55,15 @@ export const Hero = () => {
       </FadeUp>
 
       <FadeUp delay={0.3} className="flex flex-col sm:flex-row items-center justify-center gap-4 relative z-10">
-        <a href="/docs" className="group relative flex h-14 w-full sm:w-auto items-center justify-center overflow-hidden rounded-lg bg-white px-10 text-sm font-semibold text-black transition-transform hover:scale-[1.02] active:scale-[0.98]">
+        <a href="/login" className="group relative flex h-14 w-full sm:w-auto items-center justify-center overflow-hidden rounded-lg bg-[var(--color-accent-green)] px-10 text-sm font-semibold text-black transition-transform hover:scale-[1.02] active:scale-[0.98]">
           <div className="absolute inset-0 flex h-full w-full justify-center [transform:skew(-12deg)_translateX(-100%)] group-hover:duration-1000 group-hover:[transform:skew(-12deg)_translateX(100%)]">
-            <div className="relative h-full w-8 bg-white/40" />
+            <div className="relative h-full w-8 bg-white/20" />
           </div>
-          Deploy Rewind
+          ▶ Explore Live Demo
           <ArrowRight className="ml-2 h-4 w-4" />
         </a>
-        <a href="#demo" className="flex h-14 w-full sm:w-auto items-center justify-center rounded-lg glass px-10 text-sm font-medium text-white transition-colors hover:bg-white/5 border border-white/10">
-          Interactive Demo
+        <a href="/docs" className="flex h-14 w-full sm:w-auto items-center justify-center rounded-lg glass px-10 text-sm font-medium text-white transition-colors hover:bg-white/5 border border-white/10">
+          Documentation
         </a>
       </FadeUp>
     </section>

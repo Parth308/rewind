@@ -11,14 +11,15 @@ export const Navbar = () => {
         <span className="font-serif text-xl font-bold tracking-tight text-white">Rewind</span>
       </div>
       <div className="hidden md:flex items-center gap-8 text-sm text-neutral-400">
-        <a href="#demo" className="transition-colors hover:text-white">Demo</a>
         <a href="#features" className="transition-colors hover:text-white">Features</a>
         <a href="#architecture" className="transition-colors hover:text-white">Architecture</a>
         <a href="/docs" className="transition-colors text-[var(--color-accent-green)] hover:text-white">Docs</a>
-        <a href="/dashboard" className="transition-colors hover:text-white">Dashboard</a>
         <a href="https://github.com/Parth308/rewind" className="flex items-center gap-2 text-white transition-opacity hover:opacity-80">
           <GithubIcon className="h-4 w-4" />
           <span>GitHub</span>
+        </a>
+        <a href="/login" className="flex items-center justify-center rounded-lg bg-[var(--color-accent-green)] px-4 py-2 text-xs font-semibold text-black transition-transform hover:scale-105 active:scale-95">
+          ▶ Live Demo
         </a>
       </div>
     </nav>
