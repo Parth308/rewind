@@ -9,6 +9,7 @@ import { FadeUp } from '@/components/ui/fade-up';
 import { SessionFilters } from '@/components/ui/session-filters';
 import { Pagination } from '@/components/ui/pagination';
 import { MonitorPlay, Terminal, Globe, Clock, ChevronRight, Flame, MousePointerClick, CornerUpLeft, ChevronsUpDown } from 'lucide-react';
+import { withRedisCache } from '@/lib/redis-cache';
 
 export const dynamic = 'force-dynamic';
 
@@ -21,17 +22,27 @@ export default async function DashboardSessions({
   const projectId = cookieStore.get('rewind_active_project')?.value || 'all';
   const sp = await searchParams;
 
-  // 1. Parallelize initial onboarding checks
+  const isDemoMode = process.env.NEXT_PUBLIC_DEMO_MODE === 'true';
+  const aggregateTtl = isDemoMode ? 600 : 60; // 10 minutes demo, 60s regular
+  const listTtl = isDemoMode ? 600 : 0; // 10 minutes demo, real-time regular
+
+  // 1. Parallelize initial onboarding checks with caching
   const [
     [{ value: totalProjectSessions }],
     [{ value: projectCount }],
     activeProjectRecords
   ] = await Promise.all([
-    db.select({ value: count() }).from(sessions).where(projectId !== 'all' ? eq(sessions.projectId, projectId) : undefined),
-    db.select({ value: count() }).from(projects),
-    projectId !== 'all' 
-      ? db.select().from(projects).where(eq(projects.id, projectId))
-      : db.select().from(projects).limit(1)
+    withRedisCache(`onboarding_session_count_${projectId}`, aggregateTtl, () => 
+      db.select({ value: count() }).from(sessions).where(projectId !== 'all' ? eq(sessions.projectId, projectId) : undefined)
+    ),
+    withRedisCache(`onboarding_project_count`, aggregateTtl, () => 
+      db.select({ value: count() }).from(projects)
+    ),
+    withRedisCache(`active_project_${projectId}`, aggregateTtl, () => 
+      projectId !== 'all' 
+        ? db.select().from(projects).where(eq(projects.id, projectId))
+        : db.select().from(projects).limit(1)
+    )
   ]);
 
   const activeProject = activeProjectRecords.length > 0 ? activeProjectRecords[0] : null;
@@ -83,8 +94,11 @@ export default async function DashboardSessions({
   }
 
   const baseWhere = projectId !== 'all' ? eq(sessions.projectId, projectId) : undefined;
+  
+  // Create deterministic cache keys
+  const filterKey = `${projectId}_${sp.browser || ''}_${sp.os || ''}_${sp.country || ''}`;
 
-  // 4. Execute all main queries concurrently
+  // 4. Execute all main queries concurrently with Cache Wrappers
   const [
     [{ value: filteredCount }],
     allSessionsData,
@@ -92,11 +106,11 @@ export default async function DashboardSessions({
     osesRes,
     countriesRes
   ] = await Promise.all([
-    sessionCountQuery,
-    sessionsQuery.orderBy(desc(sessions.startedAt)).limit(pageSize).offset(offset),
-    db.selectDistinct({ browser: sessions.browser }).from(sessions).where(and(baseWhere, isNotNull(sessions.browser))),
-    db.selectDistinct({ os: sessions.os }).from(sessions).where(and(baseWhere, isNotNull(sessions.os))),
-    db.selectDistinct({ country: sessions.country }).from(sessions).where(and(baseWhere, isNotNull(sessions.country)))
+    withRedisCache(`dash_count_${filterKey}`, aggregateTtl, () => sessionCountQuery),
+    withRedisCache(`dash_list_${filterKey}_${page}`, listTtl, () => sessionsQuery.orderBy(desc(sessions.startedAt)).limit(pageSize).offset(offset)),
+    withRedisCache(`dash_browsers_${projectId}`, aggregateTtl, () => db.selectDistinct({ browser: sessions.browser }).from(sessions).where(and(baseWhere, isNotNull(sessions.browser)))),
+    withRedisCache(`dash_oses_${projectId}`, aggregateTtl, () => db.selectDistinct({ os: sessions.os }).from(sessions).where(and(baseWhere, isNotNull(sessions.os)))),
+    withRedisCache(`dash_countries_${projectId}`, aggregateTtl, () => db.selectDistinct({ country: sessions.country }).from(sessions).where(and(baseWhere, isNotNull(sessions.country))))
   ]);
 
   const maxDuration = allSessionsData.reduce((m, {session: s}) => Math.max(m, s.durationMs ?? 0), 0) || 1;
