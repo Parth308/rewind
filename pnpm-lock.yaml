@@ -302,6 +302,15 @@ importers:
         specifier: ^5.5.0
         version: 5.9.3
 
+  packages/node:
+    devDependencies:
+      '@types/node':
+        specifier: ^20.0.0
+        version: 20.19.41
+      typescript:
+        specifier: ^5.5.0
+        version: 5.9.3
+
   packages/shared:
     dependencies:
       '@ai-sdk/anthropic':

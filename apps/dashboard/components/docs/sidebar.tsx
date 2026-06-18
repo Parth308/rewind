@@ -19,6 +19,7 @@ const nav = [
   { name: 'Authentication & Teams', href: '/docs/auth-teams', exact: false },
   { name: 'Data Privacy', href: '/docs/privacy', exact: false },
   { name: 'API Reference', href: '/docs/api-reference', exact: false },
+  { name: 'Node.js SDK', href: '/docs/node-sdk', exact: false },
   { name: 'Troubleshooting', href: '/docs/troubleshooting', exact: false },
 ];
 
