@@ -19,7 +19,7 @@ export const Navbar = () => {
           <span>GitHub</span>
         </a>
         <a href="/login" className="flex items-center justify-center rounded-lg bg-[var(--color-accent-green)] px-4 py-2 text-xs font-semibold text-black transition-transform hover:scale-105 active:scale-95">
-          ▶ Live Demo
+          Live Demo
         </a>
       </div>
     </nav>

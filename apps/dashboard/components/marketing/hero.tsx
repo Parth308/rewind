@@ -59,7 +59,7 @@ export const Hero = () => {
           <div className="absolute inset-0 flex h-full w-full justify-center [transform:skew(-12deg)_translateX(-100%)] group-hover:duration-1000 group-hover:[transform:skew(-12deg)_translateX(100%)]">
             <div className="relative h-full w-8 bg-white/20" />
           </div>
-          ▶ Explore Live Demo
+          Explore Live Demo
           <ArrowRight className="ml-2 h-4 w-4" />
         </a>
         <a href="/docs" className="flex h-14 w-full sm:w-auto items-center justify-center rounded-lg glass px-10 text-sm font-medium text-white transition-colors hover:bg-white/5 border border-white/10">
