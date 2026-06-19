@@ -34,23 +34,28 @@ const worker = new Worker('events', async (job: Job) => {
     }
   } else if (job.name === 'process_mega_batch') {
     const { batches } = job.data;
-    for (const b of batches) {
-      const { projectId, payload } = b;
-      try {
-        if (payload.type === 'metadata') {
-          await handleMetadata(projectId, payload);
-        } else if (payload.type === 'batch') {
-          await handleBatch(projectId, payload);
-        } else if (payload.type === 'console') {
-          await handleConsole(projectId, payload);
-        } else if (payload.type === 'network') {
-          await handleNetwork(projectId, payload);
-        } else if (payload.type === 'identify') {
-          await handleIdentify(projectId, payload);
+    // Process in parallel chunks of 20 to prevent severe queue backup
+    const CHUNK_SIZE = 20;
+    for (let i = 0; i < batches.length; i += CHUNK_SIZE) {
+      const chunk = batches.slice(i, i + CHUNK_SIZE);
+      await Promise.all(chunk.map(async (b: any) => {
+        const { projectId, payload } = b;
+        try {
+          if (payload.type === 'metadata') {
+            await handleMetadata(projectId, payload);
+          } else if (payload.type === 'batch') {
+            await handleBatch(projectId, payload);
+          } else if (payload.type === 'console') {
+            await handleConsole(projectId, payload);
+          } else if (payload.type === 'network') {
+            await handleNetwork(projectId, payload);
+          } else if (payload.type === 'identify') {
+            await handleIdentify(projectId, payload);
+          }
+        } catch (err) {
+          console.error(`Error processing ${payload.type} for project ${projectId} in mega_batch:`, err);
         }
-      } catch (err) {
-        console.error(`Error processing ${payload.type} for project ${projectId} in mega_batch:`, err);
-      }
+      }));
     }
   } else if (job.name === 'embed_session') {
     try {

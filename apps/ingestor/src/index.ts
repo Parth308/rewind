@@ -97,6 +97,20 @@ const db = drizzle(pool);
 const eventsQueue = new Queue('events', { connection: redis as any });
 
 let megaBatch: Array<{ projectId: string, payload: any }> = [];
+const MAX_BATCH_SIZE = 50000;
+
+async function getCachedProjectId(token: string): Promise<string | null> {
+  const cacheKey = `project:token:${token}`;
+  const cachedId = await redis.get(cacheKey);
+  if (cachedId) return cachedId;
+
+  const projectList = await db.select().from(projects).where(eq(projects.token, token));
+  if (projectList.length === 0) return null;
+
+  const projectId = projectList[0].id;
+  await redis.setex(cacheKey, 300, projectId); // cache for 5 minutes
+  return projectId;
+}
 
 setInterval(async () => {
   if (megaBatch.length === 0) return;
@@ -106,7 +120,12 @@ setInterval(async () => {
     await eventsQueue.add('process_mega_batch', { batches: currentBatch });
   } catch (err) {
     console.error('Failed to enqueue mega batch', err);
-    megaBatch.push(...currentBatch);
+    // Circuit breaker: only push back if we won't exceed max size
+    if (megaBatch.length + currentBatch.length <= MAX_BATCH_SIZE) {
+      megaBatch.push(...currentBatch);
+    } else {
+      console.warn('megaBatch capacity exceeded, dropping events to prevent OOM');
+    }
   }
 }, 1000);
 
@@ -122,13 +141,12 @@ wss.on('connection', async (ws, req) => {
     return;
   }
 
-  // Validate token
-  const projectList = await db.select().from(projects).where(eq(projects.token, token));
-  if (projectList.length === 0) {
+  // Validate token with Redis cache
+  const projectId = await getCachedProjectId(token);
+  if (!projectId) {
     ws.close(1008, 'Invalid token');
     return;
   }
-  const project = projectList[0];
 
   ws.on('message', async (message: Buffer, isBinary: boolean) => {
     try {
@@ -139,10 +157,12 @@ wss.on('connection', async (ws, req) => {
         payloadStr = message.toString();
       }
       const payload = JSON.parse(payloadStr);
-      megaBatch.push({
-        projectId: project.id,
-        payload
-      });
+      if (megaBatch.length < MAX_BATCH_SIZE) {
+        megaBatch.push({
+          projectId: projectId,
+          payload
+        });
+      }
     } catch (e) {
       console.error('Failed to parse WebSocket message', e);
     }
@@ -153,11 +173,10 @@ app.post('/ingest/:token', async (req, res) =>
 {
   const { token } = req.params;
   
-  const projectList = await db.select().from(projects).where(eq(projects.token, token));
-  if (projectList.length === 0) {
+  const projectId = await getCachedProjectId(token);
+  if (!projectId) {
     return res.status(401).json({ error: 'Invalid token' });
   }
-  const project = projectList[0];
 
   try {
     let payload;
@@ -175,10 +194,14 @@ app.post('/ingest/:token', async (req, res) =>
       console.log(`[Ingestor] isFinal=true received for session ${payload.sessionId} — will trigger embedding`);
     }
 
-    megaBatch.push({
-      projectId: project.id,
-      payload,
-    });
+    if (megaBatch.length < MAX_BATCH_SIZE) {
+      megaBatch.push({
+        projectId: projectId,
+        payload,
+      });
+    } else {
+      return res.status(503).json({ error: 'Ingestor overloaded' });
+    }
     res.json({ success: true });
   } catch (e) {
     res.status(500).json({ error: 'Failed to enqueue' });

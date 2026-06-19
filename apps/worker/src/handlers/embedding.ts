@@ -1,4 +1,4 @@
-import { eq } from 'drizzle-orm';
+import { eq, and, or, gte } from 'drizzle-orm';
 import { db } from '../db';
 import { sessions, projects, events, networkRequests, consoleLogs, sessionEmbeddings, aiUsageLogs, summarizeSession, generateSessionEmbedding } from '@rewind/shared';
 
@@ -23,8 +23,20 @@ export async function handleEmbedding(sessionId: string) {
 
   // 3. Fetch related data
   const sessionEvents = await db.select().from(events).where(eq(events.sessionId, sessionId));
-  const sessionNetwork = await db.select().from(networkRequests).where(eq(networkRequests.sessionId, sessionId));
-  const sessionConsole = await db.select().from(consoleLogs).where(eq(consoleLogs.sessionId, sessionId));
+  const sessionNetwork = await db.select({
+    method: networkRequests.method,
+    url: networkRequests.url,
+    status: networkRequests.status
+  })
+    .from(networkRequests)
+    .where(and(eq(networkRequests.sessionId, sessionId), gte(networkRequests.status, 400)));
+
+  const sessionConsole = await db.select({
+    level: consoleLogs.level,
+    msg: consoleLogs.message
+  })
+    .from(consoleLogs)
+    .where(and(eq(consoleLogs.sessionId, sessionId), or(eq(consoleLogs.level, 'error'), eq(consoleLogs.level, 'warn'))));
 
   console.log(`[Embedding] Data: events=${sessionEvents.length} network=${sessionNetwork.length} console=${sessionConsole.length}`);
 
@@ -83,8 +95,8 @@ export async function handleEmbedding(sessionId: string) {
   };
 
   const eventsJson = JSON.stringify({ context: contextData, actions: parsedActions.slice(0, 150) }); // Limit to avoid token blowout
-  const networkJson = JSON.stringify(sessionNetwork.filter(n => (n.status || 200) >= 400).map(n => ({ method: n.method, url: n.url, status: n.status })));
-  const consoleJson = JSON.stringify(sessionConsole.filter(c => c.level === 'error' || c.level === 'warn').map(c => ({ level: c.level, msg: c.message })));
+  const networkJson = JSON.stringify(sessionNetwork);
+  const consoleJson = JSON.stringify(sessionConsole);
 
   try {
     console.log(`[Embedding] Calling summarizeSession...`);
