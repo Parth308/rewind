@@ -121,6 +121,22 @@ async function seed() {
   }
   console.log();
 
+  // 2.5 Pre-compute AI Embeddings ──────────────────────────────────────────
+  console.log('🤖 Pre-generating AI embeddings for narratives...');
+  const precomputedEmbeddings = {};
+  
+  try {
+    const { generateSessionEmbedding } = await import('../packages/shared/src/ai.ts');
+    for (const narrative of AI_NARRATIVES) {
+      console.log(`   Generating embedding for: "${narrative.substring(0, 30)}..."`);
+      const { embedding, modelUsed } = await generateSessionEmbedding(narrative);
+      precomputedEmbeddings[narrative] = { embedding: JSON.stringify(embedding), modelUsed };
+    }
+    console.log('   ✅ Embeddings generated\n');
+  } catch (e) {
+    console.log('   ⚠️ Failed to load/generate embeddings (Make sure GOOGLE_GENERATIVE_AI_API_KEY or OPENAI_API_KEY is set):', e.message, '\n');
+  }
+
   // 3. Create Demo Sessions ─────────────────────────────────────────────────
   console.log('🎬 Seeding 80 demo sessions across projects...');
   const sessionIds = [];
@@ -160,6 +176,25 @@ async function seed() {
       JSON.stringify(tags),
       bool(0.3) ? pick(AI_NARRATIVES) : null,
     ]);
+
+    // Fetch the inserted session to check if it got a narrative
+    const sRes = await query(`SELECT notes FROM sessions WHERE id = $1`, [sessionId]);
+    if (sRes.rows.length > 0 && sRes.rows[0].notes) {
+      const narrative = sRes.rows[0].notes;
+      if (precomputedEmbeddings[narrative]) {
+        await query(`
+          INSERT INTO session_embeddings (id, session_id, narrative, embedding, model_used)
+          VALUES ($1, $2, $3, $4, $5)
+          ON CONFLICT DO NOTHING
+        `, [
+          randomUUID(), 
+          sessionId, 
+          narrative, 
+          precomputedEmbeddings[narrative].embedding, 
+          precomputedEmbeddings[narrative].modelUsed
+        ]);
+      }
+    }
 
     sessionIds.push({ sessionId, startedAt: startedAt.getTime() });
   }

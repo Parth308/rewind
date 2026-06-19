@@ -128,6 +128,7 @@ export async function POST(req: NextRequest) {
 
       // Smart Thresholding: Only return results with a >= 65% semantic match
       results = hybridResults.filter(r => (1 - r.distance) >= 0.65);
+      console.log(`[Search] Lookup complete. Found ${hybridResults.length} raw matches, filtered to ${results.length} valid semantic matches.`);
     }
 
     return NextResponse.json({ success: true, results, searchType });
