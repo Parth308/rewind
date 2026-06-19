@@ -8,46 +8,66 @@ const SECRET_KEY = new TextEncoder().encode(
 
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
+  
+  // Exact path matches
+  const publicPaths = ['/login', '/setup', '/docs'];
+  const isExactPublicPath = publicPaths.includes(pathname) || pathname === '/';
+  
+  // Prefix path matches
+  const publicPrefixes = ['/share', '/api/share', '/api/users/autocomplete']; // assuming some APIs might need to be public or share routes
+  const isPrefixPublicPath = publicPrefixes.some(p => pathname.startsWith(p));
+  
+  const isPublicPath = isExactPublicPath || isPrefixPublicPath;
 
-  // We only protect /dashboard and its sub-routes
-  if (!pathname.startsWith('/dashboard')) {
-    return NextResponse.next();
-  }
+  const isDemo = process.env.NEXT_PUBLIC_DEMO_MODE === 'true';
 
-  // The share links should be publicly accessible if they have a token
-  // Oh wait, /share is NOT inside /dashboard, it's at /share/[token].
-  // But let's check just in case it ever moves.
-  if (pathname.startsWith('/share')) {
-    return NextResponse.next();
-  }
+  if (!isPublicPath) {
+    const sessionToken = request.cookies.get('session')?.value;
+    let isAuthenticated = false;
+    let userRole = '';
 
-  const token = request.cookies.get('session')?.value;
+    if (sessionToken) {
+      try {
+        const { payload } = await jwtVerify(sessionToken, SECRET_KEY);
+        isAuthenticated = true;
+        userRole = payload.role as string;
+      } catch (e) {
+        isAuthenticated = false;
+      }
+    }
 
-  if (!token) {
-    return NextResponse.redirect(new URL('/login', request.url));
-  }
-
-  try {
-    const { payload } = await jwtVerify(token, SECRET_KEY);
-    
-    // Optionally check roles here if needed for specific sub-routes
-    // e.g., if (pathname.startsWith('/dashboard/settings') && payload.role !== 'owner') return 403;
+    if (!isAuthenticated && !isDemo) {
+      if (pathname.startsWith('/api/')) {
+        return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      }
+      return NextResponse.redirect(new URL('/login', request.url));
+    }
 
     // Attach role to headers so downstream components know it quickly
     const requestHeaders = new Headers(request.headers);
-    requestHeaders.set('x-user-role', payload.role as string);
+    if (userRole) {
+      requestHeaders.set('x-user-role', userRole);
+    } else if (isDemo) {
+      requestHeaders.set('x-user-role', 'demo-user');
+    }
+
+    // If user is authenticated or demo mode, don't let them go to /login or /setup 
+    if (pathname === '/login') {
+      return NextResponse.redirect(new URL('/dashboard/projects', request.url));
+    }
 
     return NextResponse.next({
       request: {
         headers: requestHeaders,
       },
     });
-  } catch (err) {
-    // Token is invalid or expired
-    return NextResponse.redirect(new URL('/login', request.url));
   }
+
+  return NextResponse.next();
 }
 
 export const config = {
-  matcher: ['/dashboard/:path*'],
+  matcher: [
+    '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
+  ],
 };
