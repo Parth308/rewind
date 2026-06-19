@@ -108,13 +108,22 @@ export async function POST(req: NextRequest) {
           session: sessions,
           narrative: sql`COALESCE(${sessionEmbeddings.narrative}, ${sessions.notes})`.as('narrative'),
           distance: sql<number>`
-            COALESCE((${sessionEmbeddings.embedding} <=> cast(${vectorString} as vector)), 
-              CASE WHEN cast(${sessions.notes} as text) ILIKE ${searchQuery} THEN 0.2 ELSE 1.0 END
-            )
-            - CASE 
-                WHEN cast(${sessions.customEvents} as text) ILIKE ${searchQuery} THEN 0.2 
-                ELSE 0 
+            LEAST(
+              COALESCE((${sessionEmbeddings.embedding} <=> cast(${vectorString} as vector)), 1.0),
+              CASE 
+                WHEN cast(${sessions.id} as text) ILIKE ${searchQuery} THEN 0.0
+                WHEN ilike(${sessions.userId}, ${searchQuery}) THEN 0.0
+                WHEN ilike(${sessions.entryUrl}, ${searchQuery}) THEN 0.1
+                WHEN ilike(${sessions.browser}, ${searchQuery}) THEN 0.2
+                WHEN ilike(${sessions.os}, ${searchQuery}) THEN 0.2
+                WHEN ilike(${sessions.device}, ${searchQuery}) THEN 0.2
+                WHEN ilike(${sessions.country}, ${searchQuery}) THEN 0.2
+                WHEN cast(${sessions.tags} as text) ILIKE ${searchQuery} THEN 0.1
+                WHEN cast(${sessions.customEvents} as text) ILIKE ${searchQuery} THEN 0.2
+                WHEN ilike(${sessions.notes}, ${searchQuery}) THEN 0.1
+                ELSE 1.0
               END
+            )
           `.as('distance'),
           projectName: projects.name,
         })
@@ -123,13 +132,22 @@ export async function POST(req: NextRequest) {
         .leftJoin(projects, eq(projects.id, sessions.projectId))
         .where(projectId !== 'all' ? eq(sessions.projectId, projectId) : undefined)
         .orderBy(sql`
-            COALESCE((${sessionEmbeddings.embedding} <=> cast(${vectorString} as vector)), 
-              CASE WHEN cast(${sessions.notes} as text) ILIKE ${searchQuery} THEN 0.2 ELSE 1.0 END
+            LEAST(
+              COALESCE((${sessionEmbeddings.embedding} <=> cast(${vectorString} as vector)), 1.0),
+              CASE 
+                WHEN cast(${sessions.id} as text) ILIKE ${searchQuery} THEN 0.0
+                WHEN ilike(${sessions.userId}, ${searchQuery}) THEN 0.0
+                WHEN ilike(${sessions.entryUrl}, ${searchQuery}) THEN 0.1
+                WHEN ilike(${sessions.browser}, ${searchQuery}) THEN 0.2
+                WHEN ilike(${sessions.os}, ${searchQuery}) THEN 0.2
+                WHEN ilike(${sessions.device}, ${searchQuery}) THEN 0.2
+                WHEN ilike(${sessions.country}, ${searchQuery}) THEN 0.2
+                WHEN cast(${sessions.tags} as text) ILIKE ${searchQuery} THEN 0.1
+                WHEN cast(${sessions.customEvents} as text) ILIKE ${searchQuery} THEN 0.2
+                WHEN ilike(${sessions.notes}, ${searchQuery}) THEN 0.1
+                ELSE 1.0
+              END
             )
-          - CASE 
-              WHEN cast(${sessions.customEvents} as text) ILIKE ${searchQuery} THEN 0.2 
-              ELSE 0 
-            END
         `)
         .limit(limit);
 
