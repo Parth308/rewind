@@ -51,7 +51,7 @@ export function Sidebar({ isLive = true, projects = [], activeProjectId = 'all' 
           >
             R
           </div>
-          <span className="font-serif text-xl font-bold text-white tracking-tight">Rewind</span>
+          <span className="font-sans text-xl font-bold text-white tracking-tight">Rewind</span>
         </Link>
         <button
           onClick={() => setIsOpen(!isOpen)}
@@ -91,7 +91,7 @@ export function Sidebar({ isLive = true, projects = [], activeProjectId = 'all' 
           <Link href="/dashboard" className="flex items-center gap-3 px-2 group relative w-fit">
             <div className="absolute inset-0 bg-[var(--color-accent-green)] blur-[25px] opacity-10 group-hover:opacity-40 transition-opacity" />
             <div className="h-8 w-8 rounded-lg flex items-center justify-center text-[#0a0a0a] font-black text-sm font-mono shadow-[0_0_15px_rgba(163,230,53,0.3)] relative z-10" style={{ background: '#a3e635' }}>R</div>
-            <span className="font-serif text-xl font-bold text-white tracking-tight relative z-10">Rewind</span>
+            <span className="font-sans text-xl font-bold text-white tracking-tight relative z-10">Rewind</span>
           </Link>
 
           <div className="relative">

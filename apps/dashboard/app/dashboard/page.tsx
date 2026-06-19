@@ -125,7 +125,7 @@ export default async function DashboardSessions({
       <FadeUp>
         <div className="flex items-end justify-between gap-4">
           <div>
-            <h1 className="font-serif text-4xl sm:text-5xl font-bold tracking-tight text-white mb-3">Sessions.</h1>
+            <h1 className="font-sans text-4xl sm:text-5xl font-bold tracking-tight text-white mb-3">Sessions.</h1>
             <p className="text-lg text-white/[0.618] font-mono">
               <span className="text-[var(--color-accent-green)] font-bold">{filteredCount}</span> recorded streams
               <span className="text-neutral-500 mx-2">&middot;</span> {projectCount} active nodes

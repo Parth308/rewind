@@ -67,7 +67,7 @@ export function AddWidgetModal({ isOpen, onClose, projectId, onAdd }: { isOpen: 
       <div className="absolute inset-0 bg-black/80 backdrop-blur-sm" onClick={onClose} />
       <div className="relative bg-[#0A0A0A] border border-[var(--color-border-dark)] rounded-2xl w-full max-w-lg overflow-hidden flex flex-col">
         <div className="flex items-center justify-between p-4 border-b border-white/5">
-          <h2 className="text-lg font-serif font-bold text-white">Create New Widget</h2>
+          <h2 className="text-lg font-sans font-bold text-white">Create New Widget</h2>
           <button onClick={onClose} className="p-1 text-neutral-500 hover:text-white transition-colors">
             <X className="w-5 h-5" />
           </button>

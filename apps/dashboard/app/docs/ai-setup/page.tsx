@@ -20,7 +20,7 @@ export default function AISetupPage() {
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 my-8">
         <div className="p-6 border border-[var(--color-border-dark)] rounded-xl bg-white/[0.02]">
-          <h3 className="text-white font-serif text-lg mb-2 mt-0">Google (Default)</h3>
+          <h3 className="text-white font-sans text-lg mb-2 mt-0">Google (Default)</h3>
           <p className="text-sm text-neutral-400 mb-4">Optimized for vast context windows.</p>
           <ul className="text-xs font-mono text-neutral-500 space-y-1 mb-0 pb-0">
             <li><span className="text-[var(--color-accent-green)]">LLM:</span> gemini-2.5-flash</li>
@@ -28,7 +28,7 @@ export default function AISetupPage() {
           </ul>
         </div>
         <div className="p-6 border border-[var(--color-border-dark)] rounded-xl bg-white/[0.02]">
-          <h3 className="text-white font-serif text-lg mb-2 mt-0">OpenAI</h3>
+          <h3 className="text-white font-sans text-lg mb-2 mt-0">OpenAI</h3>
           <p className="text-sm text-neutral-400 mb-4">Highly consistent JSON instruction following.</p>
           <ul className="text-xs font-mono text-neutral-500 space-y-1 mb-0 pb-0">
             <li><span className="text-[var(--color-accent-green)]">LLM:</span> gpt-4o-mini</li>
@@ -36,7 +36,7 @@ export default function AISetupPage() {
           </ul>
         </div>
         <div className="p-6 border border-[var(--color-border-dark)] rounded-xl bg-white/[0.02]">
-          <h3 className="text-white font-serif text-lg mb-2 mt-0">Anthropic</h3>
+          <h3 className="text-white font-sans text-lg mb-2 mt-0">Anthropic</h3>
           <p className="text-sm text-neutral-400 mb-4">Superior reasoning and nuance.</p>
           <ul className="text-xs font-mono text-neutral-500 space-y-1 mb-0 pb-0">
             <li><span className="text-[var(--color-accent-green)]">LLM:</span> claude-3-5-sonnet-20240620</li>

@@ -38,7 +38,7 @@ export default async function DashboardAnalytics() {
       <FadeUp>
         <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
           <div>
-            <h1 className="font-serif text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight text-white mb-2 sm:mb-3">
+            <h1 className="font-sans text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight text-white mb-2 sm:mb-3">
               Analytics matrix.
             </h1>
             <p className="text-base sm:text-lg text-white/[0.618] max-w-2xl">

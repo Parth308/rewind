@@ -25,7 +25,7 @@ export default async function ProjectsPage() {
       <FadeUp>
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6">
           <div>
-            <h1 className="font-serif text-4xl sm:text-5xl font-bold tracking-tight text-white mb-3">Project nodes.</h1>
+            <h1 className="font-sans text-4xl sm:text-5xl font-bold tracking-tight text-white mb-3">Project nodes.</h1>
             <p className="text-lg text-white/[0.618] max-w-xl">Configure tracker instances and generate ingestion tokens.</p>
           </div>
           <CreateProjectButton />
@@ -63,7 +63,7 @@ export default async function ProjectsPage() {
                     </form>
                   </div>
 
-                  <h3 className="font-serif text-2xl font-bold text-white mb-2">{project.name}</h3>
+                  <h3 className="font-sans text-2xl font-bold text-white mb-2">{project.name}</h3>
                   <div className="text-[10px] font-mono tracking-[0.2em] uppercase text-neutral-500">
                     {isConnected ? 'Signal acquired' : 'Awaiting telemetry'}
                   </div>
@@ -120,7 +120,7 @@ export default async function ProjectsPage() {
                   <div className="w-3 h-3 rounded-full bg-neutral-600 shadow-[0_0_10px_rgba(255,255,255,0.2)]" />
                 </div>
                 
-                <h3 className="text-3xl font-serif font-bold text-white mb-4">No nodes active.</h3>
+                <h3 className="text-3xl font-sans font-bold text-white mb-4">No nodes active.</h3>
                 <p className="text-neutral-500 max-w-md mb-8 text-lg">
                   Initialize your first project to generate an ingestion token and start receiving telemetry.
                 </p>

@@ -53,7 +53,7 @@ export async function AiUsageCard({ projectId }: { projectId: string }) {
       <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:32px_32px] opacity-30 pointer-events-none" />
       <div className="absolute top-0 right-0 -mt-24 -mr-24 w-64 h-64 bg-purple-500 opacity-[0.02] blur-[80px] rounded-full pointer-events-none" />
 
-      <h3 className="font-serif text-2xl font-bold text-white mb-8 relative z-10 flex items-center gap-3">
+      <h3 className="font-sans text-2xl font-bold text-white mb-8 relative z-10 flex items-center gap-3">
         <BrainCircuit className="w-5 h-5 text-purple-400" /> AI Usage & Token Ledger
       </h3>
 

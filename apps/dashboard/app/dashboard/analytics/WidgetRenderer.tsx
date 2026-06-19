@@ -110,7 +110,7 @@ export function WidgetRenderer({ widget, projectId, onDelete, isEditMode, onResi
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
       <div className="absolute inset-0 bg-black/80 backdrop-blur-sm" onClick={() => setIsConfirmingDelete(false)} />
       <div className="relative bg-[#0A0A0A] border border-[var(--color-border-dark)] rounded-2xl w-full max-w-sm overflow-hidden flex flex-col p-6 shadow-2xl">
-        <h2 className="text-lg font-serif font-bold text-white mb-2">Remove Widget?</h2>
+        <h2 className="text-lg font-sans font-bold text-white mb-2">Remove Widget?</h2>
         <p className="text-sm text-neutral-400 font-mono mb-6">Are you sure you want to remove "{title}" from your dashboard?</p>
         <div className="flex gap-3 justify-end">
           <button onClick={() => setIsConfirmingDelete(false)} className="px-4 py-2 text-xs font-mono text-white/70 hover:text-white transition-colors">Cancel</button>
@@ -192,7 +192,7 @@ export function WidgetRenderer({ widget, projectId, onDelete, isEditMode, onResi
           </>
         )}
 
-        <h3 className="font-serif text-xl sm:text-2xl font-bold text-white mb-1 sm:mb-2 relative z-10 text-center sm:text-left pt-6 sm:pt-0">Client Targets</h3>
+        <h3 className="font-sans text-xl sm:text-2xl font-bold text-white mb-1 sm:mb-2 relative z-10 text-center sm:text-left pt-6 sm:pt-0">Client Targets</h3>
         <p className="text-xs sm:text-sm font-mono text-neutral-500 mb-6 sm:mb-8 relative z-10 text-center sm:text-left">TOP BROWSERS</p>
 
         {loading ? (
@@ -267,7 +267,7 @@ export function WidgetRenderer({ widget, projectId, onDelete, isEditMode, onResi
 
       <div className="flex items-center justify-between mb-6 sm:mb-8 relative z-10">
         <div className="pt-6 sm:pt-0">
-          <h3 className="font-serif text-xl sm:text-2xl font-bold text-white capitalize">{title}</h3>
+          <h3 className="font-sans text-xl sm:text-2xl font-bold text-white capitalize">{title}</h3>
           <p className="text-xs sm:text-sm font-mono text-neutral-500 mt-1 sm:mt-2">14-DAY TRAILING COUNT • {subtitle}</p>
         </div>
         {!loading && !error && (

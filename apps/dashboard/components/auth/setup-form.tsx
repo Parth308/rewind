@@ -24,7 +24,7 @@ export function SetupForm() {
   return (
     <motion.div variants={containerVariants} initial="hidden" animate="show" className="w-full">
       <motion.div variants={itemVariants} className="mb-10">
-        <h2 className="text-3xl font-serif font-bold text-white mb-2 tracking-tight">Initialize Workspace</h2>
+        <h2 className="text-3xl font-sans font-bold text-white mb-2 tracking-tight">Initialize Workspace</h2>
         <p className="text-neutral-500 text-sm font-mono tracking-wide">Create the immutable owner account.</p>
       </motion.div>
 

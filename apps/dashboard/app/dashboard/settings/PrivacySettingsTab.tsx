@@ -82,7 +82,7 @@ export function PrivacySettingsTab() {
     >
       <div className="mb-10 pb-6 border-b border-[var(--color-border-dark)] flex items-center justify-between">
         <div>
-          <h3 className="font-serif text-3xl font-bold text-white mb-2">Privacy & Masking</h3>
+          <h3 className="font-sans text-3xl font-bold text-white mb-2">Privacy & Masking</h3>
           <p className="text-neutral-500 font-mono text-xs">Configure how data is masked and blocked by the tracker.</p>
         </div>
         <Shield className="w-8 h-8 text-[var(--color-accent-green)]" />
@@ -93,7 +93,7 @@ export function PrivacySettingsTab() {
         {/* Toggle Mask Inputs */}
         <div className="p-6 border border-[var(--color-border-dark)] rounded-xl bg-white/[0.01] flex items-center justify-between">
           <div>
-            <h4 className="text-sm font-bold text-white font-serif mb-1">Mask Input Fields</h4>
+            <h4 className="text-sm font-bold text-white font-sans mb-1">Mask Input Fields</h4>
             <p className="text-xs font-mono text-neutral-500">
               Automatically replace text in input, textarea, and select elements with asterisks.
             </p>
@@ -158,7 +158,7 @@ export function PrivacySettingsTab() {
         <div className="space-y-6 p-6 border border-[var(--color-border-dark)] rounded-xl bg-white/[0.01]">
           <div className="flex items-center justify-between">
             <div>
-              <h4 className="text-sm font-bold text-white font-serif mb-1">Capture API Payloads</h4>
+              <h4 className="text-sm font-bold text-white font-sans mb-1">Capture API Payloads</h4>
               <p className="text-xs font-mono text-neutral-500">
                 Record the request and response body payloads of API calls. Disabled by default for maximum privacy.
               </p>

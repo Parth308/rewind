@@ -27,7 +27,7 @@ export function AuthSplitLayout({ children, quote, author }: { children: ReactNo
           <div className="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center backdrop-blur-md border border-white/10 shadow-[0_0_20px_rgba(163,230,53,0.2)]">
             <ShieldCheck className="w-5 h-5 text-[var(--color-accent-green)]" />
           </div>
-          <span className="font-serif text-2xl font-bold tracking-tight">Rewind</span>
+          <span className="font-sans text-2xl font-bold tracking-tight">Rewind</span>
         </motion.div>
 
         {/* Central Statement */}
@@ -37,7 +37,7 @@ export function AuthSplitLayout({ children, quote, author }: { children: ReactNo
           transition={{ duration: 1, delay: 0.2, ease: [0.16, 1, 0.3, 1] }}
           className="relative z-10"
         >
-          <h1 className="font-serif text-5xl xl:text-7xl font-bold tracking-tighter leading-[1.1] text-transparent bg-clip-text bg-gradient-to-b from-white to-white/60 mb-6">
+          <h1 className="font-sans text-5xl xl:text-7xl font-bold tracking-tighter leading-[1.1] text-transparent bg-clip-text bg-gradient-to-b from-white to-white/60 mb-6">
             Your Data. <br />
             <span className="text-[var(--color-accent-green)] drop-shadow-[0_0_30px_rgba(163,230,53,0.3)]">Your Rules.</span>
           </h1>
@@ -55,7 +55,7 @@ export function AuthSplitLayout({ children, quote, author }: { children: ReactNo
           className="relative z-10"
         >
           <div className="p-6 rounded-2xl bg-white/[0.02] border border-white/[0.05] backdrop-blur-xl">
-            <p className="text-neutral-300 font-serif italic text-lg leading-relaxed mb-4">
+            <p className="text-neutral-300 font-sans italic text-lg leading-relaxed mb-4">
               "{quote}"
             </p>
             <div className="flex items-center gap-3">

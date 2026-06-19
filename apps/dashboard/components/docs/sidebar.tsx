@@ -57,7 +57,7 @@ export function DocsSidebar() {
           >
             D
           </div>
-          <span className="font-serif text-xl font-bold text-white tracking-tight">Rewind Docs</span>
+          <span className="font-sans text-xl font-bold text-white tracking-tight">Rewind Docs</span>
         </Link>
         <button
           onClick={() => setIsOpen(!isOpen)}
@@ -101,7 +101,7 @@ export function DocsSidebar() {
               R
             </div>
             <div className="flex flex-col relative z-10 min-w-0">
-              <span className="font-serif text-xl font-bold text-white tracking-tight truncate">Rewind</span>
+              <span className="font-sans text-xl font-bold text-white tracking-tight truncate">Rewind</span>
               <span className="text-[10px] font-mono tracking-widest text-[var(--color-accent-green)] uppercase truncate">Documentation</span>
             </div>
           </Link>

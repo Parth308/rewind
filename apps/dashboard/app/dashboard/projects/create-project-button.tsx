@@ -38,7 +38,7 @@ export function CreateProjectButton() {
           {/* Modal */}
           <div className="relative z-10 glass rounded-2xl p-8 w-full max-w-md shadow-2xl border border-white/10">
             <div className="flex items-center justify-between mb-6">
-              <h2 className="font-serif text-2xl font-bold text-white">Create Project</h2>
+              <h2 className="font-sans text-2xl font-bold text-white">Create Project</h2>
               <button
                 onClick={() => setOpen(false)}
                 className="text-neutral-500 hover:text-white transition-colors"

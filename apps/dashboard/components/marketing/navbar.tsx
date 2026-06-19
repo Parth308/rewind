@@ -8,7 +8,7 @@ export const Navbar = () => {
         <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[var(--color-surface)] border border-[var(--color-border-dark)]">
           <Play className="h-4 w-4 text-[var(--color-accent-green)]" />
         </div>
-        <span className="font-serif text-xl font-bold tracking-tight text-white">Rewind</span>
+        <span className="font-sans text-xl font-bold tracking-tight text-white">Rewind</span>
       </div>
       <div className="hidden md:flex items-center gap-8 text-sm text-neutral-400">
         <a href="#features" className="transition-colors hover:text-white">Features</a>

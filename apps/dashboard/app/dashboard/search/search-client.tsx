@@ -93,7 +93,7 @@ export default function SearchClient({ projectId }: { projectId: string | null }
       <FadeUp>
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
-            <h1 className="font-serif text-4xl sm:text-5xl font-bold tracking-tight text-white mb-3">Semantic Search.</h1>
+            <h1 className="font-sans text-4xl sm:text-5xl font-bold tracking-tight text-white mb-3">Semantic Search.</h1>
             <p className="text-lg text-white/[0.618] max-w-xl">
               Query your databank using natural language to uncover complex user behaviors.
             </p>
@@ -206,7 +206,7 @@ export default function SearchClient({ projectId }: { projectId: string | null }
                 <div className="h-16 w-16 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center mb-8 shadow-[0_0_30px_rgba(255,255,255,0.05)] relative z-10">
                   <Search className="w-6 h-6 text-neutral-600" />
                 </div>
-                <h3 className="text-3xl font-serif font-bold text-white mb-4 relative z-10">No matches found.</h3>
+                <h3 className="text-3xl font-sans font-bold text-white mb-4 relative z-10">No matches found.</h3>
                 <p className="text-neutral-500 max-w-md text-lg relative z-10">
                   We couldn't find any sessions matching this semantic description in your databank.
                 </p>

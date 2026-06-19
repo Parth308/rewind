@@ -23,9 +23,9 @@ export default function DocsLayout({ children }: { children: React.ReactNode }) 
                   </div>
                   
                   <div className="max-w-none text-neutral-300
-                                [&_h1]:text-4xl [&_h1]:mb-8 [&_h1]:font-serif [&_h1]:text-white [&_h1]:tracking-tight
-                                [&_h2]:text-2xl [&_h2]:mt-12 [&_h2]:mb-6 [&_h2]:border-b [&_h2]:border-[var(--color-border-dark)] [&_h2]:pb-2 [&_h2]:font-serif [&_h2]:text-white [&_h2]:tracking-tight
-                                [&_h3]:text-xl [&_h3]:mt-8 [&_h3]:mb-4 [&_h3]:font-serif [&_h3]:text-white [&_h3]:tracking-tight
+                                [&_h1]:text-4xl [&_h1]:mb-8 [&_h1]:font-sans [&_h1]:text-white [&_h1]:tracking-tight
+                                [&_h2]:text-2xl [&_h2]:mt-12 [&_h2]:mb-6 [&_h2]:border-b [&_h2]:border-[var(--color-border-dark)] [&_h2]:pb-2 [&_h2]:font-sans [&_h2]:text-white [&_h2]:tracking-tight
+                                [&_h3]:text-xl [&_h3]:mt-8 [&_h3]:mb-4 [&_h3]:font-sans [&_h3]:text-white [&_h3]:tracking-tight
                                 [&_p]:leading-relaxed [&_p]:mb-6
                                 [&_a]:text-[var(--color-accent-green)] hover:[&_a]:underline
                                 [&_code]:font-mono [&_code]:text-sm [&_code]:bg-white/[0.05] [&_code]:px-1.5 [&_code]:py-0.5 [&_code]:rounded-md [&_code]:text-neutral-200

@@ -28,7 +28,7 @@ export default async function SystemPage() {
       <FadeUp>
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6">
           <div>
-            <h1 className="font-serif text-4xl sm:text-5xl font-bold tracking-tight text-white mb-3">System topology.</h1>
+            <h1 className="font-sans text-4xl sm:text-5xl font-bold tracking-tight text-white mb-3">System topology.</h1>
             <p className="text-lg text-white/[0.618] max-w-2xl">Real-time resource allocation and queue processing metrics.</p>
           </div>
         </div>
@@ -44,7 +44,7 @@ export default async function SystemPage() {
               <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.03)_1px,transparent_1px)] bg-[size:16px_16px] opacity-30" />
               <div className="absolute top-0 right-0 -mt-32 -mr-32 w-64 h-64 bg-[var(--color-accent-green)] opacity-[0.03] blur-[80px] rounded-full transition-opacity duration-1000 group-hover:opacity-10" />
 
-              <h3 className="font-serif text-2xl font-bold text-white mb-10 relative z-10 flex items-center gap-3">
+              <h3 className="font-sans text-2xl font-bold text-white mb-10 relative z-10 flex items-center gap-3">
                 Infrastructure Allocation
               </h3>
 
@@ -102,7 +102,7 @@ export default async function SystemPage() {
           {/* Bottom Row: BullMQ Queue */}
           <FadeUp delay={0.2}>
             <div className="bg-[#0A0A0A] border border-[var(--color-border-dark)] rounded-2xl p-8 relative overflow-hidden group">
-              <h3 className="font-serif text-2xl font-bold text-white mb-8 relative z-10 flex items-center gap-3">
+              <h3 className="font-sans text-2xl font-bold text-white mb-8 relative z-10 flex items-center gap-3">
                 <Zap className="w-5 h-5 text-amber-400" /> BullMQ Ingestion Queue
               </h3>
               
@@ -129,7 +129,7 @@ export default async function SystemPage() {
           <div className="bg-[#0A0A0A] border border-[var(--color-border-dark)] rounded-2xl p-8 h-full relative overflow-hidden flex flex-col">
             <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-indigo-500/50 to-transparent opacity-50" />
             
-            <h3 className="font-serif text-2xl font-bold text-white mb-8 relative z-10 flex items-center gap-3">
+            <h3 className="font-sans text-2xl font-bold text-white mb-8 relative z-10 flex items-center gap-3">
               <Cpu className="w-5 h-5 text-indigo-400" /> Host Machine
             </h3>
 

@@ -176,7 +176,7 @@ export function ApiSettingsTab() {
       className="relative z-10"
     >
       <div className="flex justify-between items-end mb-10 pb-6 border-b border-[var(--color-border-dark)]">
-        <h3 className="font-serif text-3xl font-bold text-white">AI & API Settings</h3>
+        <h3 className="font-sans text-3xl font-bold text-white">AI & API Settings</h3>
         <select
           value={settings.scope}
           onChange={e => setSettings({ ...settings, scope: e.target.value })}
@@ -204,7 +204,7 @@ export function ApiSettingsTab() {
               >
                 <div className="flex items-center gap-2">
                   <div className={`w-2.5 h-2.5 rounded-full transition-all ${settings.provider === p.id ? 'bg-[var(--color-accent-green)] shadow-[0_0_8px_rgba(163,230,53,0.6)]' : 'bg-neutral-700'}`} />
-                  <span className="font-serif font-bold text-base text-white">{p.label}</span>
+                  <span className="font-sans font-bold text-base text-white">{p.label}</span>
                 </div>
                 <p className="text-[11px] font-mono text-neutral-500 text-left">{p.description}</p>
               </button>

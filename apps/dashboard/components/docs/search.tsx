@@ -163,7 +163,7 @@ export function DocsSearch({ isOpen, onClose }: { isOpen: boolean; onClose: () =
                             {res.type === 'page' ? <FileText className="w-4 h-4" /> : <Hash className="w-4 h-4" />}
                           </div>
                           <div className="flex flex-col min-w-0">
-                            <span className={clsx("font-serif text-base tracking-tight truncate", isSelected ? "text-white" : "text-neutral-200")}>{res.title}</span>
+                            <span className={clsx("font-sans text-base tracking-tight truncate", isSelected ? "text-white" : "text-neutral-200")}>{res.title}</span>
                             <span className="text-xs font-mono text-neutral-500 truncate">{res.context}</span>
                           </div>
                         </div>
@@ -185,7 +185,7 @@ export function DocsSearch({ isOpen, onClose }: { isOpen: boolean; onClose: () =
                         className="flex items-center gap-3 p-3 rounded-xl border border-[var(--color-border-dark)] bg-white/[0.02] hover:bg-white/[0.05] transition-colors text-left"
                       >
                         <FileText className="w-4 h-4 text-neutral-500" />
-                        <span className="font-serif text-sm text-neutral-300">{page.title}</span>
+                        <span className="font-sans text-sm text-neutral-300">{page.title}</span>
                       </button>
                     ))}
                   </div>

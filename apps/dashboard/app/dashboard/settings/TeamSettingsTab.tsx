@@ -34,7 +34,7 @@ export function TeamSettingsTab({
       className="relative z-10"
     >
       <div className="flex items-center justify-between mb-10 pb-6 border-b border-[var(--color-border-dark)]">
-        <h3 className="font-serif text-3xl font-bold text-white">Team & Roles</h3>
+        <h3 className="font-sans text-3xl font-bold text-white">Team & Roles</h3>
         
         {(currentUserRole === 'owner' || currentUserRole === 'admin') && (
           <button 
@@ -56,7 +56,7 @@ export function TeamSettingsTab({
             {users.map((user, i) => (
               <div key={user.id} className={`flex items-center justify-between p-4 ${i !== users.length - 1 ? 'border-b border-[var(--color-border-dark)]' : ''}`}>
                 <div className="flex items-center gap-4">
-                  <div className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center text-white font-serif border border-white/10">
+                  <div className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center text-white font-sans border border-white/10">
                     {user.name?.[0] || user.email[0].toUpperCase()}
                   </div>
                   <div>
@@ -147,7 +147,7 @@ export function TeamSettingsTab({
                 <div className="w-12 h-12 bg-[var(--color-accent-green)]/10 rounded-xl flex items-center justify-center mb-4 text-[var(--color-accent-green)]">
                   <UserPlus className="w-6 h-6" />
                 </div>
-                <h2 className="text-2xl font-serif font-bold text-white mb-2">Invite Member</h2>
+                <h2 className="text-2xl font-sans font-bold text-white mb-2">Invite Member</h2>
                 <p className="text-neutral-500 text-sm">Send a secure invite link to a new team member.</p>
               </div>
 

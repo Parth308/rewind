@@ -160,7 +160,7 @@ export default function FunnelsClient({ projectId }: { projectId: string }) {
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
           <div className="bg-[#0A0A0A] border border-[var(--color-border-dark)] rounded-2xl w-full max-w-md overflow-hidden shadow-2xl relative">
             <div className="p-6">
-              <h3 className="font-serif text-2xl font-bold text-white mb-2">Save Funnel</h3>
+              <h3 className="font-sans text-2xl font-bold text-white mb-2">Save Funnel</h3>
               <p className="text-sm text-neutral-400 mb-6">Give your funnel a descriptive name to easily access it later.</p>
 
               <input
@@ -196,7 +196,7 @@ export default function FunnelsClient({ projectId }: { projectId: string }) {
       <FadeUp>
         <div className="flex flex-col gap-8 relative z-10">
           <div>
-            <h1 className="font-serif text-4xl sm:text-5xl font-bold tracking-tight text-white mb-3">Conversion Funnels.</h1>
+            <h1 className="font-sans text-4xl sm:text-5xl font-bold tracking-tight text-white mb-3">Conversion Funnels.</h1>
             <p className="text-lg text-white/[0.618] max-w-xl">
               Analyze exactly where users drop off in your critical flows. Sequential conversion analysis with true replay correlation.
             </p>
@@ -245,7 +245,7 @@ export default function FunnelsClient({ projectId }: { projectId: string }) {
                 <div className="w-10 h-10 rounded-xl bg-[var(--color-accent-green)]/10 flex items-center justify-center">
                   <BarChart3 className="w-5 h-5 text-[var(--color-accent-green)]" />
                 </div>
-                <h2 className="text-2xl font-bold text-white font-serif tracking-tight">Flow Builder</h2>
+                <h2 className="text-2xl font-bold text-white font-sans tracking-tight">Flow Builder</h2>
               </div>
 
               <div className="flex items-center gap-3 bg-white/[0.03] border border-white/5 rounded-xl p-1">
@@ -365,7 +365,7 @@ export default function FunnelsClient({ projectId }: { projectId: string }) {
             <div className="w-16 h-16 rounded-full bg-white/5 flex items-center justify-center">
               <Activity className="w-8 h-8 text-neutral-600" />
             </div>
-            <h3 className="font-serif text-2xl font-bold text-white">No sessions matched this funnel.</h3>
+            <h3 className="font-sans text-2xl font-bold text-white">No sessions matched this funnel.</h3>
             <p className="text-neutral-500 max-w-md mx-auto">Try widening your time window or removing some steps to see broader drop-off data.</p>
           </div>
         </FadeUp>
@@ -378,7 +378,7 @@ export default function FunnelsClient({ projectId }: { projectId: string }) {
             <div className="px-8 py-6 border-b border-white/10 bg-[#0A0A0A] flex flex-col sm:flex-row sm:items-center justify-between gap-4">
               <div className="flex items-center gap-3">
                 <div className="w-3 h-3 rounded-full bg-[var(--color-accent-green)] shadow-[0_0_10px_rgba(163,230,53,0.8)]" />
-                <h3 className="font-serif text-2xl font-bold text-white tracking-tight">Conversion Analysis</h3>
+                <h3 className="font-sans text-2xl font-bold text-white tracking-tight">Conversion Analysis</h3>
                 <div className="px-4 py-1 bg-white/5 border border-white/10 rounded-full ml-2">
                   <span className="text-xs font-mono tracking-widest text-neutral-400 uppercase">
                     Base: <strong className="text-white">{results[0]?.totalSessions || 0} Sessions</strong>
@@ -411,7 +411,7 @@ export default function FunnelsClient({ projectId }: { projectId: string }) {
                           {result.type === 'event' ? <Activity className="w-3 h-3" /> : <Globe className="w-3 h-3" />}
                           {result.type === 'event' ? 'Performed Event' : 'Visited URL'}
                         </span>
-                        <span className="text-2xl text-white font-serif font-medium tracking-tight">{result.value}</span>
+                        <span className="text-2xl text-white font-sans font-medium tracking-tight">{result.value}</span>
                       </div>
 
                       <div className="text-right flex flex-col items-end">

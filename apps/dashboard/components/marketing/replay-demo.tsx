@@ -10,7 +10,7 @@ export const ReplayDemo = () => {
       <div className="max-w-7xl mx-auto">
         <FadeUp>
           <div className="mb-12 text-center">
-            <h2 className="font-serif text-4xl sm:text-5xl text-white tracking-tight mb-4">The Replay Interface</h2>
+            <h2 className="font-sans text-4xl sm:text-5xl text-white tracking-tight mb-4">The Replay Interface</h2>
             <p className="text-neutral-400">Everything you need to debug, cleanly organized.</p>
           </div>
         </FadeUp>

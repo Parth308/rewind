@@ -210,7 +210,7 @@ createApp(App).mount('#app')`;
               </div>
               <span className="text-xs font-mono text-[var(--color-accent-green)] uppercase tracking-[0.2em] font-bold">System Initialization</span>
             </div>
-            <h1 className="font-serif text-5xl font-bold tracking-tight text-white mb-6">
+            <h1 className="font-sans text-5xl font-bold tracking-tight text-white mb-6">
               Welcome to Rewind.
             </h1>
             <p className="text-neutral-400 text-lg leading-relaxed font-mono">
@@ -261,7 +261,7 @@ createApp(App).mount('#app')`;
                     <div className={`text-[10px] font-mono uppercase tracking-[0.2em] mb-1 ${activeStep === step.id ? 'text-[var(--color-accent-green)]' : 'text-neutral-600'}`}>
                       Phase {step.id + 1}
                     </div>
-                    <div className={`font-serif text-lg ${activeStep === step.id ? 'text-white' : step.completed ? 'text-[var(--color-accent-green)]' : 'text-neutral-500'}`}>
+                    <div className={`font-sans text-lg ${activeStep === step.id ? 'text-white' : step.completed ? 'text-[var(--color-accent-green)]' : 'text-neutral-500'}`}>
                       {step.title}
                     </div>
                   </div>
@@ -296,7 +296,7 @@ createApp(App).mount('#app')`;
                     <LayoutTemplate className="h-8 w-8" />
                   </div>
                   <div>
-                    <h2 className="font-serif text-3xl font-bold text-white">Initialize Node</h2>
+                    <h2 className="font-sans text-3xl font-bold text-white">Initialize Node</h2>
                     <p className="text-neutral-400 font-mono text-sm mt-2">Generate a unique ingestion token for your application.</p>
                   </div>
                 </div>
@@ -348,7 +348,7 @@ createApp(App).mount('#app')`;
                     <Code2 className="h-8 w-8" />
                   </div>
                   <div>
-                    <h2 className="font-serif text-3xl font-bold text-white">Inject Script</h2>
+                    <h2 className="font-sans text-3xl font-bold text-white">Inject Script</h2>
                     <p className="text-neutral-400 font-mono text-sm mt-2">
                       Embed the tracking client into your application architecture
                       {projectName ? ' for ' : '.'}
@@ -367,7 +367,7 @@ createApp(App).mount('#app')`;
                   <div className="flex items-start gap-4 rounded-xl bg-amber-500/10 border border-amber-500/30 p-6 shadow-inner">
                     <div className="h-6 w-6 shrink-0 text-amber-500 mt-0.5 flex items-center justify-center border border-amber-500/50 rounded-full bg-amber-500/10 font-bold font-mono text-xs">!</div>
                     <div>
-                      <p className="text-base font-serif font-bold text-amber-400">Missing Project Token</p>
+                      <p className="text-base font-sans font-bold text-amber-400">Missing Project Token</p>
                       <p className="text-sm font-mono text-amber-500/70 mt-2">
                         <button onClick={() => setActiveStep(0)} className="underline hover:text-amber-400 transition-colors">Return to Phase 1</button> and provision a project to generate your token.
                       </p>
@@ -412,7 +412,7 @@ createApp(App).mount('#app')`;
                   <AnimatePresence mode="wait">
                     {activeTab === 'html' && (
                       <motion.div key="html" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} transition={{ duration: 0.2 }}>
-                        <h3 className="text-lg font-serif text-white mb-2 flex items-center gap-3">
+                        <h3 className="text-lg font-sans text-white mb-2 flex items-center gap-3">
                           Standard HTML Injection
                         </h3>
                         <p className="text-sm font-mono text-neutral-500 mb-4">Embed within the <code className="text-neutral-300 bg-white/10 px-1.5 py-0.5 rounded border border-white/10">&lt;head&gt;</code> of your index document.</p>
@@ -421,7 +421,7 @@ createApp(App).mount('#app')`;
                     )}
                     {activeTab === 'react' && (
                       <motion.div key="react" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} transition={{ duration: 0.2 }}>
-                        <h3 className="text-lg font-serif text-white mb-2 flex items-center gap-3">
+                        <h3 className="text-lg font-sans text-white mb-2 flex items-center gap-3">
                           React Integration
                         </h3>
                         <p className="text-sm font-mono text-neutral-500 mb-4">Initialize at application root component.</p>
@@ -430,7 +430,7 @@ createApp(App).mount('#app')`;
                     )}
                     {activeTab === 'next' && (
                       <motion.div key="next" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} transition={{ duration: 0.2 }}>
-                        <h3 className="text-lg font-serif text-white mb-2 flex items-center gap-3">
+                        <h3 className="text-lg font-sans text-white mb-2 flex items-center gap-3">
                           Next.js (App Router) Integration
                         </h3>
                         <p className="text-sm font-mono text-neutral-500 mb-4">Utilize <code className="text-neutral-300 bg-white/10 px-1.5 py-0.5 rounded border border-white/10">next/script</code> in your root layout.</p>
@@ -439,7 +439,7 @@ createApp(App).mount('#app')`;
                     )}
                     {activeTab === 'vue' && (
                       <motion.div key="vue" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} transition={{ duration: 0.2 }}>
-                        <h3 className="text-lg font-serif text-white mb-2 flex items-center gap-3">
+                        <h3 className="text-lg font-sans text-white mb-2 flex items-center gap-3">
                           Vue 3 / Vite Integration
                         </h3>
                         <p className="text-sm font-mono text-neutral-500 mb-4">Inject the script dynamically in your <code className="text-neutral-300 bg-white/10 px-1.5 py-0.5 rounded border border-white/10">main.ts</code> before mounting the app.</p>
@@ -448,7 +448,7 @@ createApp(App).mount('#app')`;
                     )}
                     {activeTab === 'svelte' && (
                       <motion.div key="svelte" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} transition={{ duration: 0.2 }}>
-                        <h3 className="text-lg font-serif text-white mb-2 flex items-center gap-3">
+                        <h3 className="text-lg font-sans text-white mb-2 flex items-center gap-3">
                           SvelteKit Integration
                         </h3>
                         <p className="text-sm font-mono text-neutral-500 mb-4">Add the script tag directly into your <code className="text-neutral-300 bg-white/10 px-1.5 py-0.5 rounded border border-white/10">src/app.html</code> document head.</p>
@@ -468,7 +468,7 @@ createApp(App).mount('#app')`;
 
                 <div className="bg-[#111] border border-[var(--color-border-dark)] rounded-xl p-6 mt-4 relative overflow-hidden shadow-xl">
                   <div className="absolute top-0 right-0 w-32 h-32 bg-blue-500/5 blur-[50px] rounded-full pointer-events-none" />
-                  <h4 className="text-sm font-serif font-bold text-white mb-3 flex items-center gap-2 relative z-10">
+                  <h4 className="text-sm font-sans font-bold text-white mb-3 flex items-center gap-2 relative z-10">
                     <User className="w-4 h-4 text-blue-400" /> Unlock Better Insights
                   </h4>
                   <p className="text-xs font-mono text-neutral-400 mb-4 leading-relaxed relative z-10">
@@ -515,7 +515,7 @@ createApp(App).mount('#app')`;
                     <Rocket className="h-8 w-8" />
                   </div>
                   <div>
-                    <h2 className="font-serif text-3xl font-bold text-white">Monitor Telemetry</h2>
+                    <h2 className="font-sans text-3xl font-bold text-white">Monitor Telemetry</h2>
                     <p className="text-neutral-400 font-mono text-sm mt-2">
                       Awaiting inbound data streams from client applications
                       {projectName && !isGlobal ? ` for ${projectName}` : ''}.
@@ -600,7 +600,7 @@ createApp(App).mount('#app')`;
                 className="flex items-start gap-4 rounded-xl border border-[var(--color-border-dark)] bg-[#0A0A0A] p-5 hover:bg-[#111] hover:border-white/20 transition-all group"
               >
                 <div className="flex-1">
-                  <div className="font-serif text-lg font-bold text-white mb-2 group-hover:text-[var(--color-accent-green)] transition-colors">{link.label}</div>
+                  <div className="font-sans text-lg font-bold text-white mb-2 group-hover:text-[var(--color-accent-green)] transition-colors">{link.label}</div>
                   <div className="font-mono text-xs text-neutral-500 leading-relaxed">{link.desc}</div>
                 </div>
                 <ExternalLink className="h-4 w-4 text-neutral-600 group-hover:text-[var(--color-accent-green)] transition-colors shrink-0 mt-1" />

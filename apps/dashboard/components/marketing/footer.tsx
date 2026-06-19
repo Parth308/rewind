@@ -14,7 +14,7 @@ export const Footer = () => {
         
         <div className="max-w-3xl mx-auto text-center relative z-10">
           <FadeUp>
-            <h2 className="font-serif text-5xl sm:text-6xl text-white mb-6">Stop guessing.<br />Start seeing.</h2>
+            <h2 className="font-sans text-5xl sm:text-6xl text-white mb-6">Stop guessing.<br />Start seeing.</h2>
           </FadeUp>
           <FadeUp delay={0.1}>
             <p className="text-xl text-neutral-400 mb-10">Join elite engineering teams taking control of their debugging pipeline.</p>

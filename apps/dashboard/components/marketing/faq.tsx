@@ -11,7 +11,7 @@ export const FAQ = () => {
   return (
     <section className="py-32 px-6 max-w-3xl mx-auto">
       <FadeUp>
-        <h2 className="font-serif text-4xl text-center text-white mb-12">Frequently Asked Questions</h2>
+        <h2 className="font-sans text-4xl text-center text-white mb-12">Frequently Asked Questions</h2>
       </FadeUp>
 
       <div className="space-y-4">

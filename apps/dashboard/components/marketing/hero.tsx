@@ -42,7 +42,7 @@ export const Hero = () => {
       </FadeUp>
 
       <FadeUp delay={0.1}>
-        <h1 className="mx-auto max-w-4xl font-serif text-6xl sm:text-7xl lg:text-8xl font-medium tracking-tight text-white mb-6 leading-[1.05]">
+        <h1 className="mx-auto max-w-4xl font-sans text-6xl sm:text-7xl lg:text-8xl font-medium tracking-tight text-white mb-6 leading-[1.05]">
           Own your data. <br />
           <span className="text-neutral-500">Replay the truth.</span>
         </h1>

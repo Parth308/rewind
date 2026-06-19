@@ -29,7 +29,7 @@ export const DeploymentPipeline = () => {
               </div>
             </FadeUp>
             <FadeUp delay={0.1}>
-              <h2 className="font-serif text-4xl sm:text-5xl text-white tracking-tight mb-6">Production ready in 60 seconds.</h2>
+              <h2 className="font-sans text-4xl sm:text-5xl text-white tracking-tight mb-6">Production ready in 60 seconds.</h2>
             </FadeUp>
             <FadeUp delay={0.2}>
               <p className="text-neutral-400 text-lg leading-relaxed mb-8">

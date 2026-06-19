@@ -8,7 +8,7 @@ export const AsymmetricMatrix = () => {
     <section className="py-32 px-6 max-w-6xl mx-auto">
       <FadeUp>
         <div className="mb-16 text-center max-w-2xl mx-auto">
-          <h2 className="font-serif text-4xl sm:text-5xl text-white tracking-tight mb-4">The Asymmetric Matrix</h2>
+          <h2 className="font-sans text-4xl sm:text-5xl text-white tracking-tight mb-4">The Asymmetric Matrix</h2>
           <p className="text-neutral-400">Why elite teams are ripping out expensive SaaS tools for Rewind.</p>
         </div>
       </FadeUp>
@@ -16,7 +16,7 @@ export const AsymmetricMatrix = () => {
       <div className="grid md:grid-cols-2 gap-0 border border-[var(--color-border-dark)] rounded-2xl overflow-hidden glass shadow-2xl">
         {/* SaaS Bloat Side */}
         <div className="p-10 border-b md:border-b-0 md:border-r border-[var(--color-border-dark)] bg-black/40">
-          <h3 className="font-serif text-2xl text-neutral-500 mb-8 pb-4 border-b border-[var(--color-border-dark)]">Legacy SaaS Bloat</h3>
+          <h3 className="font-sans text-2xl text-neutral-500 mb-8 pb-4 border-b border-[var(--color-border-dark)]">Legacy SaaS Bloat</h3>
           <ul className="space-y-6">
             <li className="flex items-start gap-4">
               <X className="w-5 h-5 text-red-500/70 mt-0.5 shrink-0" />
@@ -45,7 +45,7 @@ export const AsymmetricMatrix = () => {
         {/* Rewind Side */}
         <div className="p-10 bg-gradient-to-b from-[var(--color-surface)] to-transparent relative group">
           <div className="absolute inset-0 bg-[var(--color-accent-green)] opacity-0 group-hover:opacity-[0.02] transition-opacity duration-500" />
-          <h3 className="font-serif text-2xl text-white mb-8 pb-4 border-b border-[var(--color-border-dark)] flex justify-between items-center">
+          <h3 className="font-sans text-2xl text-white mb-8 pb-4 border-b border-[var(--color-border-dark)] flex justify-between items-center">
             Rewind
             <span className="text-[10px] font-mono tracking-widest text-[var(--color-accent-green)] border border-[var(--color-accent-green)]/30 bg-[var(--color-accent-green)]/10 px-2 py-1 rounded">THE NEW STANDARD</span>
           </h3>

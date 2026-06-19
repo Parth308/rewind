@@ -24,7 +24,7 @@ export function AcceptInviteForm({ token, email, role }: { token: string, email:
   return (
     <motion.div variants={containerVariants} initial="hidden" animate="show" className="w-full">
       <motion.div variants={itemVariants} className="mb-10">
-        <h2 className="text-3xl font-serif font-bold text-white mb-2 tracking-tight">Join Workspace</h2>
+        <h2 className="text-3xl font-sans font-bold text-white mb-2 tracking-tight">Join Workspace</h2>
         <p className="text-neutral-500 text-sm font-mono tracking-wide">
           You've been invited as a <span className="text-[var(--color-accent-green)] capitalize">{role}</span>.
         </p>

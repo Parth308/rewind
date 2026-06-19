@@ -31,7 +31,7 @@ export const Integrations = () => {
     <section className="py-32 px-6 max-w-7xl mx-auto border-t border-[var(--color-border-dark)] overflow-hidden">
       <FadeUp>
         <div className="text-center mb-16">
-          <h2 className="font-serif text-4xl sm:text-5xl text-white tracking-tight mb-6">Works with everything.</h2>
+          <h2 className="font-sans text-4xl sm:text-5xl text-white tracking-tight mb-6">Works with everything.</h2>
           <p className="text-neutral-400 text-lg max-w-2xl mx-auto">
             Zero complex configuration. Whether you use a heavy meta-framework or raw HTML, Rewind captures your sessions instantly.
           </p>

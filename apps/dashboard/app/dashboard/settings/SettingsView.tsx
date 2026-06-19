@@ -39,7 +39,7 @@ export function SettingsView({
       <FadeUp>
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
-            <h1 className="font-serif text-4xl sm:text-5xl font-bold tracking-tight text-white mb-3">Configuration.</h1>
+            <h1 className="font-sans text-4xl sm:text-5xl font-bold tracking-tight text-white mb-3">Configuration.</h1>
             <p className="text-lg text-white/[0.618]">Manage account parameters and platform preferences.</p>
           </div>
         </div>
@@ -77,7 +77,7 @@ export function SettingsView({
                     />
                   )}
                   <tab.icon className={`h-4 w-4 lg:h-5 lg:w-5 transition-colors ${isActive ? 'text-[var(--color-accent-green)]' : 'text-neutral-600'}`} />
-                  <span className="font-serif text-base lg:text-lg">{tab.name}</span>
+                  <span className="font-sans text-base lg:text-lg">{tab.name}</span>
                 </button>
               );
             })}
@@ -101,7 +101,7 @@ export function SettingsView({
                   transition={{ duration: 0.3 }}
                   className="relative z-10"
                 >
-                  <h3 className="font-serif text-3xl font-bold text-white mb-10 pb-6 border-b border-[var(--color-border-dark)]">
+                  <h3 className="font-sans text-3xl font-bold text-white mb-10 pb-6 border-b border-[var(--color-border-dark)]">
                     General Settings
                   </h3>
 
@@ -173,7 +173,7 @@ export function SettingsView({
                   <div className="w-16 h-16 rounded-2xl bg-white/5 border border-[var(--color-border-dark)] flex items-center justify-center mb-6">
                     <Shield className="h-6 w-6 text-neutral-600" />
                   </div>
-                  <h3 className="font-serif text-2xl font-bold text-white mb-2">Module Offline</h3>
+                  <h3 className="font-sans text-2xl font-bold text-white mb-2">Module Offline</h3>
                   <p className="text-neutral-500 font-mono text-xs">This configuration module is currently disabled in your environment.</p>
                 </motion.div>
               )}

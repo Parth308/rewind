@@ -39,7 +39,7 @@ export const FeaturesBento = () => {
     <section id="features" className="py-24 px-6 max-w-7xl mx-auto">
       <FadeUp>
         <div className="text-center mb-16 max-w-3xl mx-auto">
-          <h2 className="font-serif text-4xl sm:text-5xl text-white tracking-tight mb-6">Engineered for absolute control.</h2>
+          <h2 className="font-sans text-4xl sm:text-5xl text-white tracking-tight mb-6">Engineered for absolute control.</h2>
           <p className="text-neutral-400 text-lg">We don't just hide features behind a generic grid. Here is exactly how Rewind captures and stores your telemetry.</p>
         </div>
       </FadeUp>
@@ -67,7 +67,7 @@ export const FeaturesBento = () => {
                   )}
                   <div className={`flex items-center gap-3 mb-2 ${isActive ? "text-[var(--color-accent-green)]" : "text-neutral-400"}`}>
                     <Icon className="w-5 h-5" />
-                    <span className="font-serif text-xl">{feature.title}</span>
+                    <span className="font-sans text-xl">{feature.title}</span>
                   </div>
                   <p className={`text-sm ${isActive ? "text-neutral-300" : "text-neutral-500"}`}>
                     {feature.desc}
