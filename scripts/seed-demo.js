@@ -154,6 +154,7 @@ async function seed() {
     const errorCount = bool(0.25) ? rand(1, 5) : 0;
     const tags = bool(0.4) ? [pick(TAGS)] : [];
     const userId = bool(0.6) ? `user_${rand(1000, 9999)}` : null;
+    const entryUrl = pick(ENTRY_URLS);
 
     await query(`
       INSERT INTO sessions (
@@ -170,7 +171,7 @@ async function seed() {
       rand(1, 12), errorCount,
       pick(COUNTRIES), pick(BROWSERS), pick(OS_LIST), pick(DEVICES),
       pick([1280, 1440, 1920, 390, 768]), pick([720, 900, 1080, 844, 1024]),
-      pick(REFERRERS), pick(ENTRY_URLS),
+      pick(REFERRERS), entryUrl,
       userId,
       hasRageClicks, hasDeadClicks, hasUTurns, hasWildScrolling,
       JSON.stringify(tags),
@@ -196,35 +197,83 @@ async function seed() {
       }
     }
 
-    sessionIds.push({ sessionId, startedAt: startedAt.getTime() });
+    sessionIds.push({ sessionId, startedAt: startedAt.getTime(), entryUrl });
   }
   console.log(`   ✅ Seeded 80 sessions\n`);
 
   // 4. Seed Events (DOM snapshots) ──────────────────────────────────────────
-  console.log('⚡ Seeding DOM events...');
+  console.log('⚡ Seeding DOM events (Valid rrweb payloads)...');
   let eventCount = 0;
-  for (const { sessionId, startedAt } of sessionIds.slice(0, 30)) { // Only for first 30 for speed
-    const numEvents = rand(5, 20);
-    for (let e = 0; e < numEvents; e++) {
-      const ts = startedAt + e * rand(500, 5000);
-      await query(`
-        INSERT INTO events (id, session_id, type, timestamp, data)
-        VALUES ($1, $2, $3, $4, $5)
-      `, [
-        randomUUID(), sessionId,
-        pick([2, 3, 3, 3, 4]), // 2=fullSnapshot, 3=incrementalSnapshot, 4=meta
-        ts,
-        JSON.stringify({ source: rand(0, 8), type: rand(1, 6) }),
-      ]);
+  
+  // Minimal valid rrweb FullSnapshot AST
+  const mockFullSnapshot = {
+    node: {
+      type: 0,
+      childNodes: [
+        { type: 1, name: 'html', publicId: '', systemId: '', id: 2 },
+        {
+          type: 2, tagName: 'html', attributes: { lang: 'en' }, id: 3,
+          childNodes: [
+            { type: 2, tagName: 'head', attributes: {}, id: 4, childNodes: [] },
+            {
+              type: 2, tagName: 'body', 
+              attributes: { style: 'background: #09090b; color: #fafafa; display: flex; flex-direction: column; justify-content: center; align-items: center; height: 100vh; font-family: system-ui, sans-serif; margin: 0;' }, 
+              id: 5,
+              childNodes: [
+                {
+                  type: 2, tagName: 'div', attributes: { style: 'padding: 40px; background: #18181b; border-radius: 12px; border: 1px solid #27272a; box-shadow: 0 4px 20px rgba(0,0,0,0.5); text-align: center;' }, id: 6,
+                  childNodes: [
+                    { type: 2, tagName: 'h1', attributes: { style: 'margin: 0 0 10px 0;' }, id: 7, childNodes: [{ type: 3, text: 'Demo Session Replay', id: 8 }] },
+                    { type: 2, tagName: 'p', attributes: { style: 'color: #a1a1aa; margin: 0;' }, id: 9, childNodes: [{ type: 3, text: 'This is a simulated DOM snapshot for demo purposes.', id: 10 }] }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      id: 1
+    },
+    initialOffset: { left: 0, top: 0 }
+  };
+
+  for (const { sessionId, startedAt, entryUrl } of sessionIds) {
+    // Event 1: Meta (Type 4) - stored as full rrweb event object
+    const metaEvent = { type: 4, timestamp: startedAt, data: { href: entryUrl, width: 1280, height: 720 } };
+    await query(`INSERT INTO events (id, session_id, type, timestamp, data) VALUES ($1, $2, $3, $4, $5)`, 
+      [randomUUID(), sessionId, 4, startedAt, JSON.stringify(metaEvent)]);
+    
+    // Event 2: FullSnapshot (Type 2) - stored as full rrweb event object
+    const tsFull = startedAt + 100;
+    const fullSnapshotEvent = { type: 2, timestamp: tsFull, data: mockFullSnapshot };
+    await query(`INSERT INTO events (id, session_id, type, timestamp, data) VALUES ($1, $2, $3, $4, $5)`, 
+      [randomUUID(), sessionId, 2, tsFull, JSON.stringify(fullSnapshotEvent)]);
+
+    // Event 3-10: Incremental Mouse Moves (Type 3)
+    let currentTs = startedAt + 500;
+    for (let e = 0; e < 8; e++) {
+      currentTs += rand(500, 2000);
+      const mouseData = {
+        source: 1, // MouseMove
+        positions: [
+          { x: rand(300, 900), y: rand(200, 600), id: 5, timeOffset: 0 },
+          { x: rand(300, 900), y: rand(200, 600), id: 5, timeOffset: 150 },
+          { x: rand(300, 900), y: rand(200, 600), id: 5, timeOffset: 300 }
+        ]
+      };
+      const mouseEvent = { type: 3, timestamp: currentTs, data: mouseData };
+      await query(`INSERT INTO events (id, session_id, type, timestamp, data) VALUES ($1, $2, $3, $4, $5)`, 
+        [randomUUID(), sessionId, 3, currentTs, JSON.stringify(mouseEvent)]);
       eventCount++;
     }
+    eventCount += 2; // Meta + FullSnapshot
   }
   console.log(`   ✅ Seeded ${eventCount} events\n`);
 
   // 5. Seed Console Logs ────────────────────────────────────────────────────
   console.log('📋 Seeding console logs...');
   let logCount = 0;
-  for (const { sessionId, startedAt } of sessionIds.slice(0, 50)) {
+  for (const { sessionId, startedAt } of sessionIds) {
     const numLogs = rand(2, 8);
     for (let l = 0; l < numLogs; l++) {
       const log = pick(CONSOLE_MESSAGES);
@@ -241,7 +290,7 @@ async function seed() {
   // 6. Seed Network Requests ────────────────────────────────────────────────
   console.log('🌐 Seeding network requests...');
   let netCount = 0;
-  for (const { sessionId, startedAt } of sessionIds.slice(0, 50)) {
+  for (const { sessionId, startedAt } of sessionIds) {
     const numReqs = rand(3, 10);
     for (let n = 0; n < numReqs; n++) {
       const endpoint = pick(NETWORK_URLS);

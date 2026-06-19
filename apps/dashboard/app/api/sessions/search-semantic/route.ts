@@ -64,11 +64,18 @@ export async function POST(req: NextRequest) {
           and(
             projectId !== 'all' ? eq(sessions.projectId, projectId) : undefined,
             or(
+              sql`cast(${sessions.id} as text) ILIKE ${searchQuery}`,
               sql`cast(${sessions.customEvents} as text) ILIKE ${searchQuery}`,
+              sql`cast(${sessions.tags} as text) ILIKE ${searchQuery}`,
               ilike(sessions.entryUrl, searchQuery),
               ilike(sessions.userId, searchQuery),
               ilike(sessionEmbeddings.narrative, searchQuery),
-              ilike(sessions.notes, searchQuery)
+              ilike(sessions.notes, searchQuery),
+              ilike(sessions.browser, searchQuery),
+              ilike(sessions.os, searchQuery),
+              ilike(sessions.device, searchQuery),
+              ilike(sessions.country, searchQuery),
+              ilike(sessions.referrer, searchQuery)
             )
           )
         )
