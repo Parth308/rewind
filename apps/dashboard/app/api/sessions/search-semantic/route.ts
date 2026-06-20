@@ -112,15 +112,15 @@ export async function POST(req: NextRequest) {
               COALESCE((${sessionEmbeddings.embedding} <=> cast(${vectorString} as vector)), 1.0),
               CASE 
                 WHEN cast(${sessions.id} as text) ILIKE ${searchQuery} THEN 0.0
-                WHEN ilike(${sessions.userId}, ${searchQuery}) THEN 0.0
-                WHEN ilike(${sessions.entryUrl}, ${searchQuery}) THEN 0.1
-                WHEN ilike(${sessions.browser}, ${searchQuery}) THEN 0.2
-                WHEN ilike(${sessions.os}, ${searchQuery}) THEN 0.2
-                WHEN ilike(${sessions.device}, ${searchQuery}) THEN 0.2
-                WHEN ilike(${sessions.country}, ${searchQuery}) THEN 0.2
+                WHEN cast(${sessions.userId} as text) ILIKE ${searchQuery} THEN 0.0
+                WHEN cast(${sessions.entryUrl} as text) ILIKE ${searchQuery} THEN 0.1
+                WHEN cast(${sessions.browser} as text) ILIKE ${searchQuery} THEN 0.2
+                WHEN cast(${sessions.os} as text) ILIKE ${searchQuery} THEN 0.2
+                WHEN cast(${sessions.device} as text) ILIKE ${searchQuery} THEN 0.2
+                WHEN cast(${sessions.country} as text) ILIKE ${searchQuery} THEN 0.2
                 WHEN cast(${sessions.tags} as text) ILIKE ${searchQuery} THEN 0.1
                 WHEN cast(${sessions.customEvents} as text) ILIKE ${searchQuery} THEN 0.2
-                WHEN ilike(${sessions.notes}, ${searchQuery}) THEN 0.1
+                WHEN cast(${sessions.notes} as text) ILIKE ${searchQuery} THEN 0.1
                 ELSE 1.0
               END
             )
@@ -136,15 +136,15 @@ export async function POST(req: NextRequest) {
               COALESCE((${sessionEmbeddings.embedding} <=> cast(${vectorString} as vector)), 1.0),
               CASE 
                 WHEN cast(${sessions.id} as text) ILIKE ${searchQuery} THEN 0.0
-                WHEN ilike(${sessions.userId}, ${searchQuery}) THEN 0.0
-                WHEN ilike(${sessions.entryUrl}, ${searchQuery}) THEN 0.1
-                WHEN ilike(${sessions.browser}, ${searchQuery}) THEN 0.2
-                WHEN ilike(${sessions.os}, ${searchQuery}) THEN 0.2
-                WHEN ilike(${sessions.device}, ${searchQuery}) THEN 0.2
-                WHEN ilike(${sessions.country}, ${searchQuery}) THEN 0.2
+                WHEN cast(${sessions.userId} as text) ILIKE ${searchQuery} THEN 0.0
+                WHEN cast(${sessions.entryUrl} as text) ILIKE ${searchQuery} THEN 0.1
+                WHEN cast(${sessions.browser} as text) ILIKE ${searchQuery} THEN 0.2
+                WHEN cast(${sessions.os} as text) ILIKE ${searchQuery} THEN 0.2
+                WHEN cast(${sessions.device} as text) ILIKE ${searchQuery} THEN 0.2
+                WHEN cast(${sessions.country} as text) ILIKE ${searchQuery} THEN 0.2
                 WHEN cast(${sessions.tags} as text) ILIKE ${searchQuery} THEN 0.1
                 WHEN cast(${sessions.customEvents} as text) ILIKE ${searchQuery} THEN 0.2
-                WHEN ilike(${sessions.notes}, ${searchQuery}) THEN 0.1
+                WHEN cast(${sessions.notes} as text) ILIKE ${searchQuery} THEN 0.1
                 ELSE 1.0
               END
             )
