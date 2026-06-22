@@ -4,20 +4,43 @@ import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Search, Sparkles, Clock, ArrowRight, Monitor, MousePointerClick, AlertTriangle, ChevronRight, CornerUpLeft, ChevronsUpDown, Flame, Globe, User, Folder, Info, Zap } from 'lucide-react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { FadeUp } from '@/components/ui/fade-up';
 import { formatDistanceToNow } from 'date-fns';
+import { Pagination } from '@/components/ui/pagination';
 
-export default function SearchClient({ projectId }: { projectId: string | null }) {
-  const [query, setQuery] = useState('');
-  const [isSearching, setIsSearching] = useState(false);
-  const [results, setResults] = useState<any[]>([]);
-  const [hasSearched, setHasSearched] = useState(false);
-  const [searchType, setSearchType] = useState<'ai' | 'direct' | null>(null);
+export default function SearchClient({ 
+  projectId, 
+  initialQuery = '', 
+  initialResults = [], 
+  initialSearchType = null,
+  totalCount = 0
+}: { 
+  projectId: string | null, 
+  initialQuery?: string, 
+  initialResults?: any[], 
+  initialSearchType?: string | null,
+  totalCount?: number
+}) {
+  const results = initialResults;
+  const searchType = initialSearchType;
+
+  const [query, setQuery] = useState(initialQuery);
+  const [hasSearched, setHasSearched] = useState(!!initialQuery);
   const [recentSearches, setRecentSearches] = useState<string[]>([]);
   const [autocompleteResults, setAutocompleteResults] = useState<string[]>([]);
   const [showAutocomplete, setShowAutocomplete] = useState(false);
+  
   const router = useRouter();
+  const searchParams = useSearchParams();
+
+  // Next.js app router specific transition
+  const [isNavigating, startNavigating] = useState(false);
+
+  useEffect(() => {
+    // If results change or initial query changes (which means server responded), we finished navigating
+    startNavigating(false);
+  }, [results, initialQuery]);
 
   useEffect(() => {
     const saved = localStorage.getItem('recentSearches');
@@ -25,6 +48,14 @@ export default function SearchClient({ projectId }: { projectId: string | null }
       try { setRecentSearches(JSON.parse(saved)); } catch (e) { }
     }
   }, []);
+
+  // Sync state with URL params if navigating backward/forward
+  useEffect(() => {
+    const q = searchParams.get('q') || '';
+    if (q !== query && !isNavigating) {
+      setQuery(q);
+    }
+  }, [searchParams]);
 
   useEffect(() => {
     const fetchAutocomplete = async () => {
@@ -55,29 +86,15 @@ export default function SearchClient({ projectId }: { projectId: string | null }
     localStorage.setItem('recentSearches', JSON.stringify(newRecents));
 
     setQuery(searchQuery);
-    setIsSearching(true);
     setHasSearched(true);
-    setResults([]);
-    setSearchType(null);
-
-    try {
-      const res = await fetch('/api/sessions/search-semantic', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ query: searchQuery, projectId }),
-      });
-      const data = await res.json();
-      if (data.success) {
-        setResults(data.results);
-        setSearchType(data.searchType || 'ai');
-      } else {
-        console.error('Search failed:', data.error);
-      }
-    } catch (err) {
-      console.error('Network error during search', err);
-    } finally {
-      setIsSearching(false);
-    }
+    setShowAutocomplete(false);
+    startNavigating(true);
+    
+    // Push the search query to the URL to trigger a server-side fetch via Suspense
+    const params = new URLSearchParams(searchParams.toString());
+    params.set('q', searchQuery);
+    params.delete('page'); // Reset to page 1 for new searches
+    router.push(`/dashboard/search?${params.toString()}`);
   };
 
   const onKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -194,7 +211,7 @@ export default function SearchClient({ projectId }: { projectId: string | null }
             transition={{ delay: 0.1 }}
             className="w-full flex-1"
           >
-            {isSearching ? (
+            {isNavigating ? (
               <div className="flex flex-col gap-4">
                 {[1, 2, 3].map((i) => (
                   <div key={i} className="h-40 w-full bg-[#0A0A0A] border border-[var(--color-border-dark)] rounded-2xl animate-pulse" />
@@ -409,6 +426,12 @@ export default function SearchClient({ projectId }: { projectId: string | null }
                     );
                   })}
                 </div>
+
+                {totalCount > 20 && (
+                  <div className="px-8 py-6 border-t border-[var(--color-border-dark)] bg-[#050505] relative z-10 flex justify-between items-center">
+                    <Pagination totalCount={totalCount} pageSize={20} />
+                  </div>
+                )}
               </FadeUp>
             )}
           </motion.div>
