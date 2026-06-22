@@ -1,21 +1,24 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, use } from 'react';
 import AnalyticsCharts from './AnalyticsCharts';
 import { StatCard } from './StatCard';
 import { X, GripHorizontal } from 'lucide-react';
 
-export function WidgetRenderer({ widget, projectId, onDelete, isEditMode, onResizePreview, onResizeEnd }: { 
+export function WidgetRenderer({ widget, projectId, onDelete, isEditMode, onResizePreview, onResizeEnd, initialDataPromise }: { 
   widget: any, 
   projectId: string, 
   onDelete: (id: string) => void, 
   isEditMode?: boolean, 
   onResizePreview?: (id: string, newColSpan: number, newRowSpan: number) => void,
-  onResizeEnd?: (id: string, newColSpan: number, newRowSpan: number) => void
+  onResizeEnd?: (id: string, newColSpan: number, newRowSpan: number) => void,
+  initialDataPromise?: Promise<any>
 }) {
-  const [data, setData] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(false);
+  const promiseData = initialDataPromise ? use(initialDataPromise) : null;
+  
+  const [data, setData] = useState<any>(promiseData?.success ? promiseData : null);
+  const [loading, setLoading] = useState(!promiseData);
+  const [error, setError] = useState(promiseData ? !promiseData.success : false);
   const [isConfirmingDelete, setIsConfirmingDelete] = useState(false);
 
   const handleResizeStart = (e: React.MouseEvent) => {
@@ -73,6 +76,8 @@ export function WidgetRenderer({ widget, projectId, onDelete, isEditMode, onResi
   }, [isConfirmingDelete]);
 
   useEffect(() => {
+    if (initialDataPromise) return; // Data already handled by Suspense block above
+
     let isMounted = true;
     setLoading(true);
     fetch(`/api/projects/${projectId}/widgets/${widget.id}/data`)
@@ -91,7 +96,7 @@ export function WidgetRenderer({ widget, projectId, onDelete, isEditMode, onResi
         }
       });
     return () => { isMounted = false; };
-  }, [projectId, widget.id]);
+  }, [projectId, widget.id, initialDataPromise]);
 
   const handleDelete = async () => {
     try {

@@ -45,8 +45,7 @@ function formatContext(tokens?: number) {
   return `${tokens} ctx`;
 }
 
-export function ApiSettingsTab() {
-  const [loading, setLoading] = useState(true);
+export function ApiSettingsTab({ initialSettings }: { initialSettings?: any }) {
   const [saving, setSaving] = useState(false);
   const [saveStatus, setSaveStatus] = useState<'idle' | 'success' | 'error'>('idle');
   const [showKey, setShowKey] = useState<Record<string, boolean>>({});
@@ -54,35 +53,29 @@ export function ApiSettingsTab() {
   const [modelsError, setModelsError] = useState<string | null>(null);
   const [availableModels, setAvailableModels] = useState<ModelInfo[]>([]);
 
-  const [settings, setSettings] = useState({
-    provider: 'google' as Provider,
-    googleApiKey: '',
-    openaiApiKey: '',
-    anthropicApiKey: '',
-    languageModel: '',
-    embeddingModel: '',
-    scope: 'project',
+  const [settings, setSettings] = useState(() => {
+    if (initialSettings?.settings) {
+      return { ...initialSettings.settings, scope: 'project' };
+    }
+    return {
+      provider: 'google' as Provider,
+      googleApiKey: '',
+      openaiApiKey: '',
+      anthropicApiKey: '',
+      languageModel: '',
+      embeddingModel: '',
+      scope: 'project',
+    };
   });
 
-  const [envStatus, setEnvStatus] = useState({
-    hasGoogleKey: false,
-    hasOpenAiKey: false,
-    hasAnthropicKey: false,
+  const [envStatus, setEnvStatus] = useState(() => {
+    if (initialSettings?.env) return initialSettings.env;
+    return {
+      hasGoogleKey: false,
+      hasOpenAiKey: false,
+      hasAnthropicKey: false,
+    };
   });
-
-  // Load initial settings
-  useEffect(() => {
-    fetch('/api/settings/ai')
-      .then(r => r.json())
-      .then(data => {
-        if (data.success) {
-          setSettings(prev => ({ ...prev, ...data.settings, scope: 'project' }));
-          setEnvStatus(data.env);
-        }
-      })
-      .catch(console.error)
-      .finally(() => setLoading(false));
-  }, []);
 
   // Derive the effective API key for the active provider
   const effectiveKey = useCallback((provider: Provider): string => {
@@ -108,7 +101,7 @@ export function ApiSettingsTab() {
         // Auto-select sensible defaults if current selection is not in the list
         const genModels = data.models.filter((m: ModelInfo) => m.supportsGeneration);
         const embModels = data.models.filter((m: ModelInfo) => m.supportsEmbedding);
-        setSettings(prev => ({
+        setSettings((prev: any) => ({
           ...prev,
           languageModel: genModels.find((m: ModelInfo) => m.id === prev.languageModel) ? prev.languageModel : genModels[0]?.id || '',
           embeddingModel: embModels.find((m: ModelInfo) => m.id === prev.embeddingModel) ? prev.embeddingModel : embModels[0]?.id || '',
@@ -125,11 +118,9 @@ export function ApiSettingsTab() {
 
   // Fetch models when provider or keys change (only if we have a key)
   useEffect(() => {
-    if (!loading) {
-      fetchModels(settings.provider);
-    }
+    fetchModels(settings.provider);
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [settings.provider, loading]);
+  }, [settings.provider]);
 
   const handleSave = async () => {
     setSaving(true);
@@ -154,18 +145,9 @@ export function ApiSettingsTab() {
   const currentProvider = PROVIDERS.find(p => p.id === settings.provider)!;
   const genModels = availableModels.filter(m => m.supportsGeneration);
   const embModels = availableModels.filter(m => m.supportsEmbedding);
-  const hasKey = !!effectiveKey(settings.provider) && effectiveKey(settings.provider) !== '';
+  const hasKey = !!effectiveKey(settings.provider as Provider) && effectiveKey(settings.provider as Provider) !== '';
   const keyInEnv = { google: envStatus.hasGoogleKey, openai: envStatus.hasOpenAiKey, anthropic: envStatus.hasAnthropicKey };
-
-  if (loading) {
-    return (
-      <div className="animate-pulse flex flex-col gap-6">
-        <div className="h-8 w-48 bg-white/5 rounded" />
-        <div className="h-20 w-full bg-white/5 rounded" />
-        <div className="h-20 w-full bg-white/5 rounded" />
-      </div>
-    );
-  }
+  const providerKey = settings.provider as Provider;
 
   return (
     <motion.div
@@ -217,7 +199,7 @@ export function ApiSettingsTab() {
           <div className="space-y-3">
             <label className="text-[10px] font-mono tracking-[0.2em] text-neutral-500 uppercase flex justify-between items-center">
               <span>{currentProvider.label} API Key</span>
-              {keyInEnv[settings.provider] && !(settings[`${settings.provider}ApiKey` as keyof typeof settings]) && (
+              {keyInEnv[providerKey] && !(settings[`${settings.provider}ApiKey` as keyof typeof settings]) && (
                 <span className="flex items-center gap-1.5 text-[var(--color-accent-green)]">
                   <CheckCircle2 className="w-3 h-3" /> Detected from .env
                 </span>
@@ -235,7 +217,7 @@ export function ApiSettingsTab() {
                 onBlur={e => {
                   if (e.target.value.length > 10) fetchModels(settings.provider, e.target.value);
                 }}
-                placeholder={keyInEnv[settings.provider] ? '•••••••••••••••• (from .env — override below)' : currentProvider.keyPlaceholder}
+                placeholder={keyInEnv[providerKey] ? '•••••••••••••••• (from .env — override below)' : currentProvider.keyPlaceholder}
                 className="w-full bg-[#111] border border-[var(--color-border-dark)] rounded-xl pl-12 pr-24 py-4 text-white font-mono text-sm focus:border-[var(--color-accent-green)] focus:ring-1 focus:ring-[var(--color-accent-green)]/30 focus:outline-none transition-all shadow-inner"
               />
               <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-2">

@@ -7,6 +7,8 @@ import { AiUsageCard } from './AiUsageCard';
 import { DashboardWidgetGrid } from './DashboardWidgetGrid';
 import { cookies } from 'next/headers';
 
+import { getWidgetData } from '@/lib/widget-data';
+
 export const dynamic = 'force-dynamic';
 
 export default async function DashboardAnalytics() {
@@ -32,6 +34,12 @@ export default async function DashboardAnalytics() {
     ] as any).returning();
   }
 
+  // Pre-fetch all widgets into Promises to stream to the client
+  const initialDataPromises: Record<string, Promise<any>> = {};
+  for (const w of widgets) {
+    initialDataPromises[w.id] = getWidgetData(projectId, w);
+  }
+
   return (
     <div className="flex flex-col gap-8 sm:gap-10">
       {/* Header */}
@@ -51,7 +59,7 @@ export default async function DashboardAnalytics() {
 
       {/* Dynamic Widgets Area */}
       <FadeUp delay={0.1} className="w-full">
-        <DashboardWidgetGrid initialWidgets={widgets} projectId={projectId} />
+        <DashboardWidgetGrid initialWidgets={widgets} projectId={projectId} initialDataPromises={initialDataPromises} />
       </FadeUp>
 
       {/* AI Usage (Full Width Bottom) */}

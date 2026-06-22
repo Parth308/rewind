@@ -24,13 +24,17 @@ export function SettingsView({
   initialEmail,
   users,
   invites,
-  currentUserRole
+  currentUserRole,
+  initialPrivacySettings,
+  initialAiSettings
 }: { 
   initialName: string, 
   initialEmail: string,
   users: any[],
   invites: any[],
-  currentUserRole: string
+  currentUserRole: string,
+  initialPrivacySettings?: any,
+  initialAiSettings?: any
 }) {
   const [activeTab, setActiveTab] = useState('general');
 
@@ -150,8 +154,8 @@ export function SettingsView({
                 </motion.div>
               )}
 
-              {activeTab === 'api' && <ApiSettingsTab key="api" />}
-              {activeTab === 'privacy' && <PrivacySettingsTab key="privacy" />}
+              {activeTab === 'api' && <ApiSettingsTab key="api" initialSettings={initialAiSettings} />}
+              {activeTab === 'privacy' && <PrivacySettingsTab key="privacy" initialSettings={initialPrivacySettings} />}
               {activeTab === 'team' && (
                 <TeamSettingsTab 
                   key="team" 

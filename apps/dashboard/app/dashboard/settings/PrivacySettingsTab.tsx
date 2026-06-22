@@ -4,38 +4,30 @@ import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Save, AlertCircle, CheckCircle2, Shield } from 'lucide-react';
 
-export function PrivacySettingsTab() {
-  const [loading, setLoading] = useState(true);
+export function PrivacySettingsTab({ initialSettings }: { initialSettings?: any }) {
   const [saving, setSaving] = useState(false);
   const [saveStatus, setSaveStatus] = useState<'idle' | 'success' | 'error'>('idle');
 
-  const [settings, setSettings] = useState({
-    maskInputs: true,
-    maskSelectors: '',
-    blockSelectors: '',
-    ignoreUrls: '',
-    captureNetworkBodies: false,
-    networkBodyMaskKeys: '',
+  const [settings, setSettings] = useState(() => {
+    if (initialSettings) {
+      return {
+        maskInputs: initialSettings.maskInputs !== undefined ? initialSettings.maskInputs : true,
+        maskSelectors: (initialSettings.maskSelectors || []).join(', '),
+        blockSelectors: (initialSettings.blockSelectors || []).join(', '),
+        ignoreUrls: (initialSettings.ignoreUrls || []).join(', '),
+        captureNetworkBodies: initialSettings.captureNetworkBodies || false,
+        networkBodyMaskKeys: (initialSettings.networkBodyMaskKeys || []).join(', '),
+      };
+    }
+    return {
+      maskInputs: true,
+      maskSelectors: '',
+      blockSelectors: '',
+      ignoreUrls: '',
+      captureNetworkBodies: false,
+      networkBodyMaskKeys: '',
+    };
   });
-
-  useEffect(() => {
-    fetch('/api/settings/privacy')
-      .then(r => r.json())
-      .then(data => {
-        if (data.success) {
-          setSettings({
-            maskInputs: data.settings.maskInputs !== undefined ? data.settings.maskInputs : true,
-            maskSelectors: (data.settings.maskSelectors || []).join(', '),
-            blockSelectors: (data.settings.blockSelectors || []).join(', '),
-            ignoreUrls: (data.settings.ignoreUrls || []).join(', '),
-            captureNetworkBodies: data.settings.captureNetworkBodies || false,
-            networkBodyMaskKeys: (data.settings.networkBodyMaskKeys || []).join(', '),
-          });
-        }
-      })
-      .catch(console.error)
-      .finally(() => setLoading(false));
-  }, []);
 
   const handleSave = async () => {
     setSaving(true);
@@ -46,11 +38,11 @@ export function PrivacySettingsTab() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           maskInputs: settings.maskInputs,
-          maskSelectors: settings.maskSelectors.split(',').map(s => s.trim()).filter(Boolean),
-          blockSelectors: settings.blockSelectors.split(',').map(s => s.trim()).filter(Boolean),
-          ignoreUrls: settings.ignoreUrls.split(',').map(s => s.trim()).filter(Boolean),
+          maskSelectors: settings.maskSelectors.split(',').map((s: string) => s.trim()).filter(Boolean),
+          blockSelectors: settings.blockSelectors.split(',').map((s: string) => s.trim()).filter(Boolean),
+          ignoreUrls: settings.ignoreUrls.split(',').map((s: string) => s.trim()).filter(Boolean),
           captureNetworkBodies: settings.captureNetworkBodies,
-          networkBodyMaskKeys: settings.networkBodyMaskKeys.split(',').map(s => s.trim()).filter(Boolean),
+          networkBodyMaskKeys: settings.networkBodyMaskKeys.split(',').map((s: string) => s.trim()).filter(Boolean),
         }),
       });
       setSaveStatus(res.ok ? 'success' : 'error');
@@ -62,15 +54,7 @@ export function PrivacySettingsTab() {
     }
   };
 
-  if (loading) {
-    return (
-      <div className="animate-pulse flex flex-col gap-6">
-        <div className="h-8 w-48 bg-white/5 rounded" />
-        <div className="h-20 w-full bg-white/5 rounded" />
-        <div className="h-20 w-full bg-white/5 rounded" />
-      </div>
-    );
-  }
+
 
   return (
     <motion.div
@@ -99,7 +83,7 @@ export function PrivacySettingsTab() {
             </p>
           </div>
           <button
-            onClick={() => setSettings(s => ({ ...s, maskInputs: !s.maskInputs }))}
+            onClick={() => setSettings((s: any) => ({ ...s, maskInputs: !s.maskInputs }))}
             className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-[var(--color-accent-green)] focus:ring-offset-2 focus:ring-offset-black ${
               settings.maskInputs ? 'bg-[var(--color-accent-green)]' : 'bg-neutral-700'
             }`}
@@ -164,7 +148,7 @@ export function PrivacySettingsTab() {
               </p>
             </div>
             <button
-              onClick={() => setSettings(s => ({ ...s, captureNetworkBodies: !s.captureNetworkBodies }))}
+              onClick={() => setSettings((s: any) => ({ ...s, captureNetworkBodies: !s.captureNetworkBodies }))}
               className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-[var(--color-accent-green)] focus:ring-offset-2 focus:ring-offset-black ${
                 settings.captureNetworkBodies ? 'bg-[var(--color-accent-green)]' : 'bg-neutral-700'
               }`}

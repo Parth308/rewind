@@ -27,11 +27,19 @@ interface FunnelResult {
   dropoffSessionIds: string[];
 }
 
-export default function FunnelsClient({ projectId }: { projectId: string }) {
+export default function FunnelsClient({ 
+  projectId,
+  initialFunnels,
+  initialEvents
+}: { 
+  projectId: string,
+  initialFunnels: any[],
+  initialEvents: string[]
+}) {
   const [steps, setSteps] = useState<Step[]>([{ type: 'url', value: '/pricing' }, { type: 'event', value: 'Started Trial' }]);
   const [timeWindow, setTimeWindow] = useState('1800000'); // 30m in ms
-  const [availableEvents, setAvailableEvents] = useState<string[]>([]);
-  const [savedFunnels, setSavedFunnels] = useState<SavedFunnel[]>([]);
+  const [availableEvents, setAvailableEvents] = useState<string[]>(initialEvents);
+  const [savedFunnels, setSavedFunnels] = useState<SavedFunnel[]>(initialFunnels);
 
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
@@ -39,22 +47,9 @@ export default function FunnelsClient({ projectId }: { projectId: string }) {
   const [hasAnalyzed, setHasAnalyzed] = useState(false);
 
   // Dialog State
-
   const [errorMsg, setErrorMsg] = useState('');
   const [showSaveModal, setShowSaveModal] = useState(false);
   const [saveName, setSaveName] = useState('');
-
-  useEffect(() => {
-    if (projectId !== 'all') {
-      fetch(`/api/projects/${projectId}/events`)
-        .then(r => r.json())
-        .then(d => { if (d.success) setAvailableEvents(d.events); });
-
-      fetch(`/api/projects/${projectId}/funnels`)
-        .then(r => r.json())
-        .then(d => { if (d.success) setSavedFunnels(d.funnels); });
-    }
-  }, [projectId]);
 
   const addStep = () => setSteps([...steps, { type: 'event', value: '' }]);
 

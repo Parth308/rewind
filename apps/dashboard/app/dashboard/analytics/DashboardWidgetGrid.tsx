@@ -1,12 +1,20 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, Suspense } from 'react';
 import { createPortal } from 'react-dom';
 import { WidgetRenderer } from './WidgetRenderer';
 import { AddWidgetModal } from './AddWidgetModal';
 import { Plus, LayoutGrid, Check, Settings, ChevronDown } from 'lucide-react';
 
-export function DashboardWidgetGrid({ initialWidgets, projectId }: { initialWidgets: any[], projectId: string }) {
+export function DashboardWidgetGrid({ 
+  initialWidgets, 
+  projectId,
+  initialDataPromises = {}
+}: { 
+  initialWidgets: any[], 
+  projectId: string,
+  initialDataPromises?: Record<string, Promise<any>>
+}) {
   const [widgets, setWidgets] = useState(initialWidgets);
   const [modalOpen, setModalOpen] = useState(false);
   const [isEditMode, setIsEditMode] = useState(false);
@@ -200,14 +208,21 @@ export function DashboardWidgetGrid({ initialWidgets, projectId }: { initialWidg
             onDragOver={handleDragOver}
             onDrop={(e) => handleDrop(e, w.id)}
           >
-            <WidgetRenderer 
-              widget={w} 
-              projectId={projectId} 
-              onDelete={handleDelete} 
-              isEditMode={isEditMode} 
-              onResizePreview={handleResizePreview}
-              onResizeEnd={handleResizeEnd}
-            />
+            <Suspense fallback={
+              <div className="h-full w-full rounded-2xl border border-white/10 bg-[#0A0A0A] flex items-center justify-center animate-pulse">
+                <span className="text-xs font-mono text-neutral-600">LOADING WIDGET...</span>
+              </div>
+            }>
+              <WidgetRenderer 
+                widget={w} 
+                projectId={projectId} 
+                onDelete={handleDelete} 
+                isEditMode={isEditMode} 
+                onResizePreview={handleResizePreview}
+                onResizeEnd={handleResizeEnd}
+                initialDataPromise={initialDataPromises[w.id]}
+              />
+            </Suspense>
           </div>
         ))}
       </div>
