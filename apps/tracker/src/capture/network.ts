@@ -22,22 +22,42 @@ function maskNetworkBody(bodyStr: string, maskKeys: string[]): string {
   }
 }
 
+function extractBodyStr(body: any): string | undefined {
+  if (!body) return undefined;
+  if (typeof body === 'string') return body;
+  if (body instanceof FormData || body instanceof URLSearchParams) {
+    try {
+      const entries: any = {};
+      (body as any).forEach((value: any, key: string) => { entries[key] = value; });
+      return JSON.stringify(entries);
+    } catch { }
+  }
+  return undefined;
+}
+
 export function setupNetworkCapture(transport: Transport, config: RewindConfig) {
-  // Fetch interceptor
+  // 1. Fetch interceptor
   const originalFetch = window.fetch;
   window.fetch = async function (...args) {
     const startTime = Date.now();
-    const requestUrl = typeof args[0] === 'string' ? args[0] : (args[0] as Request).url;
-    const method = (args[1]?.method || 'GET').toUpperCase();
+    let requestUrl = '';
+    if (typeof args[0] === 'string') requestUrl = args[0];
+    else if (args[0] instanceof URL) requestUrl = args[0].href;
+    else if (args[0] && typeof (args[0] as Request).url === 'string') requestUrl = (args[0] as Request).url;
+    
+    const method = (args[1]?.method || (args[0] instanceof Request ? (args[0] as Request).method : 'GET')).toUpperCase();
 
     // Ignore tracker urls and ignored urls
-    if (requestUrl.includes(config.endpoint) || config.ignoreUrls.some(u => requestUrl.includes(u))) {
+    if (!requestUrl || requestUrl.includes(config.endpoint) || config.ignoreUrls.some(u => requestUrl.includes(u))) {
       return originalFetch.apply(this, args);
     }
 
     let requestBody: string | undefined = undefined;
-    if (config.captureNetworkBodies && args[1]?.body && typeof args[1].body === 'string') {
-      requestBody = maskNetworkBody(args[1].body, config.networkBodyMaskKeys);
+    if (config.captureNetworkBodies && args[1]?.body) {
+      const rawBodyStr = extractBodyStr(args[1].body);
+      if (rawBodyStr) {
+        requestBody = maskNetworkBody(rawBodyStr, config.networkBodyMaskKeys);
+      }
     }
 
     try {
@@ -65,7 +85,7 @@ export function setupNetworkCapture(transport: Transport, config: RewindConfig) 
           timestamp: startTime,
           requestBody,
           responseBody
-        } as any] // Cast as any because the types in tracker might not have requestBody yet
+        } as any]
       });
 
       return response;
@@ -84,5 +104,61 @@ export function setupNetworkCapture(transport: Transport, config: RewindConfig) 
       });
       throw err;
     }
+  };
+
+  // 2. XMLHttpRequest interceptor
+  const originalXhrOpen = XMLHttpRequest.prototype.open;
+  const originalXhrSend = XMLHttpRequest.prototype.send;
+
+  XMLHttpRequest.prototype.open = function(method: string, url: string | URL, ...rest: any[]) {
+    (this as any)._rewindMethod = method.toUpperCase();
+    (this as any)._rewindUrl = typeof url === 'string' ? url : (url instanceof URL ? url.href : '');
+    return (originalXhrOpen as any).apply(this, [method, url, ...rest]);
+  };
+
+  XMLHttpRequest.prototype.send = function(body?: Document | XMLHttpRequestBodyInit | null) {
+    const startTime = Date.now();
+    const method = (this as any)._rewindMethod || 'GET';
+    const requestUrl = (this as any)._rewindUrl || '';
+
+    if (!requestUrl || requestUrl.includes(config.endpoint) || config.ignoreUrls.some(u => requestUrl.includes(u))) {
+      return originalXhrSend.apply(this, [body as any]);
+    }
+
+    let requestBody: string | undefined = undefined;
+    if (config.captureNetworkBodies && body) {
+      const rawBodyStr = extractBodyStr(body);
+      if (rawBodyStr) {
+        requestBody = maskNetworkBody(rawBodyStr, config.networkBodyMaskKeys);
+      }
+    }
+
+    this.addEventListener('loadend', () => {
+      const duration = Date.now() - startTime;
+      let responseBody: string | undefined = undefined;
+      
+      if (config.captureNetworkBodies && (this.responseType === '' || this.responseType === 'text')) {
+        try {
+          if (this.responseText) {
+            responseBody = maskNetworkBody(this.responseText, config.networkBodyMaskKeys);
+          }
+        } catch (e) {}
+      }
+
+      transport.send({
+        type: 'network',
+        requests: [{
+          url: requestUrl,
+          method,
+          status: this.status,
+          duration,
+          timestamp: startTime,
+          requestBody,
+          responseBody
+        } as any]
+      });
+    });
+
+    return originalXhrSend.apply(this, [body as any]);
   };
 }
