@@ -26,7 +26,7 @@ export async function handleMetadata(projectId: string, payload: any) {
       os: os || 'Unknown',
       browser: browser || 'Unknown',
       startedAt: new Date(),
-    });
+    }).onConflictDoNothing();
   } else {
     // Session exists, merge OS/browser and userId/metadata if provided
     const updateData: any = {

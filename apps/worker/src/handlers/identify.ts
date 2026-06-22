@@ -19,7 +19,7 @@ export async function handleIdentify(projectId: string, payload: any) {
       os: 'Unknown',
       browser: 'Unknown',
       startedAt: new Date(),
-    });
+    }).onConflictDoNothing();
   } else {
     // Session exists, merge metadata and set userId
     await db.update(sessions).set({

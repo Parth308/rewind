@@ -32,7 +32,7 @@ export async function handleBatch(projectId: string, payload: any) {
       // Use client timestamp so duration math is always on the same clock
       startedAt: new Date(firstClientTs),
     };
-    await db.insert(sessions).values(newSession);
+    await db.insert(sessions).values(newSession).onConflictDoNothing();
     existingSession = [newSession as any];
   }
 
