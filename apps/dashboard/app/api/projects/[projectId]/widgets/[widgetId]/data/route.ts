@@ -153,6 +153,33 @@ export async function GET(req: NextRequest, context: { params: Promise<{ project
         rawData = res.rows;
       }
     }
+    
+    if (widget.type === 'client_targets') {
+      const browserRes = await db.execute(sql`
+        SELECT browser, count(*) as count
+        FROM sessions
+        WHERE browser IS NOT NULL AND browser != 'Unknown'
+        ${params.projectId !== 'all' ? sql`AND project_id = ${params.projectId}` : sql``}
+        GROUP BY 1 ORDER BY 2 DESC LIMIT 5
+      `);
+      
+      const avgRes = await db.execute(sql`
+        SELECT avg(duration_ms) as avg_duration
+        FROM sessions
+        WHERE duration_ms IS NOT NULL
+        ${params.projectId !== 'all' ? sql`AND project_id = ${params.projectId}` : sql``}
+      `);
+      
+      const avgMs = avgRes.rows[0]?.avg_duration ? Math.round(Number(avgRes.rows[0].avg_duration) / 1000) : null;
+
+      return NextResponse.json({
+        success: true,
+        data: {
+          browserStats: browserRes.rows,
+          avgMs
+        }
+      });
+    }
 
     // 3. Format into a 14-day continuous array
     const countsByDate = new Map();
