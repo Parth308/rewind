@@ -11,18 +11,27 @@
 <br/>
 
 [![Node.js](https://img.shields.io/badge/Node.js-20%2B-339933?logo=nodedotjs&logoColor=white)](#)
-[![TypeScript](https://img.shields.io/badge/TypeScript-5-3178C6?logo=typescript&logoColor=white)](#)
-[![Next.js](https://img.shields.io/badge/Next.js-15-black?logo=nextdotjs&logoColor=white)](#)
 [![pnpm](https://img.shields.io/badge/pnpm-workspace-F69220?logo=pnpm&logoColor=white)](#)
-[![Turborepo](https://img.shields.io/badge/Turborepo-monorepo-EF4444?logo=turborepo&logoColor=white)](#)
-[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16-4169E1?logo=postgresql&logoColor=white)](#)
-[![Redis](https://img.shields.io/badge/Redis-7-DC382D?logo=redis&logoColor=white)](#)
 [![License](https://img.shields.io/badge/license-MIT-a3e635)](#)
 [![Live Demo](https://img.shields.io/badge/Live%20Demo-▶%20Try%20Now-a3e635?style=flat)](https://rewind-parth308.vercel.app)
+[![GitHub Stars](https://img.shields.io/github/stars/Parth308/rewind?style=flat&logo=github&label=Star%20on%20GitHub&color=a3e635)](https://github.com/Parth308/rewind)
 
 <br/>
 
 > *Drop a single `<script>` tag. Get full DOM replay, API network logs, console capture, AI summaries, and conversion funnels — all running on your own server.*
+
+```html
+<!-- That's literally it. -->
+<script src="https://ingest.yourdomain.com/config/YOUR_TOKEN.js"></script>
+<script src="https://ingest.yourdomain.com/tracker/tracker.js"></script>
+<script>Rewind.init({ projectToken: 'YOUR_TOKEN', ingestorUrl: 'wss://ingest.yourdomain.com' });</script>
+```
+
+<br/>
+
+<a href="https://rewind-parth308.vercel.app">
+  <img src="https://res.cloudinary.com/dksoflusy/image/upload/v1782319862/heropart2_nccamq.png" alt="Rewind analytics dashboard — sessions, errors, rage clicks and custom events" style="border-radius: 8px; width: 100%; max-width: 860px;" />
+</a>
 
 <br/>
 
@@ -62,23 +71,21 @@ The demo is pre-loaded with **80 realistic sessions** across 3 demo projects —
 
 ---
 
-## Table of Contents
+## 📸 Screenshots
 
-1. [Features](#features)
-2. [Tech Stack](#tech-stack)
-3. [Architecture](#system-architecture)
-4. [Monorepo Structure](#monorepo-structure)
-5. [One-Click Deploy](#one-click-deploy--production)
-6. [Local Development](#local-development)
-7. [Embedding the Tracker](#embedding-the-tracker)
-8. [Tracking Custom Events](#tracking-custom-events)
-9. [Conversion Funnels](#conversion-funnels)
-10. [Privacy & Masking](#privacy--masking)
-11. [Database Management](#database-management)
-12. [Environment Variables](#environment-variables)
-13. [Contributing](#contributing)
+<p>
+  <img src="https://res.cloudinary.com/dksoflusy/image/upload/v1781977528/session-replay_odidsc.png" alt="Session Replay" width="49%" />
+  <img src="https://res.cloudinary.com/dksoflusy/image/upload/v1781977527/analytics_dfwucv.png" alt="Analytics Dashboard" width="49%" />
+</p>
+
+<p>
+  <img src="https://res.cloudinary.com/dksoflusy/image/upload/v1781977529/sessions-list_qxdind.png" alt="Sessions Directory" width="49%" />
+  <img src="https://res.cloudinary.com/dksoflusy/image/upload/v1781977528/funnels_srkd3a.png" alt="Conversion Funnels" width="49%" />
+</p>
 
 ---
+
+
 
 ## Features
 
@@ -461,16 +468,11 @@ window.Rewind.track('Export Triggered', { format: 'csv', rows: 4200 });
 
 ### 2. Backend Tracking (Node.js SDK)
 
-## 🧩 SDKs & Integrations
-
-- **Frontend Tracker:** `@rewind/tracker`
-- **Node.js SDK:** `rewind-node`
+Session replay is strictly visual, but many critical failures happen purely on the backend. You can use the `rewind-node` SDK to push backend context, errors, and user identities directly into the active user's session timeline!
 
 ```bash
 npm install rewind-node
 ```
-
-Session replay is strictly visual, but many critical failures happen purely on the backend. You can use the `rewind-node` SDK to push backend context, errors, and user identities directly into the active user's session timeline!
 
 1. Pass `window.Rewind.sessionId` from your frontend to your backend (e.g., via an `x-rewind-session-id` HTTP header).
 2. Initialize the SDK in your API and push the events:
@@ -586,7 +588,7 @@ cd packages/shared && npx drizzle-kit studio
 | `REDIS_URL` | — | ✅ | Redis connection string |
 | `JWT_SECRET` | — | ✅ | Secret for signing JWTs. Use `openssl rand -hex 32` |
 | `FRONTEND_URL` | `http://localhost:3000` | ✅ | Dashboard URL (used for CORS) |
-| `API_URL` | `http://api:3002` | ✅ | API URL as seen from the Dashboard container |
+| `API_URL` | `http://api:3002` | — | Internal Docker API URL (rarely needs changing) |
 | `NEXT_PUBLIC_INGESTOR_URL` | `ws://localhost:3001` | ✅ | Public WebSocket URL embedded in the tracker snippet |
 | `PORT` | `3002` | — | Port for the REST API |
 | `INGESTOR_PORT` | `3001` | — | Port for the Ingestor |
@@ -610,11 +612,28 @@ cd packages/shared && npx drizzle-kit studio
 
 ---
 
+## 🙌 Community & Support
+
+| Channel | Link |
+|:---|:---|
+| 🐛 **Bug Reports** | [Open an Issue](https://github.com/Parth308/rewind/issues/new?template=bug_report.md) |
+| 💡 **Feature Requests** | [Start a Discussion](https://github.com/Parth308/rewind/discussions/new?category=ideas) |
+| 📖 **Documentation** | [rewind-parth308.vercel.app/docs](https://rewind-parth308.vercel.app/docs) |
+| ⭐ **Show Support** | [Star on GitHub](https://github.com/Parth308/rewind) — it genuinely helps |
+
+> If Rewind has saved you time, a GitHub star goes a long way in helping others discover it.
+
+---
+
 <div align="center">
 
 <br/>
 
 *Built to give small teams the observability superpowers that used to cost $1,000/month.*
+
+<br/>
+
+[![Star on GitHub](https://img.shields.io/github/stars/Parth308/rewind?style=social)](https://github.com/Parth308/rewind)
 
 <br/>
 

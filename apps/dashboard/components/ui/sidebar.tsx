@@ -51,7 +51,12 @@ export function Sidebar({ isLive = true, projects = [], activeProjectId = 'all' 
           >
             R
           </div>
-          <span className="font-sans text-xl font-bold text-white tracking-tight">Rewind</span>
+          <div className="flex items-center gap-2">
+            <span className="font-sans text-xl font-bold text-white tracking-tight">Rewind</span>
+            {process.env.NEXT_PUBLIC_DEMO_MODE === 'true' && (
+              <span className="px-1.5 py-0.5 rounded text-[9px] font-mono font-bold tracking-widest uppercase bg-amber-500/10 text-amber-400 border border-amber-500/20 leading-none">Demo</span>
+            )}
+          </div>
         </Link>
         <button
           onClick={() => setIsOpen(!isOpen)}
@@ -91,7 +96,12 @@ export function Sidebar({ isLive = true, projects = [], activeProjectId = 'all' 
           <Link href="/dashboard" className="flex items-center gap-3 px-2 group relative w-fit">
             <div className="absolute inset-0 bg-[var(--color-accent-green)] blur-[25px] opacity-10 group-hover:opacity-40 transition-opacity" />
             <div className="h-8 w-8 rounded-lg flex items-center justify-center text-[#0a0a0a] font-black text-sm font-mono shadow-[0_0_15px_rgba(163,230,53,0.3)] relative z-10" style={{ background: '#a3e635' }}>R</div>
-            <span className="font-sans text-xl font-bold text-white tracking-tight relative z-10">Rewind</span>
+            <div className="flex items-center gap-2 relative z-10">
+              <span className="font-sans text-xl font-bold text-white tracking-tight">Rewind</span>
+              {process.env.NEXT_PUBLIC_DEMO_MODE === 'true' && (
+                <span className="px-1.5 py-0.5 rounded text-[9px] font-mono font-bold tracking-widest uppercase bg-amber-500/10 text-amber-400 border border-amber-500/20 leading-none mt-0.5">Demo</span>
+              )}
+            </div>
           </Link>
 
           <div className="relative">

@@ -54,7 +54,7 @@ export default async function SettingsPage() {
   }
 
   const isDemoMode = process.env.NEXT_PUBLIC_DEMO_MODE === 'true';
-  const userSettings = user.settings || {};
+  const userSettings = user?.settings || {};
 
   if (isDemoMode) {
     if ((userSettings as any)?.ai?.googleApiKey) (userSettings as any).ai.googleApiKey = 'AIzaSy...[HIDDEN_IN_DEMO]';
