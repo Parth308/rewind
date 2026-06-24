@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useTransition } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Search, Sparkles, Clock, ArrowRight, Monitor, MousePointerClick, AlertTriangle, ChevronRight, CornerUpLeft, ChevronsUpDown, Flame, Globe, User, Folder, Info, Zap } from 'lucide-react';
 import Link from 'next/link';
@@ -35,12 +35,7 @@ export default function SearchClient({
   const searchParams = useSearchParams();
 
   // Next.js app router specific transition
-  const [isNavigating, startNavigating] = useState(false);
-
-  useEffect(() => {
-    // If results change or initial query changes (which means server responded), we finished navigating
-    startNavigating(false);
-  }, [results, initialQuery]);
+  const [isPending, startTransition] = useTransition();
 
   useEffect(() => {
     const saved = localStorage.getItem('recentSearches');
@@ -52,10 +47,10 @@ export default function SearchClient({
   // Sync state with URL params if navigating backward/forward
   useEffect(() => {
     const q = searchParams.get('q') || '';
-    if (q !== query && !isNavigating) {
+    if (q !== query && !isPending) {
       setQuery(q);
     }
-  }, [searchParams]);
+  }, [searchParams, isPending, query]);
 
   useEffect(() => {
     const fetchAutocomplete = async () => {
@@ -88,13 +83,14 @@ export default function SearchClient({
     setQuery(searchQuery);
     setHasSearched(true);
     setShowAutocomplete(false);
-    startNavigating(true);
     
     // Push the search query to the URL to trigger a server-side fetch via Suspense
-    const params = new URLSearchParams(searchParams.toString());
-    params.set('q', searchQuery);
-    params.delete('page'); // Reset to page 1 for new searches
-    router.push(`/dashboard/search?${params.toString()}`);
+    startTransition(() => {
+      const params = new URLSearchParams(searchParams.toString());
+      params.set('q', searchQuery);
+      params.delete('page'); // Reset to page 1 for new searches
+      router.push(`/dashboard/search?${params.toString()}`);
+    });
   };
 
   const onKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -211,7 +207,7 @@ export default function SearchClient({
             transition={{ delay: 0.1 }}
             className="w-full flex-1"
           >
-            {isNavigating ? (
+            {isPending ? (
               <div className="flex flex-col gap-4">
                 {[1, 2, 3].map((i) => (
                   <div key={i} className="h-40 w-full bg-[#0A0A0A] border border-[var(--color-border-dark)] rounded-2xl animate-pulse" />

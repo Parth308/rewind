@@ -32,7 +32,7 @@ JWT_SECRET=dev_secret_key
 # Service URLs
 FRONTEND_URL=http://localhost:3000
 API_URL=http://api:3002
-TRACKER_INGESTOR_URL=ws://localhost:3001`} />
+NEXT_PUBLIC_INGESTOR_URL=http://localhost:3001`} />
 
       <div className="my-12 w-full overflow-hidden border border-[var(--color-border-dark)] rounded-2xl bg-[#050505]">
         <DeploymentPipeline />

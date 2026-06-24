@@ -50,14 +50,18 @@ export async function handleBatch(projectId: string, payload: any) {
   }
 
   if (rrwebEvents.length > 0) {
-    await db.insert(events).values(
-      rrwebEvents.map((e: any) => ({
-        sessionId,
-        type: e.type,
-        timestamp: e.timestamp,   // store as raw ms epoch (bigint)
-        data: e,
-      }))
-    );
+    const CHUNK_SIZE = 5000;
+    for (let i = 0; i < rrwebEvents.length; i += CHUNK_SIZE) {
+      const chunk = rrwebEvents.slice(i, i + CHUNK_SIZE);
+      await db.insert(events).values(
+        chunk.map((e: any) => ({
+          sessionId,
+          type: e.type,
+          timestamp: e.timestamp,   // store as raw ms epoch (bigint)
+          data: e,
+        }))
+      );
+    }
   }
 
   // ── Compute duration incrementally to avoid expensive DB aggregations ──────

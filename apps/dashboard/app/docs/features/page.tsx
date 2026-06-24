@@ -30,7 +30,7 @@ export default function FeaturesPage() {
 <script>
   window.Rewind.init({
     projectToken: 'YOUR_SECURE_PROJECT_TOKEN',
-    ingestorUrl:  'wss://ingest.yourdomain.com'
+    ingestorUrl:  'https://ingest.yourdomain.com'
   });
 </script>`} />
 
@@ -48,7 +48,7 @@ export default function RootLayout({ children }) {
           onLoad={() => {
             window.Rewind.init({
               projectToken: 'YOUR_SECURE_PROJECT_TOKEN',
-              ingestorUrl:  'wss://ingest.yourdomain.com',
+              ingestorUrl:  'https://ingest.yourdomain.com',
             });
           }}
         />

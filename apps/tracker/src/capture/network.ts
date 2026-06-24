@@ -36,6 +36,29 @@ function extractBodyStr(body: any): string | undefined {
 }
 
 export function setupNetworkCapture(transport: Transport, config: RewindConfig) {
+  let buffer: any[] = [];
+  let flushTimer: any = null;
+
+  const flush = () => {
+    if (buffer.length === 0) return;
+    transport.send({
+      type: 'network',
+      requests: [...buffer],
+    });
+    buffer = [];
+  };
+
+  const queueRequest = (req: any) => {
+    buffer.push(req);
+    if (buffer.length >= 20) flush();
+    else if (!flushTimer) {
+      flushTimer = setTimeout(() => {
+        flush();
+        flushTimer = null;
+      }, 5000);
+    }
+  };
+
   // 1. Fetch interceptor
   const originalFetch = window.fetch;
   window.fetch = async function (...args) {
@@ -75,32 +98,26 @@ export function setupNetworkCapture(transport: Transport, config: RewindConfig) 
         }
       }
 
-      transport.send({
-        type: 'network',
-        requests: [{
-          url: requestUrl,
-          method,
-          status: response.status,
-          duration,
-          timestamp: startTime,
-          requestBody,
-          responseBody
-        } as any]
+      queueRequest({
+        url: requestUrl,
+        method,
+        status: response.status,
+        duration,
+        timestamp: startTime,
+        requestBody,
+        responseBody
       });
 
       return response;
     } catch (err) {
       const duration = Date.now() - startTime;
-      transport.send({
-        type: 'network',
-        requests: [{
-          url: requestUrl,
-          method,
-          status: 0,
-          duration,
-          timestamp: startTime,
-          requestBody
-        } as any]
+      queueRequest({
+        url: requestUrl,
+        method,
+        status: 0,
+        duration,
+        timestamp: startTime,
+        requestBody
       });
       throw err;
     }
@@ -145,17 +162,14 @@ export function setupNetworkCapture(transport: Transport, config: RewindConfig) 
         } catch (e) {}
       }
 
-      transport.send({
-        type: 'network',
-        requests: [{
-          url: requestUrl,
-          method,
-          status: this.status,
-          duration,
-          timestamp: startTime,
-          requestBody,
-          responseBody
-        } as any]
+      queueRequest({
+        url: requestUrl,
+        method,
+        status: this.status,
+        duration,
+        timestamp: startTime,
+        requestBody,
+        responseBody
       });
     });
 

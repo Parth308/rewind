@@ -20,6 +20,7 @@ export async function POST(req: NextRequest, context: { params: Promise<{ projec
     }
 
     const projectId = params.projectId;
+    const safeProjectId = projectId.replace(/'/g, "''");
 
     // Build the dynamic CTEs
     let ctes = [];
@@ -53,7 +54,7 @@ export async function POST(req: NextRequest, context: { params: Promise<{ projec
             SELECT e.session_id, MIN(e.timestamp) as t
             FROM events e
             JOIN sessions s ON s.id = e.session_id
-            WHERE s.project_id = '${projectId}'
+            WHERE s.project_id = '${safeProjectId}'
               AND ${condition}
               ${filterSql}
             GROUP BY e.session_id

@@ -6,16 +6,39 @@ export function setupConsoleCapture(transport: Transport) {
   const originalLog = console.log;
   const originalInfo = console.info;
 
-  const capture = (level: string, args: any[]) => {
-    const message = args.map(a => typeof a === 'object' ? JSON.stringify(a) : String(a)).join(' ');
+  let buffer: any[] = [];
+  let flushTimer: any = null;
+
+  const flush = () => {
+    if (buffer.length === 0) return;
     transport.send({
       type: 'console',
-      entries: [{
-        level,
-        message,
-        timestamp: Date.now(),
-      }]
+      entries: [...buffer],
     });
+    buffer = [];
+  };
+
+  const capture = (level: string, args: any[]) => {
+    const message = args.map(a => {
+      if (typeof a === 'object') {
+        try { return JSON.stringify(a); } catch { return '[Unserializable]'; }
+      }
+      return String(a);
+    }).join(' ');
+
+    buffer.push({
+      level,
+      message,
+      timestamp: Date.now(),
+    });
+
+    if (buffer.length >= 50) flush();
+    else if (!flushTimer) {
+      flushTimer = setTimeout(() => {
+        flush();
+        flushTimer = null;
+      }, 5000);
+    }
   };
 
   console.error = (...args) => {

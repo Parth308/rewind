@@ -63,7 +63,7 @@ export function OnboardingGuide({ hasProject, projectToken, projectName, isGloba
   const [activeStep, setActiveStep] = useState(hasProject ? 1 : 0);
   const [activeTab, setActiveTab] = useState<'html' | 'react' | 'next' | 'vue' | 'svelte'>('html');
 
-  const ingestUrl = process.env.NEXT_PUBLIC_INGEST_URL || 'http://localhost:3001';
+  const ingestUrl = process.env.NEXT_PUBLIC_INGESTOR_URL || 'http://localhost:3001';
 
   const steps: Step[] = [
     {

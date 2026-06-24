@@ -3,6 +3,7 @@ import { db } from '@/lib/db';
 import { projects } from '@rewind/shared';
 import { eq } from 'drizzle-orm';
 import { cookies } from 'next/headers';
+import Redis from 'ioredis';
 
 export async function GET() {
   try {
@@ -72,7 +73,6 @@ export async function PATCH(req: Request) {
 
     // Pre-build the static script and cache it in Redis
     try {
-      const Redis = require('ioredis');
       const redis = new Redis(process.env.REDIS_URL || 'redis://localhost:6379');
       const remoteConfig = { maskInputs, maskSelectors, blockSelectors, ignoreUrls, captureNetworkBodies, networkBodyMaskKeys };
       const configScript = `window.__rewind_remote = ${JSON.stringify(remoteConfig)};\n`;

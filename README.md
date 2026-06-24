@@ -24,7 +24,7 @@
 <!-- That's literally it. -->
 <script src="https://ingest.yourdomain.com/config/YOUR_TOKEN.js"></script>
 <script src="https://ingest.yourdomain.com/tracker/tracker.js"></script>
-<script>Rewind.init({ projectToken: 'YOUR_TOKEN', ingestorUrl: 'wss://ingest.yourdomain.com' });</script>
+<script>Rewind.init({ projectToken: 'YOUR_TOKEN', ingestorUrl: 'https://ingest.yourdomain.com' });</script>
 ```
 
 <br/>
@@ -278,7 +278,7 @@ cp .env.example .env
 # Open .env and set:
 #   JWT_SECRET=<run: openssl rand -hex 32>
 #   FRONTEND_URL=https://your-domain.com
-#   NEXT_PUBLIC_INGESTOR_URL=wss://your-ingestor-domain.com
+#   NEXT_PUBLIC_INGESTOR_URL=https://your-ingestor-domain.com
 #   (optional) GOOGLE_GENERATIVE_AI_API_KEY, OPENAI_API_KEY, etc.
 
 # 3. Build images and launch the full stack
@@ -387,7 +387,7 @@ The Ingestor serves two auto-generated scripts:
 <script>
   window.Rewind.init({
     projectToken: 'YOUR_PROJECT_TOKEN',
-    ingestorUrl:  'wss://ingest.yourdomain.com'
+    ingestorUrl:  'https://ingest.yourdomain.com'
   });
 </script>
 ```
@@ -408,7 +408,7 @@ useEffect(() => {
     trackerScript.onload = () => {
       (window as any).Rewind.init({
         projectToken: 'YOUR_PROJECT_TOKEN',
-        ingestorUrl:  'wss://ingest.yourdomain.com',
+        ingestorUrl:  'https://ingest.yourdomain.com',
       });
     };
     document.head.appendChild(trackerScript);
@@ -436,7 +436,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           onLoad={() => {
             (window as any).Rewind.init({
               projectToken: 'YOUR_PROJECT_TOKEN',
-              ingestorUrl:  'wss://ingest.yourdomain.com',
+              ingestorUrl:  'https://ingest.yourdomain.com',
             });
           }}
         />
@@ -589,7 +589,7 @@ cd packages/shared && npx drizzle-kit studio
 | `JWT_SECRET` | — | ✅ | Secret for signing JWTs. Use `openssl rand -hex 32` |
 | `FRONTEND_URL` | `http://localhost:3000` | ✅ | Dashboard URL (used for CORS) |
 | `API_URL` | `http://api:3002` | — | Internal Docker API URL (rarely needs changing) |
-| `NEXT_PUBLIC_INGESTOR_URL` | `ws://localhost:3001` | ✅ | Public WebSocket URL embedded in the tracker snippet |
+| `NEXT_PUBLIC_INGESTOR_URL` | `http://localhost:3001` | ✅ | Public HTTP URL embedded in the tracker snippet |
 | `PORT` | `3002` | — | Port for the REST API |
 | `INGESTOR_PORT` | `3001` | — | Port for the Ingestor |
 | `AI_PROVIDER` | `google` | — | `google` \| `openai` \| `anthropic` |

@@ -43,6 +43,17 @@ export async function proxy(request: NextRequest) {
       return NextResponse.redirect(new URL('/login', request.url));
     }
 
+    // In Demo Mode, prevent unauthenticated users from mutating data
+    if (!isAuthenticated && isDemo) {
+      const isSafePost = pathname.includes('/funnels/analyze') || 
+                         pathname.includes('/search-semantic') || 
+                         pathname.includes('/users/summarize');
+
+      if (request.method !== 'GET' && !isSafePost) {
+        return NextResponse.json({ error: 'Data mutation is disabled in Demo Mode.' }, { status: 403 });
+      }
+    }
+
     // Attach role to headers so downstream components know it quickly
     const requestHeaders = new Headers(request.headers);
     if (userRole) {

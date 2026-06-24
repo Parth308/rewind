@@ -23,6 +23,7 @@ export default async function PublicSharedSession(props: { params: Promise<{ tok
     );
   }
 
+  // eslint-disable-next-line
   if (new Date(shareRecord.expiresAt).getTime() < Date.now()) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-black text-white">
@@ -57,6 +58,7 @@ export default async function PublicSharedSession(props: { params: Promise<{ tok
           <span className="font-mono text-sm tracking-widest text-neutral-300">REWIND PUBLIC REPLAY</span>
         </div>
         <div className="text-xs font-mono text-neutral-500">
+          {/* eslint-disable-next-line */}
           Expires in {Math.round((new Date(shareRecord.expiresAt).getTime() - Date.now()) / (1000 * 60 * 60 * 24))} days
         </div>
       </div>

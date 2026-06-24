@@ -4,6 +4,13 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { Filter, X, ChevronDown, Check } from 'lucide-react';
 import { useState, useEffect } from 'react';
 
+const SelectWrapper = ({ children }: { children: React.ReactNode }) => (
+  <div className="relative group">
+    {children}
+    <ChevronDown className="w-3 h-3 absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-neutral-500 group-hover:text-neutral-300 transition-colors" />
+  </div>
+);
+
 export function SessionFilters({
   browsers,
   oses,
@@ -42,13 +49,6 @@ export function SessionFilters({
   const activeParams = new URLSearchParams(searchParams.toString());
   activeParams.delete('page');
   const hasFilters = activeParams.toString().length > 0;
-
-  const SelectWrapper = ({ children }: { children: React.ReactNode }) => (
-    <div className="relative group">
-      {children}
-      <ChevronDown className="w-3 h-3 absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-neutral-500 group-hover:text-neutral-300 transition-colors" />
-    </div>
-  );
 
   const selectClasses = "appearance-none bg-[#111] border border-[var(--color-border-dark)] rounded-md pl-3 pr-8 py-1.5 text-xs font-mono text-neutral-300 focus:outline-none focus:border-[var(--color-accent-green)] hover:border-white/20 transition-all cursor-pointer shadow-inner";
 

@@ -9,10 +9,14 @@ export async function handleConsole(projectId: string, payload: any) {
     await db.insert(sessions).values({ id: sessionId, projectId, os: 'Unknown', browser: 'Unknown', startedAt: new Date() }).onConflictDoNothing();
   }
   
-  await db.insert(consoleLogs).values(payload.entries.map((e: any) => ({
-    sessionId,
-    level: e.level,
-    message: e.message,
-    timestamp: e.timestamp
-  })));
+  const CHUNK_SIZE = 5000;
+  for (let i = 0; i < payload.entries.length; i += CHUNK_SIZE) {
+    const chunk = payload.entries.slice(i, i + CHUNK_SIZE);
+    await db.insert(consoleLogs).values(chunk.map((e: any) => ({
+      sessionId,
+      level: e.level,
+      message: e.message,
+      timestamp: e.timestamp
+    })));
+  }
 }

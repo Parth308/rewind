@@ -33,9 +33,12 @@ export function Sidebar({ isLive = true, projects = [], activeProjectId = 'all' 
     ? 'Global (All Projects)' 
     : projects.find(p => p.id === activeProjectId)?.name || 'Unknown Project';
 
-  useEffect(() => {
-    setIsOpen(false);
-  }, [pathname]);
+  const [prevPathname, setPrevPathname] = useState(pathname);
+
+  if (pathname !== prevPathname) {
+    setPrevPathname(pathname);
+    if (isOpen) setIsOpen(false);
+  }
 
   const isActive = (href: string, exact: boolean) =>
     exact ? pathname === href : pathname === href || pathname.startsWith(href + '/');

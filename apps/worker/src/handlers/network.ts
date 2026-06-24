@@ -9,14 +9,18 @@ export async function handleNetwork(projectId: string, payload: any) {
     await db.insert(sessions).values({ id: sessionId, projectId, os: 'Unknown', browser: 'Unknown', startedAt: new Date() }).onConflictDoNothing();
   }
   
-  await db.insert(networkRequests).values(payload.requests.map((e: any) => ({
-    sessionId,
-    method: e.method,
-    url: e.url,
-    status: e.status,
-    duration: e.duration,
-    requestBody: e.requestBody,
-    responseBody: e.responseBody,
-    timestamp: e.timestamp
-  })));
+  const CHUNK_SIZE = 5000;
+  for (let i = 0; i < payload.requests.length; i += CHUNK_SIZE) {
+    const chunk = payload.requests.slice(i, i + CHUNK_SIZE);
+    await db.insert(networkRequests).values(chunk.map((e: any) => ({
+      sessionId,
+      method: e.method,
+      url: e.url,
+      status: e.status,
+      duration: e.duration,
+      requestBody: e.requestBody,
+      responseBody: e.responseBody,
+      timestamp: e.timestamp
+    })));
+  }
 }

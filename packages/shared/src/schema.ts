@@ -74,11 +74,9 @@ export const sessions = pgTable('sessions', {
   createdAt:     timestamp('created_at', { withTimezone: true }).defaultNow(),
   updatedAt:     timestamp('updated_at', { withTimezone: true }).defaultNow(),
 }, (table) => ({
-  projectIdIdx: index('idx_sessions_project_id').on(table.projectId),
   startedAtIdx: index('idx_sessions_started_at').on(table.projectId, table.startedAt),
   userIdIdx: index('idx_sessions_user_id').on(table.projectId, table.userId),
   errorsIdx: index('idx_sessions_errors').on(table.projectId, table.errorCount),
-  rageIdx: index('idx_sessions_rage').on(table.projectId),
   durationIdx: index('idx_sessions_duration').on(table.projectId, table.durationMs),
   browserIdx: index('idx_sessions_browser').on(table.projectId, table.browser),
   countryIdx: index('idx_sessions_country').on(table.projectId, table.country),
@@ -182,7 +180,6 @@ export const consoleLogs = pgTable('console_logs', {
   createdAt:     timestamp('created_at', { withTimezone: true }).defaultNow(),
 }, (table) => ({
   sessionTimeIdx: index('idx_console_session_time').on(table.sessionId, table.timestamp),
-  errorsIdx: index('idx_console_errors').on(table.sessionId),
 }));
 
 // ─── NETWORK REQUESTS ─────────────────────────────────────
@@ -199,7 +196,6 @@ export const networkRequests = pgTable('network_requests', {
   createdAt:     timestamp('created_at', { withTimezone: true }).defaultNow(),
 }, (table) => ({
   sessionTimeIdx: index('idx_network_session_time').on(table.sessionId, table.timestamp),
-  errorsIdx: index('idx_network_errors').on(table.sessionId),
 }));
 
 // ─── ERRORS ───────────────────────────────────────────────

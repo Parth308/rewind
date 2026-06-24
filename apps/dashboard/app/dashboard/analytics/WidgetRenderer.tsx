@@ -61,6 +61,15 @@ export function WidgetRenderer({ widget, projectId, onDelete, isEditMode, onResi
     window.addEventListener('mouseup', handleMouseUp);
   };
 
+  const handleDelete = async () => {
+    try {
+      await fetch(`/api/projects/${projectId}/widgets/${widget.id}`, { method: 'DELETE' });
+      onDelete(widget.id);
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
   useEffect(() => {
     if (!isConfirmingDelete) return;
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -73,13 +82,12 @@ export function WidgetRenderer({ widget, projectId, onDelete, isEditMode, onResi
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [isConfirmingDelete]);
+  }, [isConfirmingDelete, projectId, widget.id, onDelete]);
 
   useEffect(() => {
     if (initialDataPromise) return; // Data already handled by Suspense block above
 
     let isMounted = true;
-    setLoading(true);
     fetch(`/api/projects/${projectId}/widgets/${widget.id}/data`)
       .then(r => r.json())
       .then(d => {
@@ -97,15 +105,6 @@ export function WidgetRenderer({ widget, projectId, onDelete, isEditMode, onResi
       });
     return () => { isMounted = false; };
   }, [projectId, widget.id, initialDataPromise]);
-
-  const handleDelete = async () => {
-    try {
-      await fetch(`/api/projects/${projectId}/widgets/${widget.id}`, { method: 'DELETE' });
-      onDelete(widget.id);
-    } catch (e) {
-      console.error(e);
-    }
-  };
 
   const title = widget.config?.title || (widget.metric === 'custom_event' ? widget.config?.eventName : widget.metric);
   const subtitle = widget.metric === 'custom_event' ? 'CUSTOM EVENT' : widget.metric.toUpperCase();

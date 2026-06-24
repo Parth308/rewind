@@ -130,7 +130,24 @@ setInterval(async () => {
 }, 1000);
 
 const server = createServer(app);
-const wss = new WebSocketServer({ server });
+const wss = new WebSocketServer({ server, maxPayload: 5 * 1024 * 1024 }); // 5MB limit
+
+// Implement heartbeat to prevent WebSocket memory leaks
+const heartbeat = function(this: any) {
+  this.isAlive = true;
+};
+
+const interval = setInterval(() => {
+  wss.clients.forEach((ws: any) => {
+    if (ws.isAlive === false) return ws.terminate();
+    ws.isAlive = false;
+    ws.ping();
+  });
+}, 30000);
+
+wss.on('close', () => {
+  clearInterval(interval);
+});
 
 wss.on('connection', async (ws, req) => {
   const urlParts = req.url?.split('/') || [];
@@ -141,8 +158,18 @@ wss.on('connection', async (ws, req) => {
     return;
   }
 
-  // Validate token with Redis cache
-  const projectId = await getCachedProjectId(token);
+  (ws as any).isAlive = true;
+  ws.on('pong', heartbeat);
+
+  let projectId: string | null = null;
+  try {
+    projectId = await getCachedProjectId(token);
+  } catch (err) {
+    console.error('Error fetching project ID:', err);
+    ws.close(1011, 'Internal error');
+    return;
+  }
+  
   if (!projectId) {
     ws.close(1008, 'Invalid token');
     return;
@@ -150,6 +177,10 @@ wss.on('connection', async (ws, req) => {
 
   ws.on('message', async (message: Buffer, isBinary: boolean) => {
     try {
+      if (message.length > 5 * 1024 * 1024) {
+        ws.close(1009, 'Message too large');
+        return;
+      }
       let payloadStr: string;
       if (isBinary) {
         payloadStr = zlib.gunzipSync(message).toString('utf-8');
@@ -159,7 +190,7 @@ wss.on('connection', async (ws, req) => {
       const payload = JSON.parse(payloadStr);
       if (megaBatch.length < MAX_BATCH_SIZE) {
         megaBatch.push({
-          projectId: projectId,
+          projectId: projectId as string,
           payload
         });
       }
