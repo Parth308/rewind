@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Settings, Shield, Key, Bell, CreditCard, Save, EyeOff } from 'lucide-react';
+import { Settings, Shield, Key, Bell, CreditCard, Save, EyeOff, AlertCircle } from 'lucide-react';
 import { FadeUp } from '@/components/ui/fade-up';
 import { ApiSettingsTab } from './ApiSettings';
 import { PrivacySettingsTab } from './PrivacySettingsTab';
@@ -39,6 +39,7 @@ export function SettingsView({
   isDemoMode?: boolean
 }) {
   const [activeTab, setActiveTab] = useState('general');
+  const [demoError, setDemoError] = useState(false);
 
   return (
     <div className="flex flex-col gap-10 max-w-6xl pb-10">
@@ -111,6 +112,22 @@ export function SettingsView({
                     General Settings
                   </h3>
 
+                  <AnimatePresence>
+                    {demoError && (
+                      <motion.div
+                        initial={{ opacity: 0, height: 0 }}
+                        animate={{ opacity: 1, height: 'auto' }}
+                        exit={{ opacity: 0, height: 0 }}
+                        className="mb-6 overflow-hidden"
+                      >
+                        <div className="flex items-center gap-2 rounded-lg bg-red-500/10 p-4 text-sm text-red-400 border border-red-500/20">
+                          <AlertCircle className="h-4 w-4 shrink-0" />
+                          <p>Action disabled in Demo Mode</p>
+                        </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+
                   <div className="space-y-10">
                     <div className="space-y-4">
                       <label className="text-[10px] font-mono tracking-[0.2em] text-neutral-500 uppercase">
@@ -148,7 +165,12 @@ export function SettingsView({
 
                     <div className="pt-10 mt-10 border-t border-[var(--color-border-dark)]">
                       <button 
-                        onClick={() => isDemoMode && alert('Action disabled in Demo Mode')}
+                        onClick={() => {
+                          if (isDemoMode) {
+                            setDemoError(true);
+                            setTimeout(() => setDemoError(false), 3000);
+                          }
+                        }}
                         className="flex items-center gap-3 rounded-xl bg-[var(--color-accent-green)] px-8 py-4 text-sm font-mono font-bold text-black transition-all hover:bg-[var(--color-accent-green-hover)] shadow-[0_0_20px_rgba(163,230,53,0.3)] hover:shadow-[0_0_30px_rgba(163,230,53,0.5)]"
                       >
                         <Save className="h-4 w-4" />

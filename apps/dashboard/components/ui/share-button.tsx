@@ -1,12 +1,13 @@
 'use client';
 
 import { useState } from 'react';
-import { Share2, Check } from 'lucide-react';
+import { Share2, Check, AlertCircle } from 'lucide-react';
 import { createShareToken } from '@/app/actions/share';
 
 export function ShareButton({ sessionId }: { sessionId: string }) {
   const [isSharing, setIsSharing] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [error, setError] = useState(false);
 
   const handleShare = async () => {
     setIsSharing(true);
@@ -18,11 +19,13 @@ export function ShareButton({ sessionId }: { sessionId: string }) {
         setCopied(true);
         setTimeout(() => setCopied(false), 3000);
       } else {
-        alert(res.error || 'Failed to share');
+        setError(true);
+        setTimeout(() => setError(false), 3000);
       }
     } catch (err) {
       console.error(err);
-      alert('Failed to generate share link');
+      setError(true);
+      setTimeout(() => setError(false), 3000);
     } finally {
       setIsSharing(false);
     }
@@ -32,10 +35,12 @@ export function ShareButton({ sessionId }: { sessionId: string }) {
     <button
       onClick={handleShare}
       disabled={isSharing}
-      className="flex items-center gap-2 px-3 py-1.5 bg-[#111] hover:bg-[#1a1a1a] border border-[var(--color-border-dark)] rounded-lg text-xs font-mono text-neutral-400 hover:text-white transition-colors relative z-10 shadow-sm"
+      className={`flex items-center gap-2 px-3 py-1.5 border rounded-lg text-xs font-mono transition-colors relative z-10 shadow-sm ${
+        error ? 'bg-red-500/10 border-red-500/20 text-red-400' : 'bg-[#111] hover:bg-[#1a1a1a] border-[var(--color-border-dark)] text-neutral-400 hover:text-white'
+      }`}
     >
-      {copied ? <Check className="w-3.5 h-3.5 text-green-500" /> : <Share2 className="w-3.5 h-3.5" />}
-      {isSharing ? 'GENERATING...' : copied ? 'COPIED LINK' : 'SHARE'}
+      {error ? <AlertCircle className="w-3.5 h-3.5" /> : copied ? <Check className="w-3.5 h-3.5 text-green-500" /> : <Share2 className="w-3.5 h-3.5" />}
+      {isSharing ? 'GENERATING...' : error ? 'FAILED' : copied ? 'COPIED LINK' : 'SHARE'}
     </button>
   );
 }

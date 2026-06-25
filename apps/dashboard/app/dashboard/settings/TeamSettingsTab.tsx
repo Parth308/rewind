@@ -2,7 +2,7 @@
 
 import { useState, useActionState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Shield, Trash2, Mail, CheckCircle2, UserPlus, X, Copy } from 'lucide-react';
+import { Shield, Trash2, Mail, CheckCircle2, UserPlus, X, Copy, AlertCircle } from 'lucide-react';
 import { createInvite, deleteInvite, removeUser } from './actions';
 
 export function TeamSettingsTab({ 
@@ -19,6 +19,7 @@ export function TeamSettingsTab({
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [state, formAction, isPending] = useActionState(createInvite, {} as any);
   const [copiedToken, setCopiedToken] = useState<string | null>(null);
+  const [demoError, setDemoError] = useState(false);
 
   const handleCopy = (token: string) => {
     const url = `${window.location.origin}/invite/${token}`;
@@ -49,6 +50,22 @@ export function TeamSettingsTab({
         )}
       </div>
 
+      <AnimatePresence>
+        {demoError && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: 'auto' }}
+            exit={{ opacity: 0, height: 0 }}
+            className="mb-8 overflow-hidden"
+          >
+            <div className="flex items-center gap-2 rounded-lg bg-red-500/10 p-4 text-sm text-red-400 border border-red-500/20">
+              <AlertCircle className="h-4 w-4 shrink-0" />
+              <p>Action disabled in Demo Mode</p>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       <div className="space-y-10">
         
         {/* Active Members */}
@@ -72,7 +89,14 @@ export function TeamSettingsTab({
                   </div>
                   {currentUserRole === 'owner' && user.role !== 'owner' && (
                     <button 
-                      onClick={() => isDemoMode ? alert('Action disabled in Demo Mode') : removeUser(user.id)}
+                      onClick={() => {
+                        if (isDemoMode) {
+                          setDemoError(true);
+                          setTimeout(() => setDemoError(false), 3000);
+                        } else {
+                          removeUser(user.id);
+                        }
+                      }}
                       className="text-neutral-600 hover:text-red-500 transition-colors p-2"
                     >
                       <Trash2 className="w-4 h-4" />
@@ -110,7 +134,14 @@ export function TeamSettingsTab({
                     </button>
                     {(currentUserRole === 'owner' || currentUserRole === 'admin') && (
                       <button 
-                        onClick={() => isDemoMode ? alert('Action disabled in Demo Mode') : deleteInvite(invite.id)}
+                        onClick={() => {
+                          if (isDemoMode) {
+                            setDemoError(true);
+                            setTimeout(() => setDemoError(false), 3000);
+                          } else {
+                            deleteInvite(invite.id);
+                          }
+                        }}
                         className="text-neutral-600 hover:text-red-500 transition-colors p-2"
                       >
                         <Trash2 className="w-4 h-4" />

@@ -1,25 +1,28 @@
 'use client';
 
 import { useState, useRef } from 'react';
-import { Plus, X, Loader2 } from 'lucide-react';
+import { Plus, X, Loader2, AlertCircle } from 'lucide-react';
 import { createProject } from './actions';
 
 export function CreateProjectButton() {
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const formRef = useRef<HTMLFormElement>(null);
 
   async function handleSubmit(formData: FormData) {
+    setError(null);
     setLoading(true);
     const result = await createProject(formData);
     setLoading(false);
     
     if (result?.error) {
-      alert(result.error);
+      setError(result.error);
       return;
     }
     
     setOpen(false);
+    setError(null);
     formRef.current?.reset();
   }
 
@@ -38,7 +41,10 @@ export function CreateProjectButton() {
           {/* Backdrop */}
           <div
             className="absolute inset-0 bg-black/70 backdrop-blur-sm"
-            onClick={() => setOpen(false)}
+            onClick={() => {
+              setOpen(false);
+              setError(null);
+            }}
           />
 
           {/* Modal */}
@@ -46,7 +52,10 @@ export function CreateProjectButton() {
             <div className="flex items-center justify-between mb-6">
               <h2 className="font-sans text-2xl font-bold text-white">Create Project</h2>
               <button
-                onClick={() => setOpen(false)}
+                onClick={() => {
+                  setOpen(false);
+                  setError(null);
+                }}
                 className="text-neutral-500 hover:text-white transition-colors"
               >
                 <X className="h-5 w-5" />
@@ -54,6 +63,13 @@ export function CreateProjectButton() {
             </div>
 
             <form ref={formRef} action={handleSubmit} className="flex flex-col gap-5">
+              {error && (
+                <div className="flex items-center gap-2 rounded-lg bg-red-500/10 p-3 text-sm text-red-400 border border-red-500/20">
+                  <AlertCircle className="h-4 w-4 shrink-0" />
+                  <p>{error}</p>
+                </div>
+              )}
+
               <div className="flex flex-col gap-2">
                 <label htmlFor="name" className="text-sm font-medium text-neutral-300">
                   Project Name
@@ -83,7 +99,10 @@ export function CreateProjectButton() {
                 </button>
                 <button
                   type="button"
-                  onClick={() => setOpen(false)}
+                  onClick={() => {
+                    setOpen(false);
+                    setError(null);
+                  }}
                   className="rounded-lg border border-[var(--color-border-dark)] px-4 py-2.5 text-sm font-medium text-neutral-400 transition-colors hover:bg-white/5 hover:text-white"
                 >
                   Cancel
