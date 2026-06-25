@@ -8,11 +8,13 @@ import { createInvite, deleteInvite, removeUser } from './actions';
 export function TeamSettingsTab({ 
   users, 
   invites,
-  currentUserRole 
+  currentUserRole,
+  isDemoMode
 }: { 
   users: any[], 
   invites: any[],
-  currentUserRole: string
+  currentUserRole: string,
+  isDemoMode?: boolean
 }) {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [state, formAction, isPending] = useActionState(createInvite, {} as any);
@@ -70,7 +72,7 @@ export function TeamSettingsTab({
                   </div>
                   {currentUserRole === 'owner' && user.role !== 'owner' && (
                     <button 
-                      onClick={() => removeUser(user.id)}
+                      onClick={() => isDemoMode ? alert('Action disabled in Demo Mode') : removeUser(user.id)}
                       className="text-neutral-600 hover:text-red-500 transition-colors p-2"
                     >
                       <Trash2 className="w-4 h-4" />
@@ -108,7 +110,7 @@ export function TeamSettingsTab({
                     </button>
                     {(currentUserRole === 'owner' || currentUserRole === 'admin') && (
                       <button 
-                        onClick={() => deleteInvite(invite.id)}
+                        onClick={() => isDemoMode ? alert('Action disabled in Demo Mode') : deleteInvite(invite.id)}
                         className="text-neutral-600 hover:text-red-500 transition-colors p-2"
                       >
                         <Trash2 className="w-4 h-4" />

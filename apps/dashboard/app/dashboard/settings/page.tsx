@@ -96,6 +96,7 @@ export default async function SettingsPage() {
       currentUserRole={session.role as string}
       initialPrivacySettings={initialPrivacySettings}
       initialAiSettings={{ settings: initialAiSettings, env: envStatus }}
+      isDemoMode={isDemoMode}
     />
   );
 }

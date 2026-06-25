@@ -52,15 +52,25 @@ export default async function ProjectsPage() {
                       <div className={`w-2 h-2 rounded-full ${isConnected ? 'bg-[var(--color-accent-green)] shadow-[0_0_10px_var(--color-accent-green)]' : 'bg-amber-500 shadow-[0_0_10px_rgba(245,158,11,0.5)]'}`} />
                     </div>
 
-                    <form action={deleteProject.bind(null, project.id)}>
+                    {process.env.NEXT_PUBLIC_DEMO_MODE === 'true' ? (
                       <button
-                        type="submit"
-                        className="text-neutral-600 hover:text-red-400 transition-colors p-2 rounded-lg hover:bg-red-500/10"
-                        title="Delete project"
+                        type="button"
+                        className="text-neutral-600 cursor-not-allowed opacity-50 p-2 rounded-lg"
+                        title="Delete disabled in Demo Mode"
                       >
                         <Trash2 className="h-4 w-4" />
                       </button>
-                    </form>
+                    ) : (
+                      <form action={deleteProject.bind(null, project.id)}>
+                        <button
+                          type="submit"
+                          className="text-neutral-600 hover:text-red-400 transition-colors p-2 rounded-lg hover:bg-red-500/10"
+                          title="Delete project"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </button>
+                      </form>
+                    )}
                   </div>
 
                   <h3 className="font-sans text-2xl font-bold text-white mb-2">{project.name}</h3>

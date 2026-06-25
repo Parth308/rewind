@@ -9,9 +9,11 @@ import { randomBytes } from 'crypto';
 import { getSession } from '@/lib/auth';
 
 export async function createProject(formData: FormData) {
-  if (process.env.NEXT_PUBLIC_DEMO_MODE === 'true') throw new Error('Action disabled in Demo Mode.');
+  if (process.env.NEXT_PUBLIC_DEMO_MODE === 'true') {
+    return { error: 'Action disabled in Demo Mode.' };
+  }
   const name = (formData.get('name') as string)?.trim();
-  if (!name || name.length < 2) return;
+  if (!name || name.length < 2) return { error: 'Invalid name' };
 
   const session = await getSession();
   if (!session) return;

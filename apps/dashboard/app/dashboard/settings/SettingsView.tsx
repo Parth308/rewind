@@ -26,7 +26,8 @@ export function SettingsView({
   invites,
   currentUserRole,
   initialPrivacySettings,
-  initialAiSettings
+  initialAiSettings,
+  isDemoMode
 }: { 
   initialName: string, 
   initialEmail: string,
@@ -34,7 +35,8 @@ export function SettingsView({
   invites: any[],
   currentUserRole: string,
   initialPrivacySettings?: any,
-  initialAiSettings?: any
+  initialAiSettings?: any,
+  isDemoMode?: boolean
 }) {
   const [activeTab, setActiveTab] = useState('general');
 
@@ -145,7 +147,10 @@ export function SettingsView({
                     </div>
 
                     <div className="pt-10 mt-10 border-t border-[var(--color-border-dark)]">
-                      <button className="flex items-center gap-3 rounded-xl bg-[var(--color-accent-green)] px-8 py-4 text-sm font-mono font-bold text-black transition-all hover:bg-[var(--color-accent-green-hover)] shadow-[0_0_20px_rgba(163,230,53,0.3)] hover:shadow-[0_0_30px_rgba(163,230,53,0.5)]">
+                      <button 
+                        onClick={() => isDemoMode && alert('Action disabled in Demo Mode')}
+                        className="flex items-center gap-3 rounded-xl bg-[var(--color-accent-green)] px-8 py-4 text-sm font-mono font-bold text-black transition-all hover:bg-[var(--color-accent-green-hover)] shadow-[0_0_20px_rgba(163,230,53,0.3)] hover:shadow-[0_0_30px_rgba(163,230,53,0.5)]"
+                      >
                         <Save className="h-4 w-4" />
                         COMMIT CHANGES
                       </button>
@@ -162,6 +167,7 @@ export function SettingsView({
                   users={users} 
                   invites={invites} 
                   currentUserRole={currentUserRole} 
+                  isDemoMode={isDemoMode}
                 />
               )}
 

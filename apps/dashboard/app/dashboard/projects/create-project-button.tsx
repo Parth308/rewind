@@ -11,8 +11,14 @@ export function CreateProjectButton() {
 
   async function handleSubmit(formData: FormData) {
     setLoading(true);
-    await createProject(formData);
+    const result = await createProject(formData);
     setLoading(false);
+    
+    if (result?.error) {
+      alert(result.error);
+      return;
+    }
+    
     setOpen(false);
     formRef.current?.reset();
   }
