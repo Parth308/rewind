@@ -29,8 +29,10 @@ export default async function DashboardAnalytics() {
       { projectId: targetProjectId, type: 'stat_card', metric: 'events', position: 1, config: { title: 'DOM Events', color: '#a3e635' } },
       { projectId: targetProjectId, type: 'stat_card', metric: 'network', position: 2, config: { title: 'Network Reqs', color: '#818cf8' } },
       { projectId: targetProjectId, type: 'stat_card', metric: 'errors', position: 3, config: { title: 'Exceptions', color: '#f87171' } },
-      { projectId: targetProjectId, type: 'line_chart', metric: 'sessions', position: 4, config: { title: 'Session Velocity', color: '#a3e635' } },
-      { projectId: targetProjectId, type: 'client_targets', metric: 'client_targets', position: 5, config: {} },
+      { projectId: targetProjectId, type: 'line_chart', metric: 'sessions', position: 4, config: { title: 'Session Velocity', color: '#a3e635', timeframe: 14 } },
+      { projectId: targetProjectId, type: 'pie_chart', metric: 'browser_distribution', position: 5, config: { title: 'Browser Distribution', color: '#60a5fa', timeframe: 14, colSpan: 2 } },
+      { projectId: targetProjectId, type: 'bar_chart', metric: 'os_distribution', position: 6, config: { title: 'OS Distribution', color: '#c084fc', timeframe: 14, colSpan: 2 } },
+      { projectId: targetProjectId, type: 'client_targets', metric: 'client_targets', position: 7, config: { colSpan: 2 } },
     ] as any).returning();
   }
 

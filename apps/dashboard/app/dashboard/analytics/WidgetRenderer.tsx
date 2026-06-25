@@ -2,6 +2,8 @@
 
 import { useState, useEffect, use } from 'react';
 import AnalyticsCharts from './AnalyticsCharts';
+import AnalyticsPieChart from './AnalyticsPieChart';
+import AnalyticsBarChart from './AnalyticsBarChart';
 import { StatCard } from './StatCard';
 import { X, GripHorizontal } from 'lucide-react';
 
@@ -106,9 +108,12 @@ export function WidgetRenderer({ widget, projectId, onDelete, isEditMode, onResi
     return () => { isMounted = false; };
   }, [projectId, widget.id, initialDataPromise]);
 
-  const title = widget.config?.title || (widget.metric === 'custom_event' ? widget.config?.eventName : widget.metric);
-  const subtitle = widget.metric === 'custom_event' ? 'CUSTOM EVENT' : widget.metric.toUpperCase();
+  const title = widget.config?.title || (widget.metric === 'custom_event' ? widget.config?.eventName : widget.metric.replace(/_/g, ' '));
+  const subtitle = widget.metric === 'custom_event' ? 'CUSTOM EVENT' : widget.metric.replace(/_/g, ' ').toUpperCase();
   const color = widget.config?.color || '#a3e635';
+  const timeframe = widget.config?.timeframe || 14;
+  const isDistribution = widget.type === 'pie_chart' || widget.type === 'bar_chart';
+  const timeframeText = isDistribution ? `LAST ${timeframe} DAYS` : `${timeframe}-DAY TRAILING COUNT`;
 
   const confirmModal = isConfirmingDelete ? (
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
@@ -272,7 +277,7 @@ export function WidgetRenderer({ widget, projectId, onDelete, isEditMode, onResi
       <div className="flex items-center justify-between mb-6 sm:mb-8 relative z-10">
         <div className="pt-6 sm:pt-0">
           <h3 className="font-sans text-xl sm:text-2xl font-bold text-white capitalize">{title}</h3>
-          <p className="text-xs sm:text-sm font-mono text-neutral-500 mt-1 sm:mt-2">14-DAY TRAILING COUNT • {subtitle}</p>
+          <p className="text-xs sm:text-sm font-mono text-neutral-500 mt-1 sm:mt-2">{timeframeText} • {subtitle}</p>
         </div>
         {!loading && !error && (
           <div className="text-right mr-10 hidden sm:block">
@@ -291,6 +296,10 @@ export function WidgetRenderer({ widget, projectId, onDelete, isEditMode, onResi
           <div className="h-full w-full flex items-center justify-center">
              <span className="text-xs font-mono text-red-500">FAILED TO LOAD</span>
           </div>
+        ) : widget.type === 'pie_chart' ? (
+          <AnalyticsPieChart data={data?.data || []} color={color} />
+        ) : widget.type === 'bar_chart' ? (
+          <AnalyticsBarChart data={data?.data || []} color={color} />
         ) : (
           <AnalyticsCharts data={data?.data || []} color={color} />
         )}
