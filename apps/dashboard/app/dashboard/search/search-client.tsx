@@ -45,12 +45,15 @@ export default function SearchClient({
   }, []);
 
   // Sync state with URL params if navigating backward/forward
+  // NOTE: `query` intentionally omitted from deps — adding it causes a feedback loop
+  // where every keystroke gets overwritten by the URL's stale `q` value.
   useEffect(() => {
     const q = searchParams.get('q') || '';
-    if (q !== query && !isPending) {
+    if (!isPending) {
       setQuery(q);
     }
-  }, [searchParams, isPending, query]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams]);
 
   useEffect(() => {
     const fetchAutocomplete = async () => {
