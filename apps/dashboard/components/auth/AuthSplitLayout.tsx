@@ -25,7 +25,7 @@ export function AuthSplitLayout({ children, quote, author }: { children: ReactNo
           transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
           className="relative z-10 flex items-center gap-3"
         >
-          <Link href="/">
+          <Link href="/" className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center backdrop-blur-md border border-white/10 shadow-[0_0_20px_rgba(163,230,53,0.2)]">
               <ShieldCheck className="w-5 h-5 text-[var(--color-accent-green)]" />
             </div>

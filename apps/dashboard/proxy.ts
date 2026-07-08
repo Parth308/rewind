@@ -43,29 +43,12 @@ export async function proxy(request: NextRequest) {
 
   // --- Protected paths ---
 
-  // Not authenticated, not demo → redirect to login / block API
-  if (!isAuthenticated && !isDemo) {
+  // Not authenticated → redirect to login / block API
+  if (!isAuthenticated) {
     if (pathname.startsWith('/api/')) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
     return NextResponse.redirect(new URL('/login', request.url));
-  }
-
-  // In demo mode (unauthenticated): block mutations except safe POSTs and Server Actions
-  if (!isAuthenticated && isDemo) {
-    const isServerAction = request.headers.has('next-action');
-    const isSafePost =
-      pathname.includes('/funnels/analyze') ||
-      pathname.includes('/search-semantic') ||
-      pathname.includes('/users/summarize') ||
-      isServerAction;
-
-    if (request.method !== 'GET' && !isSafePost) {
-      return NextResponse.json(
-        { error: 'Data mutation is disabled in Demo Mode.' },
-        { status: 403 }
-      );
-    }
   }
 
   // Attach role header for downstream server components
