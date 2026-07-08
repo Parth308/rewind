@@ -1,24 +1,28 @@
 import { Trash2 } from 'lucide-react';
 import { db } from '@/lib/db';
 import { projects, sessions } from '@rewind/shared';
-import { eq } from 'drizzle-orm';
+import { eq, inArray } from 'drizzle-orm';
 import { CreateProjectButton } from './create-project-button';
 import { CopyToken } from './copy-token';
 import { deleteProject } from './actions';
 import { FadeUp } from '@/components/ui/fade-up';
+import { sql } from 'drizzle-orm';
 
 export const dynamic = 'force-dynamic';
 
 export default async function ProjectsPage() {
   const allProjects = await db.select().from(projects);
 
-  const connectionStatuses = await Promise.all(allProjects.map(async (project) => {
-    const sessionExists = await db.select({ id: sessions.id })
-                                .from(sessions)
-                                .where(eq(sessions.projectId, project.id))
-                                .limit(1);
-    return sessionExists.length > 0;
-  }));
+  // Single query: get all project IDs that have at least one session
+  let connectedProjectIds = new Set<string>();
+  if (allProjects.length > 0) {
+    const ids = allProjects.map(p => p.id);
+    const rows = await db
+      .selectDistinct({ projectId: sessions.projectId })
+      .from(sessions)
+      .where(inArray(sessions.projectId, ids));
+    rows.forEach(r => r.projectId && connectedProjectIds.add(r.projectId));
+  }
 
   return (
     <div className="flex flex-col gap-10">
@@ -34,7 +38,7 @@ export default async function ProjectsPage() {
 
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
         {allProjects.map((project, index) => {
-          const isConnected = connectionStatuses[index];
+          const isConnected = connectedProjectIds.has(project.id);
 
           return (
             <FadeUp key={project.id} delay={index * 0.1}>

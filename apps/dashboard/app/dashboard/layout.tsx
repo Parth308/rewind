@@ -4,18 +4,24 @@ import { projects, users } from '@rewind/shared';
 import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
 import { count } from 'drizzle-orm';
+import { unstable_cache } from 'next/cache';
 
 export const dynamic = 'force-dynamic';
 
-async function checkIngestorHealth() {
-  try {
-    const serverUrl = process.env.NODE_ENV === 'production' ? 'http://ingestor:3001' : 'http://localhost:3001';
-    const res = await fetch(`${serverUrl}/health`, { next: { revalidate: 10 } });
-    return res.ok;
-  } catch (e) {
-    return false;
-  }
-}
+// Cache ingestor health for 10s — avoids a fresh fetch on every page navigation
+const checkIngestorHealth = unstable_cache(
+  async () => {
+    try {
+      const serverUrl = process.env.NODE_ENV === 'production' ? 'http://ingestor:3001' : 'http://localhost:3001';
+      const res = await fetch(`${serverUrl}/health`);
+      return res.ok;
+    } catch (e) {
+      return false;
+    }
+  },
+  ['ingestor-health'],
+  { revalidate: 10 }
+);
 
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
   // First-run experience check (skip in demo mode — demo DB may have no users)

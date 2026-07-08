@@ -7,25 +7,24 @@ import { redirect } from 'next/navigation';
 import { cookies } from 'next/headers';
 
 export default async function SettingsPage() {
-  const session = await getSession();
+  const [session, cookieStore] = await Promise.all([getSession(), cookies()]);
   if (!session) {
     redirect('/login');
   }
 
-  const userResult = await db.select().from(users).where(eq(users.id, session.userId as string));
-  const user = userResult[0];
-
-  const allUsers = await db.select({
-    id: users.id,
-    name: users.name,
-    email: users.email,
-    role: users.role,
-  }).from(users);
-
-  const pendingInvites = await db.select().from(invites);
-
-  const cookieStore = await cookies();
   const projectId = cookieStore.get('rewind_active_project')?.value;
+
+  // Run all independent queries in parallel
+  const [userResult, allUsers, pendingInvites, activeProjectResult] = await Promise.all([
+    db.select().from(users).where(eq(users.id, session.userId as string)),
+    db.select({ id: users.id, name: users.name, email: users.email, role: users.role }).from(users),
+    db.select().from(invites),
+    projectId && projectId !== 'all'
+      ? db.select().from(projects).where(eq(projects.id, projectId))
+      : Promise.resolve([]),
+  ]);
+
+  const user = userResult[0];
 
   let initialPrivacySettings = {
     maskInputs: true,
@@ -37,20 +36,17 @@ export default async function SettingsPage() {
   };
 
   let projectSettings = {};
-  if (projectId && projectId !== 'all') {
-    const activeProject = await db.select().from(projects).where(eq(projects.id, projectId));
-    if (activeProject.length > 0) {
-      projectSettings = activeProject[0].settings || {};
-      const ps = projectSettings as any;
-      initialPrivacySettings = {
-        maskInputs: ps.maskInputs !== undefined ? ps.maskInputs : true,
-        maskSelectors: ps.maskSelectors || [],
-        blockSelectors: ps.blockSelectors || [],
-        ignoreUrls: ps.ignoreUrls || [],
-        captureNetworkBodies: ps.captureNetworkBodies || false,
-        networkBodyMaskKeys: ps.networkBodyMaskKeys || [],
-      };
-    }
+  if (activeProjectResult.length > 0) {
+    projectSettings = activeProjectResult[0].settings || {};
+    const ps = projectSettings as any;
+    initialPrivacySettings = {
+      maskInputs: ps.maskInputs !== undefined ? ps.maskInputs : true,
+      maskSelectors: ps.maskSelectors || [],
+      blockSelectors: ps.blockSelectors || [],
+      ignoreUrls: ps.ignoreUrls || [],
+      captureNetworkBodies: ps.captureNetworkBodies || false,
+      networkBodyMaskKeys: ps.networkBodyMaskKeys || [],
+    };
   }
 
   const isDemoMode = process.env.NEXT_PUBLIC_DEMO_MODE === 'true';

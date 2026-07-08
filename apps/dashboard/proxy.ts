@@ -34,8 +34,8 @@ export async function proxy(request: NextRequest) {
 
   // --- Public paths ---
   if (isPublicPath) {
-    // If already authenticated (or in demo mode), redirect away from login/setup
-    if ((isAuthenticated || isDemo) && (pathname === '/login' || pathname === '/setup')) {
+    // If already authenticated, redirect away from login/setup
+    if (isAuthenticated && (pathname === '/login' || pathname === '/setup')) {
       return NextResponse.redirect(new URL('/dashboard', request.url));
     }
     return NextResponse.next();
@@ -51,12 +51,14 @@ export async function proxy(request: NextRequest) {
     return NextResponse.redirect(new URL('/login', request.url));
   }
 
-  // In demo mode (unauthenticated): block mutations except safe POSTs
+  // In demo mode (unauthenticated): block mutations except safe POSTs and Server Actions
   if (!isAuthenticated && isDemo) {
+    const isServerAction = request.headers.has('next-action');
     const isSafePost =
       pathname.includes('/funnels/analyze') ||
       pathname.includes('/search-semantic') ||
-      pathname.includes('/users/summarize');
+      pathname.includes('/users/summarize') ||
+      isServerAction;
 
     if (request.method !== 'GET' && !isSafePost) {
       return NextResponse.json(

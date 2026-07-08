@@ -36,11 +36,11 @@ export default async function DashboardAnalytics() {
     ] as any).returning();
   }
 
-  // Pre-fetch all widgets into Promises to stream to the client
-  const initialDataPromises: Record<string, Promise<any>> = {};
-  for (const w of widgets) {
-    initialDataPromises[w.id] = getWidgetData(projectId, w);
-  }
+  // Fan out all widget data fetches in parallel — each widget's data is a Promise
+  // that the client component consumes via React's use() hook for streaming
+  const initialDataPromises: Record<string, Promise<any>> = Object.fromEntries(
+    widgets.map(w => [w.id, getWidgetData(projectId, w)])
+  );
 
   return (
     <div className="flex flex-col gap-8 sm:gap-10">

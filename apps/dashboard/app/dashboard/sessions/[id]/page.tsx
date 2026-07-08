@@ -19,11 +19,12 @@ export const dynamic = 'force-dynamic';
 export default async function SessionReplay(props: { params: Promise<{ id: string }> }) {
   const params = await props.params;
 
-  const sessionList = await db.select().from(sessions).where(eq(sessions.id, params.id));
+  const [sessionList, logs, network] = await Promise.all([
+    db.select().from(sessions).where(eq(sessions.id, params.id)),
+    db.select().from(consoleLogs).where(eq(consoleLogs.sessionId, params.id)).orderBy(consoleLogs.timestamp),
+    db.select().from(networkRequests).where(eq(networkRequests.sessionId, params.id)).orderBy(networkRequests.timestamp),
+  ]);
   const session = sessionList[0] || null;
-
-  const logs    = await db.select().from(consoleLogs).where(eq(consoleLogs.sessionId, params.id)).orderBy(consoleLogs.timestamp);
-  const network = await db.select().from(networkRequests).where(eq(networkRequests.sessionId, params.id)).orderBy(networkRequests.timestamp);
 
   if (!session) return (
     <div className="flex h-[60vh] items-center justify-center flex-col gap-4">
