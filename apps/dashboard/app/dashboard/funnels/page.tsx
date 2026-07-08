@@ -2,7 +2,7 @@ import { cookies } from 'next/headers';
 import FunnelsClient from './funnels-client';
 import { Metadata } from 'next';
 import { db } from '@/lib/db';
-import { funnels } from '@rewind/shared';
+import { funnels, projects } from '@rewind/shared';
 import { eq, desc, sql } from 'drizzle-orm';
 
 export const metadata: Metadata = {
@@ -15,8 +15,11 @@ export default async function FunnelsPage() {
 
   let initialFunnels: any[] = [];
   let initialEvents: string[] = [];
+  let allProjects: any[] = [];
 
   try {
+    allProjects = await db.select().from(projects);
+
     if (projectId !== 'all') {
       const list = await db.select().from(funnels)
         .where(eq(funnels.projectId, projectId))
@@ -41,7 +44,8 @@ export default async function FunnelsPage() {
     <FunnelsClient 
       projectId={projectId} 
       initialFunnels={initialFunnels} 
-      initialEvents={initialEvents} 
+      initialEvents={initialEvents}
+      allProjects={allProjects}
     />
   );
 }

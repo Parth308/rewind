@@ -1,9 +1,10 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Play, Plus, X, BarChart3, Clock, ArrowRight, PlayCircle, Save, FolderOpen, Activity, ChevronRight, Globe } from 'lucide-react';
+import { Play, Plus, X, BarChart3, Clock, ArrowRight, PlayCircle, Save, FolderOpen, Activity, ChevronRight, Globe, Folder } from 'lucide-react';
 import { FadeUp } from '@/components/ui/fade-up';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 
 interface Step {
   type: 'event' | 'url';
@@ -30,11 +31,13 @@ interface FunnelResult {
 export default function FunnelsClient({ 
   projectId,
   initialFunnels,
-  initialEvents
+  initialEvents,
+  allProjects = []
 }: { 
   projectId: string,
   initialFunnels: any[],
-  initialEvents: string[]
+  initialEvents: string[],
+  allProjects?: any[]
 }) {
   const [steps, setSteps] = useState<Step[]>([{ type: 'url', value: '/pricing' }, { type: 'event', value: 'Started Trial' }]);
   const [timeWindow, setTimeWindow] = useState('1800000'); // 30m in ms
@@ -50,6 +53,15 @@ export default function FunnelsClient({
   const [errorMsg, setErrorMsg] = useState('');
   const [showSaveModal, setShowSaveModal] = useState(false);
   const [saveName, setSaveName] = useState('');
+  const [showProjectPicker, setShowProjectPicker] = useState(false);
+
+  const router = useRouter();
+
+  const handleProjectSwitch = (id: string) => {
+    document.cookie = `rewind_active_project=${id}; path=/; max-age=31536000`;
+    setShowProjectPicker(false);
+    router.refresh();
+  };
 
   const addStep = () => setSteps([...steps, { type: 'event', value: '' }]);
 
@@ -77,7 +89,7 @@ export default function FunnelsClient({
   };
 
   const openSaveModal = () => {
-    if (projectId === 'all') return setErrorMsg('Please select a specific project first.');
+    if (projectId === 'all') return setShowProjectPicker(true);
     if (steps.some(s => !s.value.trim())) return setErrorMsg('Please fill in all step values.');
     setErrorMsg('');
     setShowSaveModal(true);
@@ -116,7 +128,7 @@ export default function FunnelsClient({
     const currentSteps = stepsOverride || steps;
     const currentTimeWindow = timeWindowOverride || timeWindow;
 
-    if (projectId === 'all') return setErrorMsg('Please select a specific project first.');
+    if (projectId === 'all') return setShowProjectPicker(true);
     if (currentSteps.some(s => !s.value.trim())) return setErrorMsg('Please fill in all step values.');
 
     setErrorMsg('');
@@ -149,6 +161,47 @@ export default function FunnelsClient({
 
   return (
     <div className="flex flex-col gap-10">
+
+      {/* Project Picker Modal */}
+      {showProjectPicker && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
+          <div className="bg-[#0A0A0A] border border-[var(--color-border-dark)] rounded-2xl w-full max-w-md overflow-hidden shadow-2xl relative">
+            <div className="p-6 border-b border-[var(--color-border-dark)]">
+              <div className="flex items-start justify-between gap-4">
+                <div>
+                  <h3 className="font-sans text-xl font-bold text-white mb-1">Select a Project</h3>
+                  <p className="text-sm text-neutral-500">Funnel analysis requires a specific project. Choose one below.</p>
+                </div>
+                <button onClick={() => setShowProjectPicker(false)} className="p-1.5 text-neutral-500 hover:text-white transition-colors rounded-lg hover:bg-white/5">
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+            </div>
+            <div className="p-3 flex flex-col gap-1 max-h-72 overflow-y-auto">
+              {allProjects.length === 0 ? (
+                <p className="text-sm font-mono text-neutral-600 text-center py-6">No projects found.</p>
+              ) : (
+                allProjects.map((p) => (
+                  <button
+                    key={p.id}
+                    onClick={() => handleProjectSwitch(p.id)}
+                    className="w-full flex items-center gap-3 px-4 py-3.5 rounded-xl hover:bg-white/[0.06] border border-transparent hover:border-[var(--color-accent-green)]/30 transition-all group text-left"
+                  >
+                    <div className="w-8 h-8 rounded-lg bg-[var(--color-accent-green)]/10 flex items-center justify-center shrink-0 group-hover:bg-[var(--color-accent-green)]/20 transition-colors">
+                      <Folder className="w-4 h-4 text-[var(--color-accent-green)]" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="text-sm font-medium text-neutral-200 group-hover:text-white transition-colors truncate">{p.name}</div>
+                      <div className="text-[11px] font-mono text-neutral-600 truncate">{p.id}</div>
+                    </div>
+                    <ArrowRight className="w-4 h-4 text-neutral-600 group-hover:text-[var(--color-accent-green)] group-hover:translate-x-0.5 transition-all shrink-0" />
+                  </button>
+                ))
+              )}
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Save Modal */}
       {showSaveModal && (
