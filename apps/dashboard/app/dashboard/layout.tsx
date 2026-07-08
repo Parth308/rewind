@@ -18,10 +18,12 @@ async function checkIngestorHealth() {
 }
 
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
-  // First-run experience check
-  const userCountResult = await db.select({ count: count() }).from(users);
-  if (Number(userCountResult[0].count) === 0) {
-    redirect('/setup');
+  // First-run experience check (skip in demo mode — demo DB may have no users)
+  if (process.env.NEXT_PUBLIC_DEMO_MODE !== 'true') {
+    const userCountResult = await db.select({ count: count() }).from(users);
+    if (Number(userCountResult[0].count) === 0) {
+      redirect('/setup');
+    }
   }
 
   const isLive = await checkIngestorHealth();

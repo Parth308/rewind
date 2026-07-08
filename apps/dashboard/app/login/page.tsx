@@ -8,10 +8,13 @@ import { AuthSplitLayout } from '@/components/auth/AuthSplitLayout';
 export const dynamic = 'force-dynamic';
 
 export default async function LoginPage() {
-  const c = await db.select({ count: count() }).from(users);
-  
-  if (Number(c[0].count) === 0) {
-    redirect('/setup');
+  // In demo mode, skip the user-count check entirely — the middleware already
+  // redirects authenticated visitors away from /login.
+  if (process.env.NEXT_PUBLIC_DEMO_MODE !== 'true') {
+    const c = await db.select({ count: count() }).from(users);
+    if (Number(c[0].count) === 0) {
+      redirect('/setup');
+    }
   }
 
   return (
