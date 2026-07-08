@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Play, Plus, X, BarChart3, Clock, ArrowRight, PlayCircle, Save, FolderOpen, Activity, ChevronRight, Globe, Folder } from 'lucide-react';
 import { FadeUp } from '@/components/ui/fade-up';
 import Link from 'next/link';
@@ -56,9 +56,24 @@ export default function FunnelsClient({
   const [showProjectPicker, setShowProjectPicker] = useState(false);
 
   const router = useRouter();
+  // When the user picks a project from the dialog, we set this flag so that
+  // once router.refresh() completes and the new projectId prop arrives, we
+  // auto-run the analysis without requiring a second click.
+  const pendingAnalyzeRef = useRef(false);
+
+  // Auto-run analyze when projectId changes from 'all' to a real project
+  // (triggered after handleProjectSwitch + router.refresh())
+  useEffect(() => {
+    if (pendingAnalyzeRef.current && projectId !== 'all') {
+      pendingAnalyzeRef.current = false;
+      analyze();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [projectId]);
 
   const handleProjectSwitch = (id: string) => {
     document.cookie = `rewind_active_project=${id}; path=/; max-age=31536000`;
+    pendingAnalyzeRef.current = true;
     setShowProjectPicker(false);
     router.refresh();
   };
