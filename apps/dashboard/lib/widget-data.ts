@@ -1,7 +1,114 @@
 import { db } from '@/lib/db';
 import { sql } from 'drizzle-orm';
 
+// ---------------------------------------------------------------------------
+// Demo-mode helpers — generate realistic-looking fake analytics data so the
+// dashboard doesn't show all-zeros when NEXT_PUBLIC_DEMO_MODE === 'true'.
+// ---------------------------------------------------------------------------
+function demoDailyData(timeframe: number, baseValue: number, variance = 0.4) {
+  const data = [];
+  let total = 0;
+  // Simple LCG so values are deterministic per metric (looks real, not random)
+  let seed = baseValue * 31337;
+  const lcg = () => { seed = (seed * 1664525 + 1013904223) & 0xffffffff; return Math.abs(seed) / 0x7fffffff; };
+
+  for (let i = timeframe - 1; i >= 0; i--) {
+    const d = new Date();
+    d.setDate(d.getDate() - i);
+    const label = d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+    // Weekend dip
+    const dayOfWeek = d.getDay();
+    const weekdayFactor = (dayOfWeek === 0 || dayOfWeek === 6) ? 0.55 : 1;
+    const noise = 1 - variance / 2 + lcg() * variance;
+    const value = Math.max(0, Math.round(baseValue * weekdayFactor * noise));
+    data.push({ date: label, value });
+    total += value;
+  }
+  return { data, total };
+}
+
+const DEMO_BASE: Record<string, number> = {
+  sessions: 210,
+  events: 14800,
+  network: 6300,
+  errors: 38,
+  rage_clicks: 24,
+  dead_clicks: 41,
+  u_turns: 19,
+  wild_scrolling: 53,
+  failed_api: 28,
+  slow_api: 62,
+  console_warn: 74,
+  ai_tokens: 18500,
+  custom_event: 95,
+};
+
+const DEMO_BROWSER_DIST = [
+  { name: 'Chrome', value: 5821 },
+  { name: 'Safari', value: 3104 },
+  { name: 'Firefox', value: 1047 },
+  { name: 'Edge', value: 726 },
+  { name: 'Other', value: 302 },
+];
+
+const DEMO_OS_DIST = [
+  { name: 'macOS', value: 4230 },
+  { name: 'Windows', value: 3870 },
+  { name: 'iOS', value: 1620 },
+  { name: 'Android', value: 940 },
+  { name: 'Linux', value: 340 },
+];
+
+const DEMO_DEVICE_DIST = [
+  { name: 'Desktop', value: 7100 },
+  { name: 'Mobile', value: 2560 },
+  { name: 'Tablet', value: 340 },
+];
+
+const DEMO_ERROR_SOURCE_DIST = [
+  { name: 'TypeError', value: 182 },
+  { name: 'NetworkError', value: 97 },
+  { name: 'ReferenceError', value: 54 },
+  { name: 'SyntaxError', value: 21 },
+];
+
 export async function getWidgetData(projectId: string, widget: any) {
+  // --- Demo Mode: return fake data without hitting the database ---
+  if (process.env.NEXT_PUBLIC_DEMO_MODE === 'true') {
+    const config = widget.config as any || {};
+    const timeframe = parseInt(config.timeframe, 10) || 14;
+
+    if (widget.type === 'client_targets') {
+      return {
+        success: true,
+        data: {
+          browserStats: DEMO_BROWSER_DIST.slice(0, 5).map(b => ({ browser: b.name, count: String(b.value) })),
+          avgMs: 142,
+        },
+      };
+    }
+
+    const distMetrics: Record<string, { name: string; value: number }[]> = {
+      browser_distribution: DEMO_BROWSER_DIST,
+      os_distribution: DEMO_OS_DIST,
+      device_distribution: DEMO_DEVICE_DIST,
+      error_source_distribution: DEMO_ERROR_SOURCE_DIST,
+    };
+    if (distMetrics[widget.metric]) {
+      const items = distMetrics[widget.metric];
+      return {
+        success: true,
+        data: items,
+        total: items.reduce((s, i) => s + i.value, 0),
+      };
+    }
+
+    const base = DEMO_BASE[widget.metric] ?? 80;
+    const { data, total } = demoDailyData(timeframe, base);
+    return { success: true, data, total };
+  }
+  // ---------------------------------------------------------------
+
   try {
     let rawData: any[] = [];
     const config = widget.config as any || {};

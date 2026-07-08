@@ -1,52 +1,33 @@
 import { db } from '@/lib/db';
-import { aiUsageLogs, projects } from '@rewind/shared';
+import { aiUsageLogs } from '@rewind/shared';
 import { eq, sql } from 'drizzle-orm';
 import { BarChart3, BrainCircuit } from 'lucide-react';
 
-export async function AiUsageCard({ projectId }: { projectId: string }) {
-  // Per-model usage breakdown
+// --------------- Shared UI ---------------
+const providerColor: Record<string, string> = {
+  google: 'bg-blue-500 shadow-[0_0_8px_rgba(59,130,246,0.5)]',
+  openai: 'bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]',
+  anthropic: 'bg-orange-500 shadow-[0_0_8px_rgba(249,115,22,0.5)]',
+};
 
-  // Per-model usage breakdown
-  const usageData = await db
-    .select({
-      model: aiUsageLogs.model,
-      provider: aiUsageLogs.provider,
-      action: aiUsageLogs.action,
-      totalTokens: sql<number>`sum(${aiUsageLogs.totalTokens})`,
-      promptTokens: sql<number>`sum(${aiUsageLogs.promptTokens})`,
-      completionTokens: sql<number>`sum(${aiUsageLogs.completionTokens})`,
-      calls: sql<number>`count(*)`,
-    })
-    .from(aiUsageLogs)
-    .where(projectId !== 'all' ? eq(aiUsageLogs.projectId, projectId) : undefined)
-    .groupBy(aiUsageLogs.model, aiUsageLogs.provider, aiUsageLogs.action)
-    .orderBy(sql`sum(${aiUsageLogs.totalTokens}) desc`);
+const providerBadge: Record<string, string> = {
+  google: 'text-blue-400 border-blue-500/30 bg-blue-500/10',
+  openai: 'text-emerald-400 border-emerald-500/30 bg-emerald-500/10',
+  anthropic: 'text-orange-400 border-orange-500/30 bg-orange-500/10',
+};
 
-  const totalTokens = usageData.reduce((s, r) => s + Number(r.totalTokens), 0);
-  const totalCalls = usageData.reduce((s, r) => s + Number(r.calls), 0);
-
-  // Collapse by model (aggregate across actions)
-  const byModel = new Map<string, { model: string; provider: string; totalTokens: number; calls: number }>();
-  for (const row of usageData) {
-    const key = row.model;
-    if (!byModel.has(key)) byModel.set(key, { model: row.model, provider: row.provider, totalTokens: 0, calls: 0 });
-    const existing = byModel.get(key)!;
-    existing.totalTokens += Number(row.totalTokens);
-    existing.calls += Number(row.calls);
-  }
-  const modelRows = Array.from(byModel.values()).sort((a, b) => b.totalTokens - a.totalTokens);
-
-  const providerColor: Record<string, string> = {
-    google: 'bg-blue-500 shadow-[0_0_8px_rgba(59,130,246,0.5)]',
-    openai: 'bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]',
-    anthropic: 'bg-orange-500 shadow-[0_0_8px_rgba(249,115,22,0.5)]',
-  };
-
-  const providerBadge: Record<string, string> = {
-    google: 'text-blue-400 border-blue-500/30 bg-blue-500/10',
-    openai: 'text-emerald-400 border-emerald-500/30 bg-emerald-500/10',
-    anthropic: 'text-orange-400 border-orange-500/30 bg-orange-500/10',
-  };
+function AiUsageCardUI({
+  totalTokens,
+  totalCalls,
+  modelRows,
+  providerCount,
+}: {
+  totalTokens: number;
+  totalCalls: number;
+  modelRows: { model: string; provider: string; totalTokens: number; calls: number }[];
+  providerCount?: number;
+}) {
+  const providers = providerCount ?? new Set(modelRows.map(r => r.provider)).size;
 
   return (
     <div className="bg-[#0A0A0A] border border-[var(--color-border-dark)] rounded-2xl p-8 relative overflow-hidden group">
@@ -54,7 +35,7 @@ export async function AiUsageCard({ projectId }: { projectId: string }) {
       <div className="absolute top-0 right-0 -mt-24 -mr-24 w-64 h-64 bg-purple-500 opacity-[0.02] blur-[80px] rounded-full pointer-events-none" />
 
       <h3 className="font-sans text-2xl font-bold text-white mb-8 relative z-10 flex items-center gap-3">
-        <BrainCircuit className="w-5 h-5 text-purple-400" /> AI Usage & Token Ledger
+        <BrainCircuit className="w-5 h-5 text-purple-400" /> AI Usage &amp; Token Ledger
       </h3>
 
       {/* Summary KPIs */}
@@ -63,7 +44,7 @@ export async function AiUsageCard({ projectId }: { projectId: string }) {
           { label: 'TOTAL TOKENS', value: totalTokens.toLocaleString(), color: 'text-purple-400', border: 'border-purple-500/30', glow: 'shadow-[0_0_15px_rgba(168,85,247,0.1)]' },
           { label: 'API CALLS', value: totalCalls.toLocaleString(), color: 'text-neutral-300', border: 'border-neutral-700', glow: '' },
           { label: 'MODELS USED', value: modelRows.length.toString(), color: 'text-neutral-300', border: 'border-neutral-700', glow: '' },
-          { label: 'PROVIDERS', value: new Set(usageData.map(r => r.provider)).size.toString(), color: 'text-neutral-300', border: 'border-neutral-700', glow: '' },
+          { label: 'PROVIDERS', value: providers.toString(), color: 'text-neutral-300', border: 'border-neutral-700', glow: '' },
         ].map((stat, i) => (
           <div key={i} className={`bg-[#111] rounded-xl p-5 border ${stat.border} ${stat.glow} relative overflow-hidden`}>
             <div className={`text-[10px] font-mono tracking-[0.2em] mb-3 ${stat.color} opacity-70`}>{stat.label}</div>
@@ -114,5 +95,60 @@ export async function AiUsageCard({ projectId }: { projectId: string }) {
         ⓘ Token counts reflect usage logged by Rewind. Actual API billing quotas are managed per-provider on their respective dashboards. This is a relative usage tracker, not a quota enforcer.
       </p>
     </div>
+  );
+}
+
+// --------------- Main export ---------------
+export async function AiUsageCard({ projectId }: { projectId: string }) {
+  // --- Demo Mode ---
+  if (process.env.NEXT_PUBLIC_DEMO_MODE === 'true') {
+    const demoRows = [
+      { model: 'gemini-1.5-flash', provider: 'google', totalTokens: 1284300, calls: 3412 },
+      { model: 'text-embedding-3-small', provider: 'openai', totalTokens: 876200, calls: 12840 },
+      { model: 'claude-3-haiku-20240307', provider: 'anthropic', totalTokens: 421500, calls: 1870 },
+    ];
+    const totalTokens = demoRows.reduce((s, r) => s + r.totalTokens, 0);
+    const totalCalls = demoRows.reduce((s, r) => s + r.calls, 0);
+    return <AiUsageCardUI totalTokens={totalTokens} totalCalls={totalCalls} modelRows={demoRows} providerCount={3} />;
+  }
+  // -----------------
+
+  // Per-model usage breakdown
+  const usageData = await db
+    .select({
+      model: aiUsageLogs.model,
+      provider: aiUsageLogs.provider,
+      action: aiUsageLogs.action,
+      totalTokens: sql<number>`sum(${aiUsageLogs.totalTokens})`,
+      promptTokens: sql<number>`sum(${aiUsageLogs.promptTokens})`,
+      completionTokens: sql<number>`sum(${aiUsageLogs.completionTokens})`,
+      calls: sql<number>`count(*)`,
+    })
+    .from(aiUsageLogs)
+    .where(projectId !== 'all' ? eq(aiUsageLogs.projectId, projectId) : undefined)
+    .groupBy(aiUsageLogs.model, aiUsageLogs.provider, aiUsageLogs.action)
+    .orderBy(sql`sum(${aiUsageLogs.totalTokens}) desc`);
+
+  const totalTokens = usageData.reduce((s, r) => s + Number(r.totalTokens), 0);
+  const totalCalls = usageData.reduce((s, r) => s + Number(r.calls), 0);
+
+  // Collapse by model (aggregate across actions)
+  const byModel = new Map<string, { model: string; provider: string; totalTokens: number; calls: number }>();
+  for (const row of usageData) {
+    const key = row.model;
+    if (!byModel.has(key)) byModel.set(key, { model: row.model, provider: row.provider, totalTokens: 0, calls: 0 });
+    const existing = byModel.get(key)!;
+    existing.totalTokens += Number(row.totalTokens);
+    existing.calls += Number(row.calls);
+  }
+  const modelRows = Array.from(byModel.values()).sort((a, b) => b.totalTokens - a.totalTokens);
+
+  return (
+    <AiUsageCardUI
+      totalTokens={totalTokens}
+      totalCalls={totalCalls}
+      modelRows={modelRows}
+      providerCount={new Set(usageData.map(r => r.provider)).size}
+    />
   );
 }
