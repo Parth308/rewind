@@ -40,13 +40,23 @@ export async function loginUser(prevState: any, formData: FormData) {
   redirect('/dashboard');
 }
 
-export async function demoLogin() {
+export async function demoLogin(formData?: FormData): Promise<void> {
+  console.log('demoLogin action called! NEXT_PUBLIC_DEMO_MODE =', process.env.NEXT_PUBLIC_DEMO_MODE);
   if (process.env.NEXT_PUBLIC_DEMO_MODE !== 'true') {
-    return { error: 'Demo mode is not enabled on this environment.' };
+    console.warn('demoLogin: demo mode is not active on the server.');
+    return;
   }
   
-  // Set a dummy admin session cookie for the demo viewer
-  // Use a valid UUID format to prevent Postgres syntax errors when querying the users table
-  await createSessionCookie('00000000-0000-0000-0000-000000000000', 'admin');
+  try {
+    console.log('demoLogin: Creating guest admin session cookie...');
+    // Set a dummy admin session cookie for the demo viewer
+    // Use a valid UUID format to prevent Postgres syntax errors when querying the users table
+    await createSessionCookie('00000000-0000-0000-0000-000000000000', 'admin');
+    console.log('demoLogin: Cookie created successfully. Redirecting to /dashboard...');
+  } catch (error) {
+    console.error('demoLogin: Failed to create session cookie:', error);
+    return;
+  }
+  
   redirect('/dashboard');
 }

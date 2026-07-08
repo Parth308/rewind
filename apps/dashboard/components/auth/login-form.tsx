@@ -1,7 +1,7 @@
 "use client";
 
 import { useActionState } from 'react';
-import { loginUser } from '@/app/login/actions';
+import { loginUser, demoLogin } from '@/app/login/actions';
 import { motion } from 'framer-motion';
 import { ArrowRight, Lock, Mail } from 'lucide-react';
 
@@ -90,10 +90,7 @@ export function LoginForm() {
       {process.env.NEXT_PUBLIC_DEMO_MODE === 'true' && (
         <motion.form 
           variants={itemVariants}
-          action={async () => {
-            const { demoLogin } = await import('@/app/login/actions');
-            await demoLogin();
-          }}
+          action={demoLogin}
           className="mt-4"
         >
           <button
